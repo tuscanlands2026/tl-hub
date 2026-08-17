@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tuscan Lands · Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Sorts+Mill+Goudy:ital@0;1&family=Libre+Franklin:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --cream-light:#f6f3f0; --cream:#eae4db; --terracotta:#772f25;
+  --sage:#595e49; --brown:#a2564c; --copper:#a56850;
+  --ink:#2a2a28; --muted:#6b6860; --white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0;border-radius:0;}
+body{font-family:'Libre Franklin',sans-serif;font-weight:300;color:var(--ink);background:var(--cream-light);}
+h1,h2,h3{font-family:'Sorts Mill Goudy',serif;font-weight:400;}
+a{color:var(--terracotta);}
+input,select,textarea,button{font-family:'Libre Franklin';font-size:14px;font-weight:300;}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--cream);background:#fff;color:var(--ink);}
+input:focus,select:focus,textarea:focus{outline:1px solid var(--copper);}
+textarea{resize:vertical;line-height:1.6;}
+label{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);font-weight:500;margin-bottom:5px;}
+.btn{font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.1em;padding:11px 18px;
+  border:1px solid var(--terracotta);background:var(--terracotta);color:#fff;cursor:pointer;}
+.btn.ghost{background:transparent;color:var(--terracotta);}
+.btn.sage{background:var(--sage);border-color:var(--sage);}
+.btn:disabled{opacity:.45;cursor:default;}
+.btn.sm{padding:7px 12px;font-size:11px;}
+.hide{display:none !important;}
+
+/* ---------- shell ---------- */
+.topbar{background:var(--terracotta);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:18px;}
+.topbar .mark{font-family:'Sorts Mill Goudy';font-size:16px;letter-spacing:.14em;}
+.topbar .sep{opacity:.5;font-size:12px;}
+.topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:12px;}
+.topbar .right button{background:none;border:1px solid rgba(255,255,255,.5);color:#fff;padding:6px 12px;
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 24px 80px;}
+.card{background:#fff;border:1px solid var(--cream);padding:24px;}
+.stack{display:flex;flex-direction:column;gap:18px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.overline{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);font-weight:500;}
+.rule{width:30px;height:1px;background:var(--copper);margin:10px 0 18px;}
+.muted{color:var(--muted);font-size:13px;line-height:1.6;}
+
+/* ---------- login / setup ---------- */
+.gate{max-width:400px;margin:12vh auto;padding:0 24px;}
+.gate .mark{font-family:'Sorts Mill Goudy';font-size:22px;letter-spacing:.16em;color:var(--terracotta);text-align:center;}
+.gate .sub{text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:8px 0 30px;}
+.msg{font-size:13px;padding:10px 12px;border-left:2px solid var(--brown);background:#fbf7f4;color:var(--brown);}
+
+/* ---------- lista ---------- */
+table.list{width:100%;border-collapse:collapse;background:#fff;}
+table.list thead th{background:var(--sage);color:#fff;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  font-weight:500;padding:11px 12px;text-align:left;}
+table.list tbody td{padding:12px;border-bottom:1px solid var(--cream);font-size:14px;vertical-align:middle;}
+table.list tbody tr:hover{background:var(--cream-light);cursor:pointer;}
+.badge{display:inline-block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;padding:3px 9px;color:#fff;}
+.badge.draft{background:var(--muted);}
+.badge.sent{background:var(--copper);}
+.badge.confirmed{background:var(--sage);}
+
+/* ---------- editor ---------- */
+.editor-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:22px;}
+.editor-head h1{font-size:30px;color:var(--terracotta);}
+.editor-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;}
+.section-title{font-family:'Libre Franklin';font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--sage);font-weight:500;border-bottom:1px solid var(--cream);padding-bottom:7px;margin-bottom:16px;}
+table.rows{width:100%;border-collapse:collapse;}
+table.rows th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--sage);font-weight:500;
+  text-align:left;padding:0 8px 6px 0;}
+table.rows td{padding:0 8px 8px 0;vertical-align:top;}
+table.rows td.x{width:34px;padding-right:0;}
+.iconbtn{border:none;background:none;color:var(--brown);cursor:pointer;font-size:15px;padding:8px 4px;}
+.totalline{display:flex;justify-content:flex-end;gap:34px;align-items:baseline;margin-top:14px;}
+.totalline .lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);font-weight:500;}
+.totalline .amt{font-family:'Sorts Mill Goudy';font-size:26px;color:var(--terracotta);}
+.linkbox{display:flex;gap:8px;align-items:center;margin-top:12px;}
+.linkbox input{font-size:12px;color:var(--muted);}
+
+/* ---------- documento do cliente ---------- */
+.doc{max-width:900px;margin:0 auto;background:#fff;padding:48px 52px;box-shadow:0 1px 12px rgba(0,0,0,.08);}
+.doc .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--terracotta);padding-bottom:20px;}
+.doc .brand .logo-img{height:76px;width:auto;display:block;margin-bottom:12px;}
+.doc .brand .logo-text{font-family:'Sorts Mill Goudy';font-size:22px;letter-spacing:.14em;color:var(--terracotta);}
+.doc .brand .contact{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6;}
+.doc .to{text-align:right;max-width:320px;}
+.doc .to .lbl{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--sage);font-weight:500;}
+.doc .to .val{font-family:'Sorts Mill Goudy';font-size:17px;margin:2px 0 8px;line-height:1.35;}
+.doc h1.doctitle{font-family:'Libre Franklin';font-weight:400;font-size:26px;color:var(--terracotta);margin:26px 0 4px;}
+.doc .meta{display:grid;grid-template-columns:repeat(4,1fr);margin:20px 0 8px;border:1px solid var(--cream);}
+.doc .meta .cell{padding:12px 14px;border-right:1px solid var(--cream);}
+.doc .meta .cell:last-child{border-right:none;}
+.doc .meta .k{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);font-weight:500;}
+.doc .meta .v{font-size:14px;margin-top:5px;}
+.doc .intro{font-size:14px;line-height:1.75;text-align:justify;margin:22px 0 4px;white-space:pre-wrap;}
+.doc table.svc{width:100%;border-collapse:collapse;margin-top:22px;}
+.doc table.svc thead th{background:var(--sage);color:#fff;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  font-weight:500;padding:11px 12px;text-align:left;}
+.doc table.svc thead th.money{text-align:right;width:130px;}
+.doc table.svc tbody td{padding:12px;border-bottom:1px solid var(--cream);vertical-align:top;font-size:14px;}
+.doc table.svc tbody td.money{text-align:right;}
+.doc table.svc tbody tr:nth-child(even){background:var(--cream-light);}
+.doc .date-cell{font-weight:500;color:var(--sage);white-space:nowrap;}
+.doc .svc-title{font-weight:500;}
+.doc .svc-sub{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.6;white-space:pre-wrap;}
+.doc .total-row{display:flex;justify-content:flex-end;margin-top:20px;}
+.doc .total-box{background:var(--cream);padding:16px 28px;display:flex;gap:40px;align-items:center;}
+.doc .total-box .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);font-weight:500;}
+.doc .total-box .amt{font-family:'Sorts Mill Goudy';font-size:28px;color:var(--terracotta);}
+.doc table.pay{width:100%;border-collapse:collapse;margin-top:14px;}
+.doc table.pay th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--sage);font-weight:500;
+  text-align:left;padding:8px 10px;border-bottom:1px solid var(--cream);}
+.doc table.pay td{padding:9px 10px;border-bottom:1px solid var(--cream);font-size:13.5px;}
+.doc table.pay td.money{text-align:right;}
+.doc .terms{margin-top:34px;border-top:1px solid var(--cream);padding-top:22px;}
+.doc .terms h2{font-size:22px;color:var(--terracotta);text-align:center;margin-bottom:6px;}
+.doc .terms h3{font-family:'Libre Franklin';font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);
+  font-weight:500;margin:22px 0 10px;border-bottom:1px solid var(--cream);padding-bottom:6px;}
+.doc .terms ol{margin:0 0 4px 18px;}
+.doc .terms li{font-size:12.5px;line-height:1.65;margin-bottom:9px;text-align:justify;}
+.doc .terms ul{margin:8px 0 4px 18px;}
+.doc .foot{margin-top:30px;text-align:center;font-size:11px;color:var(--muted);line-height:1.7;}
+.doc .foot .co{font-family:'Sorts Mill Goudy';font-size:13px;color:var(--sage);letter-spacing:.06em;}
+
+/* ---------- formulário de confirmação ---------- */
+.confirm-block{max-width:900px;margin:26px auto 60px;background:#fff;border:1px solid var(--cream);padding:40px 52px;}
+.confirm-block h2{font-size:24px;color:var(--terracotta);}
+.pax-row{display:grid;grid-template-columns:1fr 34px;gap:8px;margin-bottom:8px;align-items:center;}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.6;margin-bottom:14px;}
+.check input{width:auto;margin-top:3px;}
+.done{max-width:640px;margin:16vh auto;text-align:center;padding:0 24px;}
+.done h2{font-size:28px;color:var(--terracotta);margin-bottom:14px;}
+
+@media (max-width:760px){
+  .grid2,.grid3,.doc .meta{grid-template-columns:1fr;}
+  .doc{padding:28px 20px;}
+  .confirm-block{padding:28px 20px;}
+  .doc .head{flex-direction:column;gap:18px;}
+  .doc .to{text-align:left;}
+}
+@media print{
+  body{background:#fff;}
+  .topbar,.editor-actions,.confirm-block,.noprint{display:none !important;}
+  .doc{box-shadow:none;max-width:none;padding:20px 24px;}
+  .doc table.svc thead th{background:var(--sage)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .doc table.svc tbody tr:nth-child(even){background:var(--cream-light)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .doc .total-box{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .doc .terms h3{break-after:avoid;}
+  .doc .terms li{break-inside:avoid;}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =====================================================================
+   CONFIGURAÇÃO — cole aqui a URL e a anon key do projeto Supabase do HUB.
+   Enquanto estiverem vazias, o app pede as duas na tela (só na sessão).
+   ===================================================================== */
+const SUPABASE_URL = "";
+const SUPABASE_ANON_KEY = "";
+
+const LOGO = "https://i.postimg.cc/k45xbsK4/grosseto.png";
+const COMPANY = {
+  legal: "Tuscan Lands di Batistella Maria Fernanda",
+  vat: "VAT IT06873750480 · Pontassieve (FI), Italy",
+  email: "booking@tuscanlandstravel.com"
+};
+
+let sb = null, cfg = {url:SUPABASE_URL, key:SUPABASE_ANON_KEY};
+const app = document.getElementById("app");
+const el = id => document.getElementById(id);
+const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const eur = n => "€ " + (Number(n)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const nl2br = s => esc(s).replace(/\n/g,"<br>");
+
+/* ------------------------------------------------------------ TEXTOS */
+const T = {
+  pt:{
+    docTitle:"Confirmação de Serviços",
+    to:"Para", ref:"Referência", opp:"Oportunidade", pax:"Passageiros",
+    period:"Período", status:"Status", statusVal:{draft:"Rascunho",sent:"Aguardando confirmação",confirmed:"Confirmada"},
+    date:"Data", service:"Serviço", price:"Valor €", total:"Total",
+    payTitle:"Condições de pagamento", payLabel:"Parcela", payDue:"Vencimento",
+    payAmount:"Valor", payStatus:"Situação", paid:"Pago", pending:"A pagar",
+    confirmTitle:"Confirmação dos dados",
+    confirmIntro:"Os nomes abaixo são os que constarão nas reservas junto aos fornecedores. Escreva exatamente como aparecem no passaporte.",
+    lead:"Contato principal da viagem", leadName:"Nome completo", leadEmail:"E-mail",
+    leadPhone:"Telefone com WhatsApp", adults:"Adultos", children:"Crianças (somente idade na data da viagem)",
+    addAdult:"+ Adulto", addChild:"+ Criança", age:"Idade",
+    ackVehicle:"Confirmo que o número de passageiros e o volume de bagagem informados estão corretos. Bagagem excedente pode exigir veículo maior e ajuste de valor.",
+    ackTerms:"Li e aceito os termos e condições deste documento.",
+    signature:"Assinatura digital — digite seu nome completo",
+    remarks:"Observações (opcional)",
+    submit:"Confirmar serviços", sending:"Enviando…",
+    doneTitle:"Confirmação recebida", doneText:"Os dados chegaram até nós. Qualquer ajuste, responda o e-mail da Tuscan Lands.",
+    alreadyTitle:"Serviços já confirmados", alreadyText:"Este documento já foi confirmado. Para alterações, fale com a Tuscan Lands.",
+    expired:"Este link expirou.", notFound:"Documento não encontrado.",
+    errFill:"Preencha nome, e-mail e assinatura, e aceite os termos.",
+    print:"Imprimir / PDF"
+  },
+  en:{
+    docTitle:"Service Confirmation",
+    to:"To", ref:"Reference", opp:"Opportunity", pax:"Travellers",
+    period:"Period", status:"Status", statusVal:{draft:"Draft",sent:"Awaiting confirmation",confirmed:"Confirmed"},
+    date:"Date", service:"Service", price:"Price €", total:"Total",
+    payTitle:"Payment terms", payLabel:"Instalment", payDue:"Due",
+    payAmount:"Amount", payStatus:"Status", paid:"Paid", pending:"Due",
+    confirmTitle:"Confirm your details",
+    confirmIntro:"The names below go into the supplier bookings. Please write them exactly as they appear on the passport.",
+    lead:"Lead contact", leadName:"Full name", leadEmail:"Email",
+    leadPhone:"Phone with WhatsApp", adults:"Adults", children:"Children (age at travel date only)",
+    addAdult:"+ Adult", addChild:"+ Child", age:"Age",
+    ackVehicle:"I confirm the number of travellers and the luggage volume are correct. Extra luggage may require a larger vehicle and a price adjustment.",
+    ackTerms:"I have read and accept the terms and conditions in this document.",
+    signature:"Digital signature — type your full name",
+    remarks:"Remarks (optional)",
+    submit:"Confirm services", sending:"Sending…",
+    doneTitle:"Confirmation received", doneText:"We have your details. For any change, reply to the Tuscan Lands email.",
+    alreadyTitle:"Already confirmed", alreadyText:"This document has already been confirmed. For changes, contact Tuscan Lands.",
+    expired:"This link has expired.", notFound:"Document not found.",
+    errFill:"Please fill in name, email and signature, and accept the terms.",
+    print:"Print / PDF"
+  }
+};
+
+/* ------------------------------------------------- TERMOS E CONDIÇÕES */
+const TERMS = {
+pt:`<h2>Termos e Condições</h2>
+<h3>Serviços de Transporte e Transfers</h3>
+<ol>
+<li>Para serviços de transfer privativo, aplica-se uma tolerância de 20 minutos em caso de atraso do passageiro. Exceto em situações fora do controle do passageiro, como atrasos de voo, o passageiro reconhece que qualquer atraso além desse período incorrerá em cobrança adicional de €105 por hora.</li>
+<li>Para day tours com motorista privativo à disposição, o roteiro é elaborado pela equipe técnica da Tuscan Lands em coordenação com o cliente e deve ser seguido conforme acordado. Os motoristas não estão autorizados a fazer paradas não programadas, alterar a rota ou incluir atividades não aprovadas previamente.</li>
+<li>A tarifa acordada cobre uma rota pré-definida, com tempos de deslocamento estimados a partir do ponto de encontro designado pelo cliente. Despesas adicionais como pedágios, estacionamento e refeições do motorista já estão incluídas. Contudo, horas extras não previstas no roteiro original serão comunicadas e cobradas à parte, se aplicável.</li>
+<li>Observação: os motoristas não atuam como guias. Se a sua experiência exige informações culturais ou históricas, recomendamos contratar um guia profissional licenciado. Para assistência contínua e interpretação em idiomas diferentes de inglês ou italiano, é necessário um assistente de turismo licenciado. Todos os profissionais são certificados pelo governo italiano para exercer suas funções.</li>
+</ol>
+<h3>Condições Gerais para Tours e Experiências</h3>
+<ol>
+<li>Para tours em grupo e/ou sem transporte incluído, os viajantes são responsáveis por chegar pontualmente ao local designado. Atrasos podem resultar na perda parcial ou total da experiência, sem direito a reembolso ou compensação.</li>
+<li>Os viajantes têm suporte local da Tuscan Lands apenas no dia e durante o período da experiência reservada. A ordem das atividades pode ser ajustada para melhor logística.</li>
+<li>Os tours ocorrem mesmo em caso de chuva, exceto em situações de força maior por parte do fornecedor local. Caso o tour seja cancelado, os viajantes serão notificados e reembolsados integralmente caso não seja possível remarcar.</li>
+<li>A Tuscan Lands e seus parceiros não se responsabilizam por perdas, roubos ou danos a pertences pessoais durante a experiência.</li>
+<li>Itens e atividades não mencionados na descrição não estão incluídos, salvo quando oferecidos voluntariamente pela Tuscan Lands.</li>
+<li>Caso haja necessidade de mudanças no itinerário por fatores externos, os viajantes serão informados com pelo menos 24 horas de antecedência, podendo aceitar ou reagendar a experiência.</li>
+<li>Os viajantes concordam expressamente que a Tuscan Lands e seus parceiros podem utilizar imagens captadas durante os tours para fins promocionais, salvo solicitação formal contrária, que deve ser enviada por e-mail para hello@tuscanlandstravel.com.</li>
+</ol>
+<h3>Política de Reserva e Cancelamento</h3>
+<ol>
+<li>Os pagamentos podem ser feitos por transferência bancária ou cartão de crédito, salvo acordo diverso com a Tuscan Lands. Por se tratar de contrato com uma empresa italiana, as transações estão sujeitas aos impostos do seu país e/ou às taxas de câmbio aplicadas pela operadora do cartão.</li>
+<li>Todos os serviços são cotados, faturados e pagos em euros (EUR). Quando o pagamento é feito em outra moeda, a taxa de câmbio e eventuais custos de conversão são de responsabilidade do passageiro. Em caso de reembolso, sujeito às condições de cancelamento abaixo, o valor será baseado no montante em euros efetivamente recebido, e a Tuscan Lands não se responsabiliza por variações cambiais ou custos de conversão para a moeda local do passageiro.</li>
+<li>A aceitação dos termos e o pagamento constituem concordância com todas as condições deste documento.</li>
+<li>Prazos e taxas de cancelamento para todos os serviços (tours, experiências, transfers e estadias):
+<ul>
+<li>Da aceitação e pagamento até 15 dias úteis antes do serviço: <b>taxa administrativa e de planejamento de 15%</b>. Cobre o trabalho de curadoria e coordenação já realizado (contatos com fornecedores, reservas e eventual elaboração de roteiro), que ocorre independentemente da data de cancelamento.</li>
+<li>Entre 15 e 7 dias úteis antes do serviço: <b>taxa de 35%</b>.</li>
+<li>Menos de 7 dias úteis antes do serviço: <b>sem reembolso</b>, pois os valores já foram comprometidos com os fornecedores e são irrecuperáveis nesse momento.</li>
+</ul>
+</li>
+</ol>`,
+en:`<h2>Terms &amp; Conditions</h2>
+<h3>Transportation and Transfer Services</h3>
+<ol>
+<li>For private transfer services, a 20-minute grace period applies in case of traveler delay. Except in situations beyond the traveler's control, such as flight delays, the traveler acknowledges that any delay beyond this period will incur an additional charge of €105 per hour.</li>
+<li>For day tours with a private driver at your disposal, the itinerary is designed by the Tuscan Lands technical team in coordination with the client and must be followed as agreed. Drivers are not authorized to make unscheduled stops, alter the route, or include activities not previously approved.</li>
+<li>The agreed rate covers a pre-defined route, with estimated travel times starting from the client's designated meeting point. Additional expenses such as tolls, parking fees, and the driver's meals are already included. However, extra hours not included in the original itinerary will be communicated and charged separately, if applicable.</li>
+<li>Please note: drivers do not act as guides. If your experience requires cultural or historical insights, we recommend hiring a licensed professional guide. For continuous assistance and interpretation in languages other than English or Italian, a licensed tour assistant is required. All professionals are certified by the Italian government to perform their roles.</li>
+</ol>
+<h3>General Conditions for Tours and Experiences</h3>
+<ol>
+<li>For group tours and/or tours without transport included, travelers are responsible for arriving on time at the designated meeting point. Delays may result in partial or total loss of the experience, with no refund or compensation.</li>
+<li>Travelers have local Tuscan Lands support only on the day and during the period of the booked experience. The order of activities may be adjusted for better logistics.</li>
+<li>Tours run in the rain, except in cases of force majeure on the local supplier's side. Should a tour be cancelled, travelers will be notified and fully refunded if rescheduling is not possible.</li>
+<li>Tuscan Lands and its partners are not liable for loss, theft or damage to personal belongings during the experience.</li>
+<li>Items and activities not mentioned in the description are not included, unless voluntarily offered by Tuscan Lands.</li>
+<li>Should external factors require itinerary changes, travelers will be informed at least 24 hours in advance and may accept or reschedule the experience.</li>
+<li>Travelers expressly agree that Tuscan Lands and its partners may use images captured during tours for promotional purposes, unless a formal request to the contrary is sent to hello@tuscanlandstravel.com.</li>
+</ol>
+<h3>Booking and Cancellation Policy</h3>
+<ol>
+<li>Payments may be made via bank transfer or credit card, unless otherwise agreed upon with Tuscan Lands. Being a contract with an Italian company, transactions are subject to your country's taxes and/or exchange rate fees applied by the credit card operator.</li>
+<li>All services are quoted, invoiced and paid in euros (EUR). When payment is made in another currency, the exchange rate and any conversion fees are the traveler's responsibility. In case of refund, subject to the cancellation conditions below, reimbursement will be based on the euro amount actually received, and Tuscan Lands is not responsible for exchange rate variations or conversion fees to the traveler's local currency.</li>
+<li>The acceptance of the terms and payment constitute agreement with all conditions in this document.</li>
+<li>Cancellation deadlines and fees for all services (tours, experiences, transfers and stays):
+<ul>
+<li>From acceptance and payment up to 15 business days before the service: <b>15% administrative and planning fee</b>. This covers the curatorial and coordination work already carried out (supplier arrangements, reservations and eventual itinerary design), which occurs regardless of the cancellation date.</li>
+<li>Between 15 and 7 business days before the service: <b>35% fee</b>.</li>
+<li>Less than 7 business days before the service: <b>no refund</b>, as amounts have already been committed to suppliers and are non-recoverable at this stage.</li>
+</ul>
+</li>
+</ol>`
+};
+
+/* ==================================================================== */
+/*  BOOT                                                                */
+/* ==================================================================== */
+function makeClient(){
+  if(!cfg.url || !cfg.key) return false;
+  sb = supabase.createClient(cfg.url, cfg.key);
+  return true;
+}
+function route(){ return (location.hash||"").replace(/^#\/?/,""); }
+
+async function boot(){
+  const r = route();
+  const isPublic = r.startsWith("confirm/");
+  if(!makeClient()){ return renderSetup(isPublic ? r : null); }
+  if(isPublic) return renderPublic(r.split("/")[1]);
+  const {data} = await sb.auth.getSession();
+  if(!data.session) return renderLogin();
+  renderApp();
+}
+window.addEventListener("hashchange", boot);
+
+/* ---------------------------------------------------------- SETUP ---- */
+function renderSetup(){
+  app.innerHTML = `
+  <div class="gate">
+    <div class="mark">TUSCAN LANDS</div>
+    <div class="sub">Hub · Configuração</div>
+    <div class="stack">
+      <div class="msg">Cole a URL e a anon key do projeto Supabase do hub. Para fixar de vez, edite as duas constantes no topo do arquivo.</div>
+      <div><label>Supabase URL</label><input id="cfg-url" placeholder="https://xxxx.supabase.co"></div>
+      <div><label>Anon key</label><input id="cfg-key" placeholder="eyJ..."></div>
+      <button class="btn" id="cfg-go">Conectar</button>
+    </div>
+  </div>`;
+  el("cfg-go").onclick = () => {
+    cfg = {url:el("cfg-url").value.trim(), key:el("cfg-key").value.trim()};
+    boot();
+  };
+}
+
+/* ---------------------------------------------------------- LOGIN ---- */
+function renderLogin(){
+  app.innerHTML = `
+  <div class="gate">
+    <div class="mark">TUSCAN LANDS</div>
+    <div class="sub">Vendas &amp; Operações</div>
+    <div class="stack">
+      <div><label>E-mail</label><input id="lg-mail" type="email" autocomplete="username"></div>
+      <div><label>Senha</label><input id="lg-pass" type="password" autocomplete="current-password"></div>
+      <button class="btn" id="lg-go">Entrar</button>
+      <div id="lg-msg"></div>
+    </div>
+  </div>`;
+  const go = async () => {
+    const btn = el("lg-go"); btn.disabled = true; btn.textContent = "Entrando…";
+    const {error} = await sb.auth.signInWithPassword({
+      email: el("lg-mail").value.trim(), password: el("lg-pass").value});
+    if(error){
+      el("lg-msg").innerHTML = `<div class="msg">${esc(error.message)}</div>`;
+      btn.disabled = false; btn.textContent = "Entrar"; return;
+    }
+    renderApp();
+  };
+  el("lg-go").onclick = go;
+  el("lg-pass").onkeydown = e => { if(e.key==="Enter") go(); };
+}
+
+/* ==================================================================== */
+/*  APP INTERNO                                                         */
+/* ==================================================================== */
+let ORDER = null, ITEMS = [], PAYS = [], CONF = null;
+
+function shell(inner, crumb){
+  app.innerHTML = `
+  <div class="topbar">
+    <span class="mark">TUSCAN LANDS</span>
+    <span class="sep">·</span><span style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;">Vendas &amp; Operações</span>
+    ${crumb?`<span class="sep">·</span><span style="font-size:12px;">${esc(crumb)}</span>`:""}
+    <div class="right"><button id="tb-out">Sair</button></div>
+  </div>
+  <div class="wrap">${inner}</div>`;
+  el("tb-out").onclick = async () => { await sb.auth.signOut(); renderLogin(); };
+}
+
+async function renderApp(){
+  shell(`<div class="overline">Orders</div><div class="rule"></div>
+    <div id="list-host" class="muted">Carregando…</div>
+    <div class="card" style="margin-top:26px;">
+      <div class="section-title">Nova order</div>
+      <div class="grid3">
+        <div><label>Nº da oportunidade (CRM)</label><input id="n-opp" placeholder="TL035-26"></div>
+        <div><label>Referência da order</label><input id="n-ref" placeholder="TL035-26.1"></div>
+        <div><label>Idioma do documento</label>
+          <select id="n-lang"><option value="pt">Português</option><option value="en">English</option></select></div>
+      </div>
+      <div class="grid2" style="margin-top:14px;">
+        <div><label>Agência</label><input id="n-agency" placeholder="Refina Travel"></div>
+        <div><label>Cliente final</label><input id="n-client" placeholder="Sobrenome da família"></div>
+      </div>
+      <button class="btn" id="n-go" style="margin-top:18px;">Criar order</button>
+    </div>`);
+
+  el("n-go").onclick = async () => {
+    const opp = el("n-opp").value.trim(), ref = el("n-ref").value.trim();
+    if(!opp || !ref) return alert("Número da oportunidade e referência são obrigatórios.");
+    const {data,error} = await sb.from("ops_orders").insert({
+      opportunity_code:opp, order_ref:ref, lang:el("n-lang").value,
+      agency:el("n-agency").value.trim(), final_client:el("n-client").value.trim()
+    }).select().single();
+    if(error) return alert(error.message);
+    openOrder(data.id);
+  };
+
+  const {data,error} = await sb.from("ops_orders")
+    .select("id,opportunity_code,order_ref,agency,final_client,status,confirmed_at,created_at")
+    .order("created_at",{ascending:false});
+  const host = el("list-host");
+  if(error){ host.innerHTML = `<div class="msg">${esc(error.message)}</div>`; return; }
+  if(!data.length){ host.innerHTML = `<div class="muted">Nenhuma order ainda.</div>`; return; }
+  host.innerHTML = `<table class="list"><thead><tr>
+      <th>Oportunidade</th><th>Referência</th><th>Agência</th><th>Cliente</th><th>Status</th></tr></thead><tbody>
+      ${data.map(o=>`<tr data-id="${o.id}">
+        <td>${esc(o.opportunity_code)}</td><td>${esc(o.order_ref)}</td>
+        <td>${esc(o.agency||"—")}</td><td>${esc(o.final_client||"—")}</td>
+        <td><span class="badge ${o.status}">${esc(o.status)}</span></td></tr>`).join("")}
+    </tbody></table>`;
+  host.querySelectorAll("tr[data-id]").forEach(tr=>tr.onclick=()=>openOrder(tr.dataset.id));
+}
+
+/* ------------------------------------------------------- EDITOR ------ */
+async function openOrder(id){
+  const [{data:o,error:e1}, {data:it}, {data:pg}, {data:cf}] = await Promise.all([
+    sb.from("ops_orders").select("*").eq("id",id).single(),
+    sb.from("ops_order_items").select("*").eq("order_id",id).order("sort"),
+    sb.from("ops_order_payments").select("*").eq("order_id",id).order("sort"),
+    sb.from("ops_order_confirmations").select("*").eq("order_id",id).order("submitted_at",{ascending:false})
+  ]);
+  if(e1) return alert(e1.message);
+  ORDER = o; ITEMS = it||[]; PAYS = pg||[]; CONF = (cf&&cf[0])||null;
+  renderEditor();
+}
+
+function renderEditor(){
+  const o = ORDER;
+  shell(`
+  <div class="editor-head">
+    <div>
+      <div class="overline">Order · ${esc(o.opportunity_code)}</div>
+      <h1>${esc(o.order_ref)}</h1>
+    </div>
+    <div class="editor-actions">
+      <button class="btn ghost sm" id="ed-back">Voltar</button>
+      <button class="btn sage sm" id="ed-save">Salvar</button>
+      <button class="btn sm" id="ed-preview">Ver como o cliente vê</button>
+    </div>
+  </div>
+
+  <div class="card stack">
+    <div class="section-title">Cabeçalho</div>
+    <div class="grid3">
+      <div><label>Oportunidade (CRM)</label><input id="f-opp" value="${esc(o.opportunity_code)}"></div>
+      <div><label>Referência</label><input id="f-ref" value="${esc(o.order_ref)}"></div>
+      <div><label>Idioma</label><select id="f-lang">
+        <option value="pt"${o.lang==="pt"?" selected":""}>Português</option>
+        <option value="en"${o.lang==="en"?" selected":""}>English</option></select></div>
+    </div>
+    <div class="grid3">
+      <div><label>Agência</label><input id="f-agency" value="${esc(o.agency||"")}"></div>
+      <div><label>Contato na agência</label><input id="f-contact" value="${esc(o.agency_contact||"")}"></div>
+      <div><label>Cliente final</label><input id="f-client" value="${esc(o.final_client||"")}"></div>
+    </div>
+    <div class="grid3">
+      <div><label>Passageiros</label><input id="f-pax" value="${esc(o.pax_summary||"")}" placeholder="4 AD + 1 CHD"></div>
+      <div><label>Período</label><input id="f-window" value="${esc(o.travel_window||"")}" placeholder="26 ago – 02 set 2026"></div>
+      <div><label>Status</label><select id="f-status">
+        ${["draft","sent","confirmed"].map(s=>`<option value="${s}"${o.status===s?" selected":""}>${s}</option>`).join("")}
+      </select></div>
+    </div>
+    <div><label>Texto de abertura (opcional)</label><textarea id="f-intro" rows="3">${esc(o.intro||"")}</textarea></div>
+    <div><label>Notas internas — nunca aparecem para o cliente</label><textarea id="f-notes" rows="2">${esc(o.internal_notes||"")}</textarea></div>
+  </div>
+
+  <div class="card" style="margin-top:20px;">
+    <div class="section-title">Serviços confirmados</div>
+    <div id="items-host"></div>
+    <button class="btn ghost sm" id="it-add" style="margin-top:6px;">+ Serviço</button>
+    <div class="totalline"><span class="lbl">Total</span><span class="amt" id="it-total">—</span></div>
+  </div>
+
+  <div class="card" style="margin-top:20px;">
+    <div class="section-title">Pagamentos</div>
+    <div id="pays-host"></div>
+    <button class="btn ghost sm" id="pg-add" style="margin-top:6px;">+ Parcela</button>
+    <div class="totalline"><span class="lbl">Somado</span><span class="amt" id="pg-total">—</span></div>
+  </div>
+
+  <div class="card" style="margin-top:20px;">
+    <div class="section-title">Link do cliente</div>
+    <div class="muted">Token aleatório. Quem tem o link vê o documento e confirma os dados. Nada da sua base fica exposto.</div>
+    <div class="linkbox">
+      <input id="lk" readonly value="${location.origin+location.pathname}#/confirm/${esc(o.token)}">
+      <button class="btn sm" id="lk-copy">Copiar</button>
+    </div>
+    <div id="conf-host" style="margin-top:20px;"></div>
+  </div>`, o.order_ref);
+
+  el("ed-back").onclick = renderApp;
+  el("ed-save").onclick = saveOrder;
+  el("ed-preview").onclick = () => { location.hash = "#/confirm/"+ORDER.token; };
+  el("lk-copy").onclick = () => { el("lk").select(); document.execCommand("copy"); el("lk-copy").textContent="Copiado"; };
+  el("it-add").onclick = () => { ITEMS.push({service_date:"",title:"",details:"",price:0,sort:ITEMS.length}); drawItems(); };
+  el("pg-add").onclick = () => { PAYS.push({label:"",due_date:"",amount:0,status:"pending",sort:PAYS.length}); drawPays(); };
+  drawItems(); drawPays(); drawConfirmation();
+}
+
+function drawItems(){
+  el("items-host").innerHTML = `<table class="rows">
+    <thead><tr><th style="width:110px;">Data</th><th>Serviço</th><th style="width:120px;">Valor €</th><th class="x"></th></tr></thead>
+    <tbody>${ITEMS.map((r,i)=>`<tr>
+      <td><input value="${esc(r.service_date||"")}" oninput="ITEMS[${i}].service_date=this.value"></td>
+      <td>
+        <input value="${esc(r.title||"")}" placeholder="Título do serviço" oninput="ITEMS[${i}].title=this.value">
+        <textarea rows="2" placeholder="Detalhes, um por linha" style="margin-top:6px;font-size:13px;" oninput="ITEMS[${i}].details=this.value">${esc(r.details||"")}</textarea>
+      </td>
+      <td><input type="number" step="0.01" value="${Number(r.price)||0}" style="text-align:right;" oninput="ITEMS[${i}].price=parseFloat(this.value)||0;sumItems()"></td>
+      <td class="x"><button class="iconbtn" onclick="ITEMS.splice(${i},1);drawItems()">×</button></td>
+    </tr>`).join("")}</tbody></table>`;
+  sumItems();
+}
+function sumItems(){ el("it-total").textContent = eur(ITEMS.reduce((s,r)=>s+(Number(r.price)||0),0)); }
+
+function drawPays(){
+  el("pays-host").innerHTML = `<table class="rows">
+    <thead><tr><th>Descrição</th><th style="width:140px;">Vencimento</th><th style="width:120px;">Valor €</th><th style="width:120px;">Situação</th><th class="x"></th></tr></thead>
+    <tbody>${PAYS.map((p,i)=>`<tr>
+      <td><input value="${esc(p.label||"")}" placeholder="Sinal 30%" oninput="PAYS[${i}].label=this.value"></td>
+      <td><input value="${esc(p.due_date||"")}" placeholder="10 set 2026" oninput="PAYS[${i}].due_date=this.value"></td>
+      <td><input type="number" step="0.01" value="${Number(p.amount)||0}" style="text-align:right;" oninput="PAYS[${i}].amount=parseFloat(this.value)||0;sumPays()"></td>
+      <td><select onchange="PAYS[${i}].status=this.value">
+        <option value="pending"${p.status==="pending"?" selected":""}>A pagar</option>
+        <option value="paid"${p.status==="paid"?" selected":""}>Pago</option></select></td>
+      <td class="x"><button class="iconbtn" onclick="PAYS.splice(${i},1);drawPays()">×</button></td>
+    </tr>`).join("")}</tbody></table>`;
+  sumPays();
+}
+function sumPays(){ el("pg-total").textContent = eur(PAYS.reduce((s,p)=>s+(Number(p.amount)||0),0)); }
+
+function drawConfirmation(){
+  const host = el("conf-host");
+  if(!CONF){ host.innerHTML = `<div class="muted">Nenhuma confirmação recebida até agora.</div>`; return; }
+  const ad = (CONF.adults||[]).map(a=>esc(a)).join("<br>") || "—";
+  const ch = (CONF.children||[]).map(c=>esc(c.age)+" anos").join(" · ") || "—";
+  host.innerHTML = `<div class="section-title">Confirmação recebida</div>
+    <div class="grid3">
+      <div><label>Contato</label><div class="muted">${esc(CONF.lead_name||"")}<br>${esc(CONF.lead_email||"")}<br>${esc(CONF.lead_phone||"")}</div></div>
+      <div><label>Adultos</label><div class="muted">${ad}</div></div>
+      <div><label>Crianças</label><div class="muted">${ch}</div></div>
+    </div>
+    <div style="margin-top:14px;"><label>Assinatura / data</label>
+      <div class="muted">${esc(CONF.signature_name||"")} · ${new Date(CONF.submitted_at).toLocaleString("pt-BR")}</div></div>
+    ${CONF.remarks?`<div style="margin-top:14px;"><label>Observações</label><div class="muted">${nl2br(CONF.remarks)}</div></div>`:""}`;
+}
+
+async function saveOrder(){
+  const btn = el("ed-save"); btn.disabled = true; btn.textContent = "Salvando…";
+  const patch = {
+    opportunity_code: el("f-opp").value.trim(), order_ref: el("f-ref").value.trim(),
+    lang: el("f-lang").value, status: el("f-status").value,
+    agency: el("f-agency").value.trim(), agency_contact: el("f-contact").value.trim(),
+    final_client: el("f-client").value.trim(), pax_summary: el("f-pax").value.trim(),
+    travel_window: el("f-window").value.trim(), intro: el("f-intro").value,
+    internal_notes: el("f-notes").value, updated_at: new Date().toISOString()
+  };
+  const {error:e1} = await sb.from("ops_orders").update(patch).eq("id",ORDER.id);
+  await sb.from("ops_order_items").delete().eq("order_id",ORDER.id);
+  await sb.from("ops_order_payments").delete().eq("order_id",ORDER.id);
+  const {error:e2} = ITEMS.length ? await sb.from("ops_order_items").insert(
+    ITEMS.map((r,i)=>({order_id:ORDER.id,sort:i,service_date:r.service_date,title:r.title,details:r.details,price:r.price}))) : {};
+  const {error:e3} = PAYS.length ? await sb.from("ops_order_payments").insert(
+    PAYS.map((p,i)=>({order_id:ORDER.id,sort:i,label:p.label,due_date:p.due_date,amount:p.amount,status:p.status}))) : {};
+  btn.disabled = false; btn.textContent = "Salvar";
+  const err = e1||e2||e3;
+  if(err) return alert(err.message);
+  Object.assign(ORDER, patch);
+  btn.textContent = "Salvo";
+  setTimeout(()=>btn.textContent="Salvar", 1600);
+}
+
+/* ==================================================================== */
+/*  VISTA PÚBLICA — o que o cliente/agência recebe                      */
+/* ==================================================================== */
+let PUB = null, PAX = {adults:[""], children:[]};
+
+async function renderPublic(token){
+  app.innerHTML = `<div class="done"><div class="muted">…</div></div>`;
+  const {data,error} = await sb.rpc("tl_get_order",{p_token:token});
+  if(error || !data) return app.innerHTML = message(T.pt.notFound);
+  if(data.expired) return app.innerHTML = message(T.pt.expired);
+  PUB = data; PUB.token = token;
+  const t = T[PUB.order.lang||"pt"];
+  PAX = {adults:[""], children:[]};
+  drawPublic();
+  if(PUB.order.status === "confirmed") return;
+}
+
+function message(txt){
+  return `<div class="done"><h2>Tuscan Lands</h2><div class="muted">${esc(txt)}</div></div>`;
+}
+
+function drawPublic(){
+  const o = PUB.order, t = T[o.lang||"pt"], items = PUB.items, pays = PUB.payments;
+  const total = items.reduce((s,r)=>s+(Number(r.price)||0),0);
+  const confirmed = o.status === "confirmed";
+
+  app.innerHTML = `
+  <div style="padding:24px 12px;background:var(--cream);">
+  <div class="doc">
+    <div class="head">
+      <div class="brand">
+        <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
+        <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
+      </div>
+      <div class="to">
+        <div class="lbl">${t.to}</div>
+        <div class="val">${esc(o.final_client||o.agency||"")}</div>
+        <div class="lbl">${t.ref}</div>
+        <div class="val">${esc(o.order_ref)}</div>
+      </div>
+    </div>
+
+    <h1 class="doctitle">${t.docTitle}</h1>
+
+    <div class="meta">
+      <div class="cell"><div class="k">${t.opp}</div><div class="v">${esc(o.opportunity_code)}</div></div>
+      <div class="cell"><div class="k">${t.pax}</div><div class="v">${esc(o.pax_summary||"—")}</div></div>
+      <div class="cell"><div class="k">${t.period}</div><div class="v">${esc(o.travel_window||"—")}</div></div>
+      <div class="cell"><div class="k">${t.status}</div><div class="v">${t.statusVal[o.status]||o.status}</div></div>
+    </div>
+
+    ${o.intro?`<div class="intro">${nl2br(o.intro)}</div>`:""}
+
+    <table class="svc">
+      <thead><tr><th style="width:100px;">${t.date}</th><th>${t.service}</th><th class="money">${t.price}</th></tr></thead>
+      <tbody>${items.map(r=>`<tr>
+        <td class="date-cell">${esc(r.service_date||"")}</td>
+        <td><div class="svc-title">${esc(r.title)}</div>${r.details?`<div class="svc-sub">${nl2br(r.details)}</div>`:""}</td>
+        <td class="money">${eur(r.price)}</td></tr>`).join("")}</tbody>
+    </table>
+
+    <div class="total-row"><div class="total-box"><span class="lbl">${t.total}</span><span class="amt">${eur(total)}</span></div></div>
+
+    ${pays.length?`<div style="margin-top:26px;">
+      <div class="section-title">${t.payTitle}</div>
+      <table class="pay"><thead><tr><th>${t.payLabel}</th><th>${t.payDue}</th>
+        <th style="text-align:right;">${t.payAmount}</th><th style="text-align:right;">${t.payStatus}</th></tr></thead>
+      <tbody>${pays.map(p=>`<tr><td>${esc(p.label)}</td><td>${esc(p.due_date||"—")}</td>
+        <td class="money">${eur(p.amount)}</td>
+        <td class="money">${p.status==="paid"?t.paid:t.pending}</td></tr>`).join("")}</tbody></table>
+    </div>`:""}
+
+    <div class="terms">${TERMS[o.lang||"pt"]}</div>
+
+    <div class="foot">
+      <div class="co">TUSCAN LANDS TRAVEL</div>
+      ${COMPANY.legal} · ${COMPANY.vat.replace(" · Pontassieve (FI), Italy","")} · ${COMPANY.email}
+    </div>
+  </div>
+
+  ${confirmed ? `
+  <div class="confirm-block">
+    <h2>${t.alreadyTitle}</h2>
+    <div class="rule"></div>
+    <div class="muted">${t.alreadyText}</div>
+    <button class="btn ghost sm noprint" style="margin-top:18px;" onclick="window.print()">${t.print}</button>
+  </div>` : `
+  <div class="confirm-block">
+    <h2>${t.confirmTitle}</h2>
+    <div class="rule"></div>
+    <div class="muted" style="margin-bottom:22px;">${t.confirmIntro}</div>
+
+    <div class="section-title">${t.lead}</div>
+    <div class="grid3" style="margin-bottom:24px;">
+      <div><label>${t.leadName}</label><input id="c-name"></div>
+      <div><label>${t.leadEmail}</label><input id="c-mail" type="email"></div>
+      <div><label>${t.leadPhone}</label><input id="c-phone"></div>
+    </div>
+
+    <div class="section-title">${t.adults}</div>
+    <div id="ad-host" style="margin-bottom:10px;"></div>
+    <button class="btn ghost sm" id="ad-add" style="margin-bottom:24px;">${t.addAdult}</button>
+
+    <div class="section-title">${t.children}</div>
+    <div id="ch-host" style="margin-bottom:10px;"></div>
+    <button class="btn ghost sm" id="ch-add" style="margin-bottom:26px;">${t.addChild}</button>
+
+    <div class="check"><input type="checkbox" id="c-veh"><label for="c-veh" style="font-size:13.5px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:300;margin:0;">${t.ackVehicle}</label></div>
+    <div class="check"><input type="checkbox" id="c-terms"><label for="c-terms" style="font-size:13.5px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:300;margin:0;">${t.ackTerms}</label></div>
+
+    <div style="margin-top:18px;"><label>${t.remarks}</label><textarea id="c-rem" rows="3"></textarea></div>
+    <div style="margin-top:18px;"><label>${t.signature}</label><input id="c-sign"></div>
+
+    <div id="c-msg" style="margin-top:16px;"></div>
+    <button class="btn" id="c-go" style="margin-top:18px;">${t.submit}</button>
+    <button class="btn ghost noprint" style="margin-top:18px;" onclick="window.print()">${t.print}</button>
+  </div>`}
+  </div>`;
+
+  if(confirmed) return;
+  drawPax();
+  el("ad-add").onclick = () => { PAX.adults.push(""); drawPax(); };
+  el("ch-add").onclick = () => { PAX.children.push({age:""}); drawPax(); };
+  el("c-go").onclick = submitConfirmation;
+}
+
+function drawPax(){
+  const t = T[PUB.order.lang||"pt"];
+  el("ad-host").innerHTML = PAX.adults.map((a,i)=>`
+    <div class="pax-row">
+      <input value="${esc(a)}" placeholder="${t.leadName}" oninput="PAX.adults[${i}]=this.value">
+      <button class="iconbtn" onclick="PAX.adults.splice(${i},1);drawPax()">×</button>
+    </div>`).join("");
+  el("ch-host").innerHTML = PAX.children.map((c,i)=>`
+    <div class="pax-row">
+      <input type="number" min="0" max="17" value="${esc(c.age)}" placeholder="${t.age}" oninput="PAX.children[${i}].age=this.value">
+      <button class="iconbtn" onclick="PAX.children.splice(${i},1);drawPax()">×</button>
+    </div>`).join("");
+}
+
+async function submitConfirmation(){
+  const t = T[PUB.order.lang||"pt"];
+  const payload = {
+    lead_name: el("c-name").value.trim(), lead_email: el("c-mail").value.trim(),
+    lead_phone: el("c-phone").value.trim(),
+    adults: PAX.adults.map(a=>a.trim()).filter(Boolean),
+    children: PAX.children.filter(c=>c.age!==""),
+    ack_vehicle: el("c-veh").checked, ack_terms: el("c-terms").checked,
+    signature_name: el("c-sign").value.trim(), remarks: el("c-rem").value.trim()
+  };
+  if(!payload.lead_name || !payload.lead_email || !payload.signature_name || !payload.ack_terms){
+    el("c-msg").innerHTML = `<div class="msg">${t.errFill}</div>`; return;
+  }
+  const btn = el("c-go"); btn.disabled = true; btn.textContent = t.sending;
+  const {data,error} = await sb.rpc("tl_submit_confirmation",{p_token:PUB.token, p_payload:payload});
+  if(error || !data || !data.ok){
+    el("c-msg").innerHTML = `<div class="msg">${esc((error&&error.message)||(data&&data.error)||"erro")}</div>`;
+    btn.disabled = false; btn.textContent = t.submit; return;
+  }
+  app.innerHTML = `<div class="done"><h2>${t.doneTitle}</h2><div class="muted">${t.doneText}</div></div>`;
+}
+
+boot();
+</script>
+</body>
+</html>
