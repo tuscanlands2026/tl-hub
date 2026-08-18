@@ -14,8 +14,8 @@
 -- ---------------------------------------------------------------------
 -- CONFERÊNCIA DA SEÇÃO 7 DO PLANO — feita antes de entregar, por escrito.
 -- Objetos que este arquivo cria ou altera, um a um:
---   ops_orders                (alter add column, 2 colunas novas)
---   ops_order_confirmations   (alter add column, 1 coluna nova)
+--   ops_orders                (alter add column, 3 colunas novas)
+--   ops_order_confirmations   (alter add column, 2 colunas novas)
 --   ops_order_fields          (create table)
 --   tl_get_order              (replace — função do hub, nasceu em
 --                              tl-hub-orders.sql, não é objeto do CRM)
@@ -41,12 +41,21 @@
 alter table ops_orders add column if not exists terms_url       text;
 alter table ops_orders add column if not exists checkout_config jsonb;
 
+-- Observação de pagamento: o que a agência informou sobre como vai pagar,
+-- ou "aguardando confirmação da agência" enquanto ela não responde. Sai
+-- embaixo das parcelas no documento do cliente. Texto livre porque a
+-- resposta da agência raramente cabe numa lista fechada.
+alter table ops_orders add column if not exists payment_note text;
+
 comment on column ops_orders.terms_url is
   'URL pública dos termos e condições. Some do documento quando vazio.';
+comment on column ops_orders.payment_note is
+  'Observação livre sobre pagamento, exibida abaixo das parcelas. Some quando vazia.';
 comment on column ops_orders.checkout_config is
-  'Blocos fixos do checkout: {"lead":"blank|prefilled|off","adults":...,'
-  '"children":...,"ack_vehicle":bool,"remarks":bool,"prefill":{...}}. '
-  'Nulo = tudo blank, tudo ligado.';
+  'Blocos fixos do checkout: {"lead":"blank|prefilled|off",'
+  '"travellers":"blank|prefilled|off","travellers_count":int,'
+  '"passport_names":bool,"ack_vehicle":bool,"remarks":bool,'
+  '"prefill":{...}}. Nulo = tudo blank, tudo ligado.';
 
 -- ---------------------------------------------------------------------
 -- 2 · OS CAMPOS VARIÁVEIS DAQUELE CHECKOUT
@@ -105,6 +114,17 @@ create policy "auth_all" on ops_order_fields
 alter table ops_order_confirmations
   add column if not exists fields jsonb not null default '[]'::jsonb;
 
+-- Viajantes com nome e data de nascimento, um por linha. Substitui o par
+-- adults/children, que guardava nome só do adulto e idade só da criança.
+-- Bilhete de monumento é nominal e a idade na data da visita decide meia
+-- ou gratuidade, então nome e nascimento são necessários para todos.
+-- As colunas antigas continuam onde estão: confirmação já recebida é
+-- documento assinado, não se reescreve para caber em formato novo.
+alter table ops_order_confirmations
+  add column if not exists travellers jsonb not null default '[]'::jsonb;
+
+comment on column ops_order_confirmations.travellers is
+  'Viajantes informados: [{"name","dob"}]. Substitui adults/children a partir de 2026-08.';
 comment on column ops_order_confirmations.fields is
   'Retrato dos campos variáveis no momento do envio: '
   '[{"key","label_pt","label_en","value","mode","required","group_key"}]';
@@ -132,7 +152,7 @@ begin
       'lang', o.lang, 'status', o.status, 'agency', o.agency,
       'final_client', o.final_client, 'pax_summary', o.pax_summary,
       'travel_window', o.travel_window, 'intro', o.intro,
-      'terms_url', o.terms_url,
+      'terms_url', o.terms_url, 'payment_note', o.payment_note,
       'checkout_config', coalesce(o.checkout_config, '{}'::jsonb),
       'confirmed_at', o.confirmed_at),
     'items', coalesce((select jsonb_agg(jsonb_build_object(
@@ -164,7 +184,12 @@ end $$;
 -- contorna com o console aberto; esta função não. O que a função exige
 -- é exatamente o que a configuração da order manda exigir — nem mais,
 -- para não travar venda legítima, nem menos, para não gravar
--- confirmação sem nome de quem assinou.
+-- confirmação sem saber quem respondeu.
+--
+-- A assinatura digitada deixou de ser exigida em agosto/26. Ela repetia
+-- o nome do contato responsável, que já vem no bloco de contato, e duas
+-- caixas para o mesmo nome só produzem divergência entre elas. O ato que
+-- vale continua sendo o aceite dos termos, com data e hora do envio.
 --
 -- O retrato dos campos é montado a partir de ops_order_fields, nunca do
 -- que o navegador mandou. Campo que a Maria Fernanda não configurou não
@@ -183,9 +208,11 @@ declare
   v        text;
   snap     jsonb := '[]'::jsonb;
   missing  text[] := '{}';
-  adults   jsonb;
+  travs    jsonb;
+  trav     jsonb;
+  n        int;
   b_lead   text;
-  b_adults text;
+  b_trav   text;
 begin
   select * into o from ops_orders where token = p_token;
   if not found then return jsonb_build_object('ok', false, 'error', 'not_found'); end if;
@@ -197,33 +224,46 @@ begin
   end if;
 
   cfg      := coalesce(o.checkout_config, '{}'::jsonb);
-  b_lead   := coalesce(cfg->>'lead',   'blank');
-  b_adults := coalesce(cfg->>'adults', 'blank');
-  adults   := coalesce(p_payload->'adults', '[]'::jsonb);
+  b_lead   := coalesce(cfg->>'lead',       'blank');
+  b_trav   := coalesce(cfg->>'travellers', 'blank');
+  travs    := coalesce(p_payload->'travellers', '[]'::jsonb);
 
-  -- Aceite dos termos e assinatura não são configuráveis. Sem os dois
-  -- isto não é uma confirmação, é um formulário preenchido.
+  -- O aceite dos termos não é configurável. Sem ele isto não é uma
+  -- confirmação, é um formulário preenchido.
   if coalesce((p_payload->>'ack_terms')::boolean, false) is not true then
     missing := array_append(missing, 'ack_terms');
-  end if;
-  if coalesce(btrim(p_payload->>'signature_name'), '') = '' then
-    missing := array_append(missing, 'signature_name');
   end if;
 
   if b_lead <> 'off' then
     if coalesce(btrim(p_payload->>'lead_name'), '')  = '' then
       missing := array_append(missing, 'lead_name');
     end if;
-    if coalesce(btrim(p_payload->>'lead_email'), '') = '' then
-      missing := array_append(missing, 'lead_email');
+    -- Telefone com código de país, ativo durante a viagem. É o número que
+    -- o motorista liga quando o voo atrasa; sem ele o serviço para.
+    if coalesce(btrim(p_payload->>'lead_phone'), '') = '' then
+      missing := array_append(missing, 'lead_phone');
     end if;
   end if;
 
-  -- Bloco de adultos ligado e vazio é o erro que estraga a reserva no
+  -- Bloco de viajantes ligado e vazio é o erro que estraga a reserva no
   -- fornecedor. Mostrar o campo e aceitar vazio seria pior que não
-  -- perguntar.
-  if b_adults <> 'off' and jsonb_array_length(adults) = 0 then
-    missing := array_append(missing, 'adults');
+  -- perguntar. Nome e nascimento valem para todos: o bilhete é nominal e
+  -- a idade decide meia ou gratuidade.
+  if b_trav <> 'off' then
+    if jsonb_array_length(travs) = 0 then
+      missing := array_append(missing, 'travellers');
+    else
+      n := 0;
+      for trav in select * from jsonb_array_elements(travs) loop
+        n := n + 1;
+        if coalesce(btrim(trav->>'name'), '') = '' then
+          missing := array_append(missing, 'traveller_name_' || n::text);
+        end if;
+        if coalesce(btrim(trav->>'dob'), '') = '' then
+          missing := array_append(missing, 'traveller_dob_' || n::text);
+        end if;
+      end loop;
+    end if;
   end if;
 
   for f in
@@ -246,14 +286,14 @@ begin
   end if;
 
   insert into ops_order_confirmations
-    (order_id, lead_name, lead_email, lead_phone, adults, children,
-     ack_vehicle, ack_terms, signature_name, remarks, fields)
+    (order_id, lead_name, lead_email, lead_phone, travellers,
+     ack_vehicle, ack_terms, remarks, fields)
   values (o.id,
      p_payload->>'lead_name', p_payload->>'lead_email', p_payload->>'lead_phone',
-     adults, coalesce(p_payload->'children','[]'::jsonb),
+     travs,
      coalesce((p_payload->>'ack_vehicle')::boolean,false),
      coalesce((p_payload->>'ack_terms')::boolean,false),
-     p_payload->>'signature_name', p_payload->>'remarks', snap);
+     p_payload->>'remarks', snap);
 
   update ops_orders
      set status='confirmed', confirmed_at=now(), updated_at=now()
