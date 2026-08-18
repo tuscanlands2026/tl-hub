@@ -196,6 +196,12 @@ table.rows td.x{width:30px;padding-right:0;}
 .confirm-block .rule{background:var(--copper);}
 .confirm-block .section-title{color:var(--sage);letter-spacing:.2em;}
 .pax-row{display:grid;grid-template-columns:1fr 30px;gap:7px;margin-bottom:7px;align-items:center;}
+/* Rótulo de duas linhas empurrava só a sua caixa para baixo, e a fileira
+   saía torta. Cada célula vira coluna e a caixa desce para o rodapé dela,
+   então as caixas alinham por baixo mesmo com rótulos de alturas
+   diferentes. */
+.fieldrow > div{display:flex;flex-direction:column;}
+.fieldrow > div > input,.fieldrow > div > select,.fieldrow > div > textarea{margin-top:auto;}
 .trav-row{display:grid;grid-template-columns:1fr 170px 30px;gap:7px;margin-bottom:7px;align-items:center;}
 .check{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.65;margin-bottom:12px;}
 .check input{width:auto;margin-top:3px;}
@@ -287,6 +293,12 @@ const el = id => document.getElementById(id);
 const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const eur = n => "€ " + (Number(n)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
 const nl2br = s => esc(s).replace(/\n/g,"<br>");
+/* O endereço dos termos é o mesmo para todas as vendas e serve as duas
+   línguas. O campo da order existe para a exceção; quando está vazio,
+   vale o padrão. Assim nenhuma order antiga fica com as palavras
+   sublinhadas e sem link atrás. */
+const termsHref = o => ((o && o.terms_url) || DEFAULT_TERMS_URL || "").trim();
+
 /* Monta o link do cliente. Devolve null quando não há endereço público
    possível — arquivo aberto direto do computador, por exemplo, que geraria
    um caminho que só funciona na máquina de quem copiou. */
@@ -321,7 +333,7 @@ const T = {
     travellers:"Viajantes", travName:"Nome completo", travDob:"Data de nascimento",
     addTraveller:"+ Viajante",
     travIntro:"Os nomes abaixo são os que constarão nas reservas junto aos fornecedores.",
-    passportNote:"Para a emissão de bilhetes de alguns monumentos, o nome informado precisa ser exatamente igual ao do passaporte.",
+    passportNote:"Para a emissão de bilhetes para os monumentos que farão parte desta viagem, o nome informado precisa ser exatamente igual ao do passaporte.",
     logistics:"Informações de Logística e Saúde",
     ackVehicle:"Confirmo que o número de passageiros e o volume de bagagem informados estão corretos. Bagagem excedente pode exigir veículo maior e ajuste de valor.",
     ackPre:"Li e aceito os ", ackLink:"termos e condições",
@@ -373,7 +385,7 @@ const T = {
     travellers:"Travellers", travName:"Full name", travDob:"Date of birth",
     addTraveller:"+ Traveller",
     travIntro:"The names below go into the supplier bookings.",
-    passportNote:"For ticketing at certain monuments, the name given must match the passport exactly.",
+    passportNote:"For ticketing at the monuments included in this trip, the name given must match the passport exactly.",
     logistics:"Logistics and Health",
     ackVehicle:"I confirm the number of travellers and the luggage volume are correct. Extra luggage may require a larger vehicle and a price adjustment.",
     ackPre:"I have read and accept the ", ackLink:"terms and conditions",
@@ -799,8 +811,8 @@ function renderEditor(){
         <button class="btn ghost sm" id="tu-std">Usar o padrão</button>
       </div>
       <div class="hint" style="margin:5px 0 0;">Sai como link clicável no fim do documento do cliente e nas palavras
-        “termos e condições” do aceite. O texto integral continua dentro do documento: o link é acréscimo,
-        não substituição.</div>
+        “termos e condições” do aceite. <b>Vazio vale o padrão</b> — só preencha para uma venda com condição própria.
+        O texto integral continua dentro do documento: o link é acréscimo, não substituição.</div>
     </div>
     <div><label>Texto de abertura (opcional)</label><textarea id="f-intro" rows="3">${esc(o.intro||"")}</textarea></div>
     <div><label>Notas internas — nunca aparecem para o cliente</label><textarea id="f-notes" rows="2">${esc(o.internal_notes||"")}</textarea></div>
@@ -1324,8 +1336,8 @@ function renderSummary(){
       ${linha(t.sumSignedAt, esc(stamp(c.submitted_at, o.lang)))}
       ${linha(t.sumAckTerms, c.ack_terms ? t.accepted : `<span class="blank">${t.notAccepted}</span>`)}
       ${linha(t.sumAckVehicle, c.ack_vehicle ? t.accepted : t.notMarked)}
-      ${o.terms_url?linha(t.termsLinkLabel.replace(":",""),
-          `<a href="${esc(o.terms_url)}" style="color:var(--sage);">${esc(o.terms_url)}</a>`):""}
+      ${termsHref(o)?linha(t.termsLinkLabel.replace(":",""),
+          `<a href="${esc(termsHref(o))}" style="color:var(--sage);">${esc(termsHref(o))}</a>`):""}
     </table>
 
     <div class="blocktitle">${t.sumLead}</div>
@@ -1502,8 +1514,8 @@ function drawPublic(){
     </div>`:""}
 
     <div class="terms">${TERMS[o.lang||"pt"]}
-      ${o.terms_url?`<div class="terms-link">${t.termsLinkLabel}
-        <a href="${esc(o.terms_url)}" target="_blank" rel="noopener">${esc(o.terms_url)}</a></div>`:""}
+      ${termsHref(o)?`<div class="terms-link">${t.termsLinkLabel}
+        <a href="${esc(termsHref(o))}" target="_blank" rel="noopener">${esc(termsHref(o))}</a></div>`:""}
     </div>
 
     <div class="foot">
@@ -1532,7 +1544,7 @@ function drawPublic(){
     ${bLead!=="off"?`
     <div class="section-title">${t.lead}</div>
     <div class="muted" style="margin-bottom:12px;">${t.leadIntro}</div>
-    <div class="grid3" style="margin-bottom:20px;">
+    <div class="grid3 fieldrow" style="margin-bottom:20px;">
       <div><label>${t.leadName} <span class="req">· ${t.required}</span></label>
         <input id="c-name" value="${bLead==="prefilled"?esc(p.lead_name||""):""}"></div>
       <div><label>${t.leadPhone} <span class="req">· ${t.required}</span></label>
@@ -1549,8 +1561,8 @@ function drawPublic(){
     ${bVeh!=="off"?`<div class="check"><input type="checkbox" id="c-veh">
       <label for="c-veh">${t.ackVehicle}</label></div>`:""}
     <div class="check"><input type="checkbox" id="c-terms">
-      <span id="c-terms-txt" class="checktext">${t.ackPre}${o.terms_url
-        ? `<a href="${esc(o.terms_url)}" target="_blank" rel="noopener">${t.ackLink}</a>`
+      <span id="c-terms-txt" class="checktext">${t.ackPre}${termsHref(o)
+        ? `<a href="${esc(termsHref(o))}" target="_blank" rel="noopener">${t.ackLink}</a>`
         : `<u>${t.ackLink}</u>`}${t.ackPost}</span></div>
 
     ${bRem!=="off"?`<div style="margin-top:16px;"><label>${t.remarks}</label><textarea id="c-rem" rows="3"></textarea></div>`:""}
