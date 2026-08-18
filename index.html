@@ -90,6 +90,8 @@ table.list tbody tr:hover{background:var(--cream-light);cursor:pointer;}
 /* ---------- editor ---------- */
 .editor-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;}
 .editor-head h1{font-size:25px;color:var(--sage);font-weight:500;}
+.editor-head .who{font-size:13.5px;color:var(--muted);margin-top:3px;}
+.editor-head .who:empty{display:none;}
 .editor-actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;}
 .section-title{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);
   font-weight:500;border-bottom:1px solid var(--cream);padding-bottom:6px;margin-bottom:14px;}
@@ -695,6 +697,13 @@ function renderLogin(){
 /* ==================================================================== */
 let ORDER = null, ITEMS = [], PAYS = [], CONF = null, CONFS = [], FIELDS = [], CFG = null;
 
+/* Agência e cliente numa linha só. Campo vazio não vira travessão: um
+   "—" no cabeçalho ocupa espaço para dizer que não há informação, e a
+   ausência já diz isso sozinha. Vazios os dois, a linha nem existe. */
+function quemE(o){
+  return [o.agency, o.final_client].map(v=>(v||"").trim()).filter(Boolean).join(" · ");
+}
+
 function shell(inner, crumb){
   app.innerHTML = `
   <div class="topbar">
@@ -787,6 +796,7 @@ function renderEditor(){
     <div>
       <div class="overline">Order · ${esc(o.opportunity_code)}</div>
       <h1>${esc(o.order_ref)}</h1>
+      <div class="who" id="ed-who">${esc(quemE(o))}</div>
     </div>
     <div class="editor-actions">
       <button class="btn ghost sm" id="ed-back">Voltar</button>
@@ -884,7 +894,7 @@ function renderEditor(){
       computador, e um link daqui só funcionaria nesta máquina. Abra o hub pelo endereço do site
       para copiar o link, ou preencha <b>PUBLIC_BASE_URL</b> no topo do arquivo.</div>`}
     <div id="conf-host" class="closing"></div>
-  </div>`, o.order_ref);
+  </div>`, [o.order_ref, quemE(o)].filter(Boolean).join(" · "));
 
   el("ed-back").onclick = renderApp;
   el("ed-save").onclick = saveOrder;
@@ -1261,6 +1271,9 @@ async function saveOrder(){
   const err = e1||e2||e3||e4;
   if(err) return alert(err.message);
   Object.assign(ORDER, patch);
+  // O cabeçalho é desenhado uma vez; sem isto ele continuaria mostrando a
+  // agência antiga até ela sair da order e voltar.
+  if(el("ed-who")) el("ed-who").textContent = quemE(ORDER);
   btn.textContent = "Salvo";
   setTimeout(()=>btn.textContent="Salvar", 1600);
 }
