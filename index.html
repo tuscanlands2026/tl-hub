@@ -349,7 +349,7 @@ const T = {
     travIntro:"Os nomes abaixo são os que constarão nas reservas junto aos fornecedores.",
     passportNote:"Para a emissão de bilhetes para os monumentos que farão parte desta viagem, o nome informado precisa ser exatamente igual ao do passaporte.",
     logistics:"Informações de Logística e Saúde",
-    ackVehicle:"Confirmo que o número de passageiros e o volume de bagagem informados estão corretos. Bagagem excedente pode exigir veículo maior e ajuste de valor.",
+    ackVehicle:"Estou ciente do limite do volume de bagagens previsto para o tipo de veículo selecionado.",
     ackPre:"Li e aceito os ", ackLink:"termos e condições",
     ackPost:" para contratação dos serviços elencados.",
     remarks:"Observações (opcional)",
@@ -369,7 +369,7 @@ const T = {
          transfer:"Serviços de Transfer e/ou VIP Meet and Greet",
          tour:"Tours",hotel:"Hospedagem",dinner:"Jantares",
          experience:"Experiências",general:"Informações gerais"},
-    miss:{ack_terms:"aceite dos termos",lead_name:"nome do contato",
+    miss:{ack_terms:"aceite dos termos",ack_vehicle:"aceite de bagagem",lead_name:"nome do contato",
           lead_phone:"telefone do contato",lead_email:"e-mail do contato",
           travellers:"viajantes",traveller_name:"nome do viajante",traveller_dob:"nascimento do viajante"},
     voucherNote:"Detalhes de horários e meeting point serão enviados no voucher de confirmação.",
@@ -401,7 +401,7 @@ const T = {
     travIntro:"The names below go into the supplier bookings.",
     passportNote:"For ticketing at the monuments included in this trip, the name given must match the passport exactly.",
     logistics:"Logistics and Health",
-    ackVehicle:"I confirm the number of travellers and the luggage volume are correct. Extra luggage may require a larger vehicle and a price adjustment.",
+    ackVehicle:"I am aware of the luggage volume limit for the type of vehicle selected.",
     ackPre:"I have read and accept the ", ackLink:"terms and conditions",
     ackPost:" for the services listed.",
     remarks:"Remarks (optional)",
@@ -421,7 +421,7 @@ const T = {
          transfer:"Transfer and/or VIP Meet and Greet Services",
          tour:"Tours",hotel:"Accommodation",dinner:"Dinners",
          experience:"Experiences",general:"General information"},
-    miss:{ack_terms:"acceptance of the terms",lead_name:"contact name",
+    miss:{ack_terms:"acceptance of the terms",ack_vehicle:"luggage acknowledgement",lead_name:"contact name",
           lead_phone:"contact phone",lead_email:"contact email",
           travellers:"travellers",traveller_name:"traveller name",traveller_dob:"traveller date of birth"},
     voucherNote:"Timings and meeting points will be sent in the confirmation voucher.",
@@ -607,8 +607,8 @@ const BLOCKS = [
    note:"Nome completo e telefone de um dos passageiros, ativo na Itália."},
   {k:"travellers", pt:"Viajantes — nome e nascimento", three:true,
    note:"Uma linha por viajante, na quantidade que você definir. Ligado, exige nome e nascimento de todos."},
-  {k:"ack_vehicle", pt:"Aceite de veículo e bagagem", three:false,
-   note:"Faz sentido quando há transporte na venda."},
+  {k:"ack_vehicle", pt:"Aceite de bagagem", three:false,
+   note:"Faz sentido quando há transporte na venda. Aparecendo, é obrigatório marcar."},
   {k:"remarks", pt:"Campo livre de observações", three:false,
    note:"Espaço aberto para a agência escrever."}
 ];
@@ -1599,7 +1599,7 @@ function drawPublic(){
 
     <div style="margin-top:24px;"></div>
     ${bVeh!=="off"?`<div class="check"><input type="checkbox" id="c-veh">
-      <label for="c-veh">${t.ackVehicle}</label></div>`:""}
+      <label for="c-veh">${t.ackVehicle} <span class="req">· ${t.required}</span></label></div>`:""}
     <div class="check"><input type="checkbox" id="c-terms">
       <span id="c-terms-txt" class="checktext">${t.ackPre}${termsHref(o)
         ? `<a href="${esc(termsHref(o))}" target="_blank" rel="noopener">${t.ackLink}</a>`
@@ -1654,6 +1654,7 @@ async function submitConfirmation(){
   // do banco, que confere de novo e recusa o que estiver faltando.
   const falta = [];
   if(!payload.ack_terms) falta.push(t.miss.ack_terms);
+  if(blockMode(o,"ack_vehicle")!=="off" && !payload.ack_vehicle) falta.push(t.miss.ack_vehicle);
   if(blockMode(o,"lead")!=="off"){
     if(!payload.lead_name)  falta.push(t.miss.lead_name);
     if(!payload.lead_phone) falta.push(t.miss.lead_phone);

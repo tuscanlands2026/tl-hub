@@ -213,6 +213,7 @@ declare
   n        int;
   b_lead   text;
   b_trav   text;
+  b_veh    boolean;
 begin
   select * into o from ops_orders where token = p_token;
   if not found then return jsonb_build_object('ok', false, 'error', 'not_found'); end if;
@@ -226,12 +227,22 @@ begin
   cfg      := coalesce(o.checkout_config, '{}'::jsonb);
   b_lead   := coalesce(cfg->>'lead',       'blank');
   b_trav   := coalesce(cfg->>'travellers', 'blank');
+  b_veh    := coalesce((cfg->>'ack_vehicle')::boolean, true);
   travs    := coalesce(p_payload->'travellers', '[]'::jsonb);
 
   -- O aceite dos termos não é configurável. Sem ele isto não é uma
   -- confirmação, é um formulário preenchido.
   if coalesce((p_payload->>'ack_terms')::boolean, false) is not true then
     missing := array_append(missing, 'ack_terms');
+  end if;
+
+  -- O aceite de bagagem é configurável em aparecer ou não, mas não em
+  -- ser opcional: se ele aparece, tem de ser marcado. Bagagem além do
+  -- previsto significa veículo maior no dia, com custo que ninguém
+  -- combinou. Deixar passar em branco seria guardar a dúvida em vez de
+  -- resolvê-la antes da viagem.
+  if b_veh and coalesce((p_payload->>'ack_vehicle')::boolean, false) is not true then
+    missing := array_append(missing, 'ack_vehicle');
   end if;
 
   if b_lead <> 'off' then
