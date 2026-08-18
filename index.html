@@ -11,10 +11,15 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* =====================================================================
-   IDENTIDADE VISUAL — seção 8 do plano. Cor carrega informação:
-     sage      · a casa no dia a dia. Interface inteira, documento interno.
-     terracota · confirmação e fechamento. Só o que sai assinado.
-   Ver terracota na tela significa que aquilo fechou ou está prestes a.
+   IDENTIDADE VISUAL — seção 8 do plano, com a correção de agosto/26.
+
+   O módulo inteiro é SAGE, interface e documento do cliente. A seção 8
+   reservava terracota para "confirmação e fechamento" e mandava o
+   documento do cliente sair nessa cor; por instrução da Maria Fernanda
+   isso mudou: terracota é do Booking, que é outro módulo. Aqui não entra.
+   O terracota continua na paleta, mas sem uso — não reintroduzir.
+
+   Copper é o acento quente: réguas, overlines de documento, marcações.
    Uma fonte só, border-radius zero, sem exceção.
    ===================================================================== */
 :root{
@@ -39,9 +44,6 @@ label{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase
 .btn{font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.18em;
   padding:10px 16px;border:1px solid var(--sage);background:var(--sage);color:#fff;cursor:pointer;}
 .btn.ghost{background:transparent;color:var(--sage);}
-/* Terracota nos botões que levam ao que fecha a venda. */
-.btn.close{background:var(--terracotta);border-color:var(--terracotta);color:#fff;}
-.btn.close.ghost{background:transparent;color:var(--terracotta);}
 .btn:disabled{opacity:.45;cursor:default;}
 .btn.sm{padding:6px 11px;font-size:10px;letter-spacing:.14em;}
 .hide{display:none !important;}
@@ -83,7 +85,7 @@ table.list tbody tr:hover{background:var(--cream-light);cursor:pointer;}
   font-weight:500;padding:3px 8px;color:#fff;}
 .badge.draft{background:var(--muted);}
 .badge.sent{background:var(--copper);}      /* prestes a fechar */
-.badge.confirmed{background:var(--terracotta);}  /* fechado */
+.badge.confirmed{background:var(--sage);}  /* fechado */
 
 /* ---------- editor ---------- */
 .editor-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;}
@@ -103,7 +105,7 @@ table.rows td.x{width:30px;padding-right:0;}
 .linkbox{display:flex;gap:7px;align-items:center;margin-top:10px;}
 .linkbox input{font-size:12px;color:var(--muted);}
 .closing{border-top:1px solid var(--cream);margin-top:18px;padding-top:16px;}
-.closing .section-title{color:var(--terracotta);}
+.closing .section-title{color:var(--sage);}
 
 /* ---------- configuração do checkout ---------- */
 .cfg-row{display:grid;grid-template-columns:1fr 190px;gap:10px;align-items:center;
@@ -126,14 +128,14 @@ table.rows td.x{width:30px;padding-right:0;}
 .doc{max-width:900px;margin:0 auto;background:#fff;padding:46px 50px;
   box-shadow:0 1px 12px rgba(0,0,0,.07);font-weight:300;line-height:1.6;}
 .doc .head{display:flex;justify-content:space-between;align-items:flex-start;
-  border-bottom:2px solid var(--terracotta);padding-bottom:18px;}
+  border-bottom:2px solid var(--sage);padding-bottom:18px;}
 .doc .brand .logo-img{height:74px;width:auto;display:block;margin-bottom:11px;}
-.doc .brand .logo-text{font-size:19px;letter-spacing:.26em;color:var(--terracotta);font-weight:500;}
+.doc .brand .logo-text{font-size:19px;letter-spacing:.26em;color:var(--sage);font-weight:500;}
 .doc .brand .contact{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.65;}
 .doc .to{text-align:right;max-width:320px;}
 .doc .to .lbl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);font-weight:500;}
 .doc .to .val{font-size:16px;margin:2px 0 8px;line-height:1.35;font-weight:400;}
-.doc h1.doctitle{font-size:24px;font-weight:500;color:var(--terracotta);margin:24px 0 4px;letter-spacing:-.01em;}
+.doc h1.doctitle{font-size:24px;font-weight:500;color:var(--sage);margin:24px 0 4px;letter-spacing:-.01em;}
 .doc .meta{display:grid;grid-template-columns:repeat(4,1fr);margin:18px 0 8px;border:1px solid var(--cream);}
 .doc .meta .cell{padding:11px 13px;border-right:1px solid var(--cream);}
 .doc .meta .cell:last-child{border-right:none;}
@@ -143,19 +145,19 @@ table.rows td.x{width:30px;padding-right:0;}
 .doc .blocktitle{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);
   font-weight:500;border-bottom:1px solid var(--cream);padding-bottom:6px;margin:26px 0 12px;}
 .doc table.svc{width:100%;border-collapse:collapse;margin-top:20px;}
-.doc table.svc thead th{background:var(--terracotta);color:#fff;font-size:10px;letter-spacing:.16em;
+.doc table.svc thead th{background:var(--sage);color:#fff;font-size:10px;letter-spacing:.16em;
   text-transform:uppercase;font-weight:500;padding:10px 12px;text-align:left;}
 .doc table.svc thead th.money{text-align:right;width:130px;}
 .doc table.svc tbody td{padding:11px 12px;border-bottom:1px solid var(--cream);vertical-align:top;font-size:13.5px;}
 .doc table.svc tbody td.money{text-align:right;font-variant-numeric:tabular-nums;}
 .doc table.svc tbody tr:nth-child(even){background:var(--cream-light);}
-.doc .date-cell{font-weight:500;color:var(--terracotta);white-space:nowrap;}
+.doc .date-cell{font-weight:500;color:var(--sage);white-space:nowrap;}
 .doc .svc-title{font-weight:400;}
 .doc .svc-sub{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;white-space:pre-wrap;}
 .doc .total-row{display:flex;justify-content:flex-end;margin-top:18px;}
 .doc .total-box{background:var(--cream);padding:14px 26px;display:flex;gap:36px;align-items:baseline;}
-.doc .total-box .lbl{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--terracotta);font-weight:500;}
-.doc .total-box .amt{font-size:24px;color:var(--terracotta);font-weight:400;font-variant-numeric:tabular-nums;}
+.doc .total-box .lbl{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);font-weight:500;}
+.doc .total-box .amt{font-size:24px;color:var(--sage);font-weight:400;font-variant-numeric:tabular-nums;}
 .doc table.pay{width:100%;border-collapse:collapse;margin-top:12px;}
 .doc table.pay th{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);
   font-weight:500;text-align:left;padding:7px 9px;border-bottom:1px solid var(--cream);}
@@ -167,16 +169,16 @@ table.rows td.x{width:30px;padding-right:0;}
 .trav-head{display:grid;grid-template-columns:1fr 170px 30px;gap:7px;margin-bottom:5px;
   font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);font-weight:500;}
 .doc .terms{margin-top:32px;border-top:1px solid var(--cream);padding-top:20px;}
-.doc .terms h2{font-size:20px;color:var(--terracotta);text-align:center;margin-bottom:6px;font-weight:500;}
+.doc .terms h2{font-size:20px;color:var(--sage);text-align:center;margin-bottom:6px;font-weight:500;}
 .doc .terms h3{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);
   font-weight:500;margin:20px 0 9px;border-bottom:1px solid var(--cream);padding-bottom:5px;}
 .doc .terms ol{margin:0 0 4px 18px;}
 .doc .terms li{font-size:12px;line-height:1.7;margin-bottom:8px;text-align:justify;}
 .doc .terms ul{margin:7px 0 4px 18px;}
 .doc .terms-link{margin-top:16px;font-size:12.5px;line-height:1.6;}
-.doc .terms-link a{color:var(--terracotta);text-decoration:underline;text-underline-offset:2px;word-break:break-word;}
+.doc .terms-link a{color:var(--sage);text-decoration:underline;text-underline-offset:2px;word-break:break-word;}
 .doc .foot{margin-top:28px;text-align:center;font-size:10.5px;color:var(--muted);line-height:1.75;}
-.doc .foot .co{font-size:12px;color:var(--terracotta);letter-spacing:.22em;font-weight:500;}
+.doc .foot .co{font-size:12px;color:var(--sage);letter-spacing:.22em;font-weight:500;}
 /* Retrato dos dados no resumo interno */
 .doc table.data{width:100%;border-collapse:collapse;margin-top:4px;}
 .doc table.data th{width:230px;text-align:left;font-size:11px;letter-spacing:.1em;color:var(--muted);
@@ -190,19 +192,27 @@ table.rows td.x{width:30px;padding-right:0;}
 /* ---------- formulário de confirmação ---------- */
 .confirm-block{max-width:900px;margin:24px auto 60px;background:#fff;border:1px solid var(--cream);
   padding:38px 50px;font-weight:400;}
-.confirm-block h2{font-size:22px;color:var(--terracotta);font-weight:500;}
+.confirm-block h2{font-size:22px;color:var(--sage);font-weight:500;}
 .confirm-block .rule{background:var(--copper);}
-.confirm-block .section-title{color:var(--terracotta);letter-spacing:.2em;}
+.confirm-block .section-title{color:var(--sage);letter-spacing:.2em;}
 .pax-row{display:grid;grid-template-columns:1fr 30px;gap:7px;margin-bottom:7px;align-items:center;}
 .trav-row{display:grid;grid-template-columns:1fr 170px 30px;gap:7px;margin-bottom:7px;align-items:center;}
 .check{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.65;margin-bottom:12px;}
 .check input{width:auto;margin-top:3px;}
-.check label{font-size:13px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:400;margin:0;}
+.check label,.check .checktext{font-size:13px;letter-spacing:0;text-transform:none;
+  color:var(--ink);font-weight:400;margin:0;}
+.check .checktext{cursor:pointer;}
+.check .checktext a{color:var(--sage);text-decoration:underline;text-underline-offset:2px;}
 .req{color:var(--brown);font-weight:500;}
 .fld{margin-bottom:14px;}
 .fld .pre{font-size:11.5px;color:var(--copper);margin-top:4px;line-height:1.5;}
+/* Rótulo curto é overline e vive bem em caixa alta. Pergunta inteira em
+   caixa alta parece grito, e quem está lendo é o cliente. */
+.fld label.q{text-transform:none;letter-spacing:0;font-size:13.5px;font-weight:400;
+  color:var(--ink);line-height:1.55;margin-bottom:6px;}
+.fld label.q .req{font-weight:400;}
 .done{max-width:620px;margin:16vh auto;text-align:center;padding:0 22px;}
-.done h2{font-size:26px;color:var(--terracotta);margin-bottom:12px;font-weight:500;}
+.done h2{font-size:26px;color:var(--sage);margin-bottom:12px;font-weight:500;}
 
 @media (max-width:760px){
   .grid2,.grid3,.doc .meta{grid-template-columns:1fr;}
@@ -226,7 +236,7 @@ table.rows td.x{width:30px;padding-right:0;}
   .topbar,.editor-actions,.confirm-block,.noprint{display:none !important;}
   .doc{box-shadow:none;max-width:none;padding:0;}
   .docpad{padding:0 !important;background:#fff !important;}
-  .doc table.svc thead th{background:var(--terracotta)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .doc table.svc thead th{background:var(--sage)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .doc table.svc tbody tr:nth-child(even){background:var(--cream-light)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .doc .total-box{background:var(--cream)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .doc .head{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -749,8 +759,8 @@ function renderEditor(){
       <button class="btn ghost sm" id="ed-back">Voltar</button>
       <button class="btn sm" id="ed-save">Salvar</button>
       <button class="btn ghost sm" id="ed-dup">Duplicar</button>
-      <button class="btn close ghost sm" id="ed-preview">Ver como o cliente vê</button>
-      ${CONF?`<button class="btn close sm" id="ed-sum">Resumo (PDF)</button>`:""}
+      <button class="btn ghost sm" id="ed-preview">Ver como o cliente vê</button>
+      ${CONF?`<button class="btn sm" id="ed-sum">Resumo (PDF)</button>`:""}
     </div>
   </div>
 
@@ -1266,7 +1276,7 @@ function renderSummary(){
     <span style="color:#fff;font-size:11px;letter-spacing:.2em;text-transform:uppercase;">Resumo · ${esc(o.order_ref)}</span>
     <div style="margin-left:auto;display:flex;gap:8px;">
       <button class="btn ghost sm" id="sm-back" style="border-color:rgba(255,255,255,.45);color:#fff;">Voltar</button>
-      <button class="btn close sm" id="sm-print">${t.print}</button>
+      <button class="btn sm" id="sm-print">${t.print}</button>
     </div>
   </div>
   <div class="docpad" style="padding:24px 12px;background:var(--cream);">
@@ -1303,7 +1313,7 @@ function renderSummary(){
       ${linha(t.sumAckTerms, c.ack_terms ? t.accepted : `<span class="blank">${t.notAccepted}</span>`)}
       ${linha(t.sumAckVehicle, c.ack_vehicle ? t.accepted : t.notMarked)}
       ${o.terms_url?linha(t.termsLinkLabel.replace(":",""),
-          `<a href="${esc(o.terms_url)}" style="color:var(--terracotta);">${esc(o.terms_url)}</a>`):""}
+          `<a href="${esc(o.terms_url)}" style="color:var(--sage);">${esc(o.terms_url)}</a>`):""}
     </table>
 
     <div class="blocktitle">${t.sumLead}</div>
@@ -1398,13 +1408,13 @@ function pubField(f, t){
   else if(f.input_type==="checkbox")
     input = `<div class="check" style="margin:0;"><input type="checkbox" id="fx-${esc(f.field_key)}"${v==="true"?" checked":""}
       onchange="FLD['${k}']=this.checked?'true':'false'">
-      <label for="fx-${esc(f.field_key)}">${esc(lbl)}</label></div>`;
+      <label for="fx-${esc(f.field_key)}">${esc(lbl)}${f.required?` <span class="req">· ${t.required}</span>`:""}</label></div>`;
   else
     input = `<input type="${f.input_type==="number"?"number":(f.input_type==="date"?"date":"text")}" value="${esc(v)}" ${set}>`;
 
   return `<div class="fld">
     ${f.input_type==="checkbox" ? input :
-      `<label>${esc(lbl)}${f.required?` <span class="req">· ${t.required}</span>`:""}</label>${input}`}
+      `<label class="q">${esc(lbl)}${f.required?` <span class="req">· ${t.required}</span>`:""}</label>${input}`}
     ${f.mode==="prefilled"?`<div class="pre">${t.prefilled}</div>`:""}
     ${(PUB.order.lang==="en"?f.help_en:f.help_pt)?`<div class="muted" style="margin-top:3px;">${esc(PUB.order.lang==="en"?f.help_en:f.help_pt)}</div>`:""}
   </div>`;
@@ -1527,20 +1537,29 @@ function drawPublic(){
     ${bVeh!=="off"?`<div class="check"><input type="checkbox" id="c-veh">
       <label for="c-veh">${t.ackVehicle}</label></div>`:""}
     <div class="check"><input type="checkbox" id="c-terms">
-      <label for="c-terms">${t.ackPre}${o.terms_url
+      <span id="c-terms-txt" class="checktext">${t.ackPre}${o.terms_url
         ? `<a href="${esc(o.terms_url)}" target="_blank" rel="noopener">${t.ackLink}</a>`
-        : `<u>${t.ackLink}</u>`}${t.ackPost}</label></div>
+        : `<u>${t.ackLink}</u>`}${t.ackPost}</span></div>
 
     ${bRem!=="off"?`<div style="margin-top:16px;"><label>${t.remarks}</label><textarea id="c-rem" rows="3"></textarea></div>`:""}
 
     <div id="c-msg" style="margin-top:14px;"></div>
-    <button class="btn close" id="c-go" style="margin-top:16px;">${t.submit}</button>
+    <button class="btn" id="c-go" style="margin-top:16px;">${t.submit}</button>
   </div>`}
   </div>`;
 
   if(confirmed) return;
   drawPax();
   if(el("tv-add")) el("tv-add").onclick = () => { PAX.push({name:"",dob:""}); drawPax(); };
+  // O texto do aceite deixou de ser <label for>: dentro de um label, o
+  // clique no link era engolido pelo próprio label, que só marcava a
+  // caixa. O link não abria e não havia nada na tela explicando por quê.
+  // Agora o texto marca a caixa e o link abre, cada um no seu clique.
+  const txt = el("c-terms-txt");
+  if(txt) txt.onclick = e => {
+    if(e.target.closest("a")) return;
+    const c = el("c-terms"); c.checked = !c.checked;
+  };
   el("c-go").onclick = submitConfirmation;
 }
 
