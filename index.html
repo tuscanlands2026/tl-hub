@@ -238,6 +238,12 @@ table.rows td.x{width:30px;padding-right:0;}
    CONFIGURAÇÃO — cole aqui a URL e a anon key do projeto Supabase do HUB.
    Enquanto estiverem vazias, o app pede as duas na tela (só na sessão).
    ===================================================================== */
+/* Endereço público do hub, o que a agência vai abrir. Preenchido, o link
+   do cliente sai sempre certo, não importa de onde você abriu o editor.
+   Vazio, o programa usa o endereço da janela aberta — e avisa na tela se
+   esse endereço não servir para mandar a ninguém. */
+const PUBLIC_BASE_URL = "";
+
 const SUPABASE_URL = "https://iloznrjpiedrohlhrmce.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlsb3pucmpwaWVkcm9obGhybWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NjQxMjUsImV4cCI6MjA5OTM0MDEyNX0.nz8KvP-BIh3Bm6QWj2WjjOWBTLd_lVhaZJewGkwTunA";
 
@@ -254,6 +260,20 @@ const el = id => document.getElementById(id);
 const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const eur = n => "€ " + (Number(n)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
 const nl2br = s => esc(s).replace(/\n/g,"<br>");
+/* Monta o link do cliente. Devolve null quando não há endereço público
+   possível — arquivo aberto direto do computador, por exemplo, que geraria
+   um caminho que só funciona na máquina de quem copiou. */
+function clientLink(token){
+  let base = (PUBLIC_BASE_URL||"").trim();
+  if(!base){
+    if(location.protocol === "file:") return null;
+    base = location.origin + location.pathname;
+  }
+  base = base.replace(/#.*$/,"").trim();
+  if(!/\/$|\.html?$/i.test(base)) base += "/";
+  return base + "#/confirm/" + token;
+}
+
 const stamp = (iso,lang) => iso ? new Date(iso).toLocaleString(lang==="en"?"en-GB":"pt-BR",
   {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}) : "—";
 
@@ -739,10 +759,12 @@ function renderEditor(){
   <div class="card">
     <div class="section-title">Link do cliente</div>
     <div class="muted">Token aleatório. Quem tem o link vê o documento e confirma os dados. Nada da sua base fica exposto.</div>
-    <div class="linkbox">
-      <input id="lk" readonly value="${location.origin+location.pathname}#/confirm/${esc(o.token)}">
+    ${clientLink(o.token) ? `<div class="linkbox">
+      <input id="lk" readonly value="${esc(clientLink(o.token))}">
       <button class="btn sm" id="lk-copy">Copiar</button>
-    </div>
+    </div>` : `<div class="msg" style="margin-top:10px;">Este hub está aberto como arquivo do seu
+      computador, e um link daqui só funcionaria nesta máquina. Abra o hub pelo endereço do site
+      para copiar o link, ou preencha <b>PUBLIC_BASE_URL</b> no topo do arquivo.</div>`}
     <div id="conf-host" class="closing"></div>
   </div>`, o.order_ref);
 
@@ -750,7 +772,8 @@ function renderEditor(){
   el("ed-save").onclick = saveOrder;
   el("ed-preview").onclick = () => { location.hash = "#/confirm/"+ORDER.token; };
   if(el("ed-sum")) el("ed-sum").onclick = renderSummary;
-  el("lk-copy").onclick = () => { el("lk").select(); document.execCommand("copy"); el("lk-copy").textContent="Copiado"; };
+  if(el("lk-copy")) el("lk-copy").onclick = () => {
+    el("lk").select(); document.execCommand("copy"); el("lk-copy").textContent="Copiado"; };
   el("it-add").onclick = () => { ITEMS.push({service_date:"",title:"",details:"",price:0,sort:ITEMS.length}); drawItems(); };
   el("pg-add").onclick = () => { PAYS.push({label:"",due_date:"",amount:0,status:"pending",sort:PAYS.length}); drawPays(); };
   el("fl-grp").onchange = drawLibOptions;
