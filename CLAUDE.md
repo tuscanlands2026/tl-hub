@@ -49,7 +49,11 @@ especificação: **não aparece** é a linha não existir, **aparece vazio** é 
 **aparece preenchido** é `mode='prefilled'` com `prefill_value`. Os blocos fixos —
 contato, adultos, crianças, aceite de veículo, observações — moram em
 `ops_orders.checkout_config`, junto com a quantidade de viajantes e o aviso de passaporte.
-O aceite dos termos não é configurável: sem ele o banco recusa o envio.
+
+Dois aceites não são opcionais. O dos **termos** não é configurável de jeito nenhum: sem
+ele aquilo não é confirmação. O de **bagagem** é configurável em aparecer ou não, mas não
+em ser opcional — aparecendo, o banco exige que seja marcado. Bagagem além do previsto
+significa veículo maior no dia, com custo que ninguém combinou.
 
 O que a agência respondeu fica em `ops_order_confirmations.fields`, como retrato: rótulo,
 estado e valor juntos, montado pelo banco a partir da configuração, nunca do que o
