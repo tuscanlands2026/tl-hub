@@ -254,6 +254,11 @@ const SUPABASE_URL = "https://iloznrjpiedrohlhrmce.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlsb3pucmpwaWVkcm9obGhybWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NjQxMjUsImV4cCI6MjA5OTM0MDEyNX0.nz8KvP-BIh3Bm6QWj2WjjOWBTLd_lVhaZJewGkwTunA";
 
 const LOGO = "https://i.postimg.cc/k45xbsK4/grosseto.png";
+/* Endereço para dúvida do cliente depois do envio. Separado do e-mail de
+   reservas de propósito: quem acabou de confirmar escreve para a casa,
+   não para a caixa operacional. */
+const CONTACT_EMAIL = "hello@tuscanlandstravel.com";
+
 const COMPANY = {
   legal: "Tuscan Lands di Batistella Maria Fernanda",
   vat: "VAT IT06873750480 · Pontassieve (FI), Italy",
@@ -303,10 +308,13 @@ const T = {
     passportNote:"Para a emissão de bilhetes de alguns monumentos, o nome informado precisa ser exatamente igual ao do passaporte.",
     logistics:"Informações de Logística e Saúde",
     ackVehicle:"Confirmo que o número de passageiros e o volume de bagagem informados estão corretos. Bagagem excedente pode exigir veículo maior e ajuste de valor.",
-    ackTerms:"Li e aceito os termos e condições deste documento.",
+    ackPre:"Li e aceito os ", ackLink:"termos e condições",
+    ackPost:" para contratação dos serviços elencados.",
     remarks:"Observações (opcional)",
-    submit:"Confirmar serviços", sending:"Enviando…",
-    doneTitle:"Confirmação recebida", doneText:"Os dados chegaram até nós. Qualquer ajuste, responda o e-mail da Tuscan Lands.",
+    submit:"Enviar", sending:"Enviando…",
+    doneTitle:"Confirmação recebida",
+    doneText:"Agradecemos as informações. Receberemos esta confirmação por e-mail e seguiremos com a etapa do pagamento.",
+    doneHelp:"Para qualquer dúvida, entre em contato conosco:",
     alreadyTitle:"Serviços já confirmados", alreadyText:"Este documento já foi confirmado. Para alterações, fale com a Tuscan Lands.",
     expired:"Este link expirou.", notFound:"Documento não encontrado.",
     errFill:"Preencha os campos obrigatórios e aceite os termos.",
@@ -352,10 +360,13 @@ const T = {
     passportNote:"For ticketing at certain monuments, the name given must match the passport exactly.",
     logistics:"Logistics and Health",
     ackVehicle:"I confirm the number of travellers and the luggage volume are correct. Extra luggage may require a larger vehicle and a price adjustment.",
-    ackTerms:"I have read and accept the terms and conditions in this document.",
+    ackPre:"I have read and accept the ", ackLink:"terms and conditions",
+    ackPost:" for the services listed.",
     remarks:"Remarks (optional)",
-    submit:"Confirm services", sending:"Sending…",
-    doneTitle:"Confirmation received", doneText:"We have your details. For any change, reply to the Tuscan Lands email.",
+    submit:"Send", sending:"Sending…",
+    doneTitle:"Confirmation received",
+    doneText:"Thank you for the information. We will receive this confirmation by email and will move on to the payment stage.",
+    doneHelp:"For any question, please contact us:",
     alreadyTitle:"Already confirmed", alreadyText:"This document has already been confirmed. For changes, contact Tuscan Lands.",
     expired:"This link has expired.", notFound:"Document not found.",
     errFill:"Please fill in the required fields and accept the terms.",
@@ -889,7 +900,7 @@ function drawConfig(){
     const cur = CFG[b.k], opts = b.three ? MODE3 : MODE2;
     return `<div class="cfg-row">
       <div class="name">${b.pt}<small>${b.note}</small></div>
-      <select onchange="CFG['${b.k}']=this.value;drawConfig()">
+      <select onchange="setBlockMode('${b.k}',this.value)">
         ${opts.map(([v,l])=>`<option value="${v}"${cur===v?" selected":""}>${l}</option>`).join("")}
       </select>
     </div>${(b.k==="travellers" && cur!=="off") ? travOptions() : ""}${(b.three && cur==="prefilled") ? fillFor(b.k) : ""}`;
@@ -906,12 +917,41 @@ function drawConfig(){
    quantidade decide quantas linhas a agência vê: pedir "acrescente
    quantos forem" produz lista incompleta, pedir o número exato produz
    conferência. */
+/* A quantidade abre as caixas na hora, tanto aqui quanto no checkout da
+   agência. Ao diminuir, só some linha vazia: nome já digitado não
+   desaparece porque alguém errou o número e corrigiu. */
+/* Escolher "já preenchido" precisa abrir as caixas na hora. Sem isto ela
+   troca o estado, não vê nada, e conclui que a tela não funciona. */
+function setBlockMode(k, v){
+  CFG[k] = v;
+  if(k==="travellers" && v==="prefilled") return setTravCount(CFG.travellers_count);
+  drawConfig();
+}
+
+function setTravCount(v){
+  const q = Math.max(1, Math.min(30, parseInt(v,10) || 1));
+  CFG.travellers_count = q;
+  const p = CFG.prefill;
+  if(!Array.isArray(p.travellers)) p.travellers = [];
+  while(p.travellers.length < q) p.travellers.push({name:"",dob:""});
+  while(p.travellers.length > q){
+    const ult = p.travellers[p.travellers.length-1];
+    if((ult.name||"").trim() || (ult.dob||"").trim()) break;
+    p.travellers.pop();
+  }
+  drawConfig();
+  // O redesenho troca o campo por um novo; devolve o foco para ela poder
+  // continuar digitando. Campo numérico não aceita setSelectionRange.
+  const cx = document.querySelector('.cfg-fill input[type=number]');
+  if(cx) cx.focus();
+}
+
 function travOptions(){
   return `<div class="cfg-fill"><div class="inner">
     <div class="grid2">
       <div><label>Quantidade de viajantes</label>
         <input type="number" min="1" max="30" value="${CFG.travellers_count}"
-          oninput="CFG.travellers_count=Math.max(1,Math.min(30,parseInt(this.value,10)||1))"></div>
+          onchange="setTravCount(this.value)" oninput="setTravCount(this.value)"></div>
       <div><label>Nome igual ao passaporte</label>
         <select onchange="CFG.passport_names=(this.value==='sim');drawConfig()">
           <option value="sim"${CFG.passport_names?" selected":""}>Sim — avisa sobre o bilhete de monumento</option>
@@ -1455,7 +1495,6 @@ function drawPublic(){
     <h2>${t.alreadyTitle}</h2>
     <div class="rule"></div>
     <div class="muted">${t.alreadyText}</div>
-    <button class="btn close ghost sm noprint" style="margin-top:16px;" onclick="window.print()">${t.print}</button>
   </div>` : `
   <div class="confirm-block">
     <h2>${t.confirmTitle}</h2>
@@ -1488,13 +1527,14 @@ function drawPublic(){
     ${bVeh!=="off"?`<div class="check"><input type="checkbox" id="c-veh">
       <label for="c-veh">${t.ackVehicle}</label></div>`:""}
     <div class="check"><input type="checkbox" id="c-terms">
-      <label for="c-terms">${t.ackTerms}${o.terms_url?` <a href="${esc(o.terms_url)}" target="_blank" rel="noopener">${t.termsLinkLabel.replace(":","")}</a>`:""}</label></div>
+      <label for="c-terms">${t.ackPre}${o.terms_url
+        ? `<a href="${esc(o.terms_url)}" target="_blank" rel="noopener">${t.ackLink}</a>`
+        : `<u>${t.ackLink}</u>`}${t.ackPost}</label></div>
 
     ${bRem!=="off"?`<div style="margin-top:16px;"><label>${t.remarks}</label><textarea id="c-rem" rows="3"></textarea></div>`:""}
 
     <div id="c-msg" style="margin-top:14px;"></div>
     <button class="btn close" id="c-go" style="margin-top:16px;">${t.submit}</button>
-    <button class="btn close ghost noprint" style="margin-top:16px;" onclick="window.print()">${t.print}</button>
   </div>`}
   </div>`;
 
@@ -1568,7 +1608,13 @@ async function submitConfirmation(){
     el("c-msg").innerHTML = `<div class="msg">${esc(txt)}</div>`;
     btn.disabled = false; btn.textContent = t.submit; return;
   }
-  app.innerHTML = `<div class="done"><h2>${t.doneTitle}</h2><div class="muted">${t.doneText}</div></div>`;
+  app.innerHTML = `<div class="done">
+    <h2>${t.doneTitle}</h2>
+    <div class="rule" style="margin:0 auto 18px;"></div>
+    <div class="muted" style="font-size:14px;">${t.doneText}</div>
+    <div class="muted" style="margin-top:14px;">${t.doneHelp}
+      <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div>
+  </div>`;
 }
 
 boot();
