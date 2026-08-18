@@ -1653,7 +1653,7 @@ function drawPublic(){
     <div class="check"><input type="checkbox" id="c-terms">
       <span id="c-terms-txt" class="checktext">${t.ackPre}${termsHref(o)
         ? `<a href="${esc(termsHref(o))}" target="_blank" rel="noopener">${t.ackLink}</a>`
-        : `<u>${t.ackLink}</u>`}${t.ackPost}</span></div>
+        : `<u>${t.ackLink}</u>`}${t.ackPost} <span class="req">· ${t.required}</span></span></div>
 
     ${bRem!=="off"?`<div style="margin-top:16px;"><label>${t.remarks}</label><textarea id="c-rem" rows="3"></textarea></div>`:""}
 
