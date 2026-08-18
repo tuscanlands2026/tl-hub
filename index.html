@@ -73,6 +73,8 @@ label{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase
 .side .item.soon{color:var(--muted);cursor:default;}
 .side .item.soon:hover{background:none;}
 .side .item .cnt{float:right;font-size:11px;color:var(--muted);}
+.side .voltar{padding:0 18px 14px;margin-bottom:6px;border-bottom:1px solid var(--cream);}
+.side .voltar .item{padding-left:0;border-left:none;}
 .card{background:#fff;border:1px solid var(--cream);padding:20px;}
 .card+.card{margin-top:16px;}
 .stack{display:flex;flex-direction:column;gap:14px;}
@@ -82,6 +84,35 @@ label{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase
 .rule{width:30px;height:1px;background:var(--sage);margin:9px 0 16px;}
 .muted{color:var(--muted);font-size:12.5px;line-height:1.6;}
 .hint{color:var(--muted);font-size:11.5px;line-height:1.55;margin-bottom:12px;}
+
+/* ---------- painel de entrada ----------
+   Fundo sage inteiro, caixas em creme. O fio de 1px entre elas vem do
+   próprio gap sobre um fundo claro — divisória sem borda, e sem
+   arredondar nada. */
+.painel{background:var(--sage);min-height:calc(100vh - 44px);padding:38px 22px 70px;}
+.painel .dentro{max-width:1080px;margin:0 auto;}
+.painel .titulo{color:#fff;font-size:11px;letter-spacing:.24em;text-transform:uppercase;font-weight:500;}
+.painel .sub{color:rgba(255,255,255,.72);font-size:13.5px;margin-top:8px;line-height:1.6;}
+.painel .risca{width:30px;height:1px;background:var(--copper);margin:14px 0 28px;}
+/* Caixas soltas, e não uma grade com fio entre elas: sobrando célula
+   vazia na última fileira, a grade mostrava o próprio fundo e virava um
+   retângulo morto ao lado do conteúdo. */
+.caixas{display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:14px;}
+.caixa{background:var(--cream-light);border:1px solid rgba(255,255,255,.28);
+  padding:20px 19px 22px;text-align:left;cursor:pointer;font-family:inherit;
+  display:flex;flex-direction:column;min-height:136px;}
+.caixa:hover{background:#fff;border-color:var(--copper);}
+.caixa .k{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);font-weight:500;}
+.caixa .n{font-size:32px;font-weight:400;color:var(--ink);margin-top:auto;line-height:1;
+  font-variant-numeric:tabular-nums;}
+.caixa .n em{font-style:normal;font-size:13px;color:var(--muted);margin-left:7px;}
+.caixa .d{font-size:12px;color:var(--muted);line-height:1.5;margin-top:7px;}
+.caixa.parada{cursor:default;background:transparent;border-style:dashed;
+  border-color:rgba(255,255,255,.3);}
+.caixa.parada .k,.caixa.parada .d{color:rgba(255,255,255,.6);}
+.caixa.parada .n{color:rgba(255,255,255,.45);}
+.caixa.parada:hover{background:transparent;border-color:rgba(255,255,255,.3);}
+.caixa .alerta{color:var(--brown);font-weight:500;}
 
 /* ---------- login / setup ---------- */
 .gate{max-width:380px;margin:12vh auto;padding:0 22px;}
@@ -671,7 +702,7 @@ async function boot(){
   if(isPublic) return renderPublic(r.split("/")[1]);
   const {data} = await sb.auth.getSession();
   if(!data.session) return renderLogin();
-  renderApp();
+  renderPainel();
 }
 window.addEventListener("hashchange", boot);
 
@@ -715,7 +746,7 @@ function renderLogin(){
       el("lg-msg").innerHTML = `<div class="msg">${esc(error.message)}</div>`;
       btn.disabled = false; btn.textContent = "Entrar"; return;
     }
-    renderApp();
+    renderPainel();
   };
   el("lg-go").onclick = go;
   el("lg-pass").onkeydown = e => { if(e.key==="Enter") go(); };
@@ -738,6 +769,7 @@ function quemE(o){
 let NAV = "orders";
 const NAVOPEN = {vendas:true, operacoes:true};
 const NAVMAP = {
+  painel: {rotulo:"", oculto:true, itens:[{k:"painel", ir:()=>renderPainel()}]},
   vendas: {rotulo:"Vendas", itens:[
     {k:"opportunities", rotulo:"Oportunidades", ir:()=>renderOpportunities()},
     {k:"orders",        rotulo:"Orders",        ir:()=>renderApp()}
@@ -748,7 +780,8 @@ const NAVMAP = {
 };
 
 function navHTML(){
-  return Object.entries(NAVMAP).map(([gk,g])=>`
+  return `<div class="voltar"><div class="item" data-nav="painel">← Painel</div></div>` +
+    Object.entries(NAVMAP).filter(([,g])=>!g.oculto).map(([gk,g])=>`
     <div class="grp">
       <button class="grphead" data-grp="${gk}">
         <span class="caret">${NAVOPEN[gk]?"▼":"▶"}</span>${esc(g.rotulo)}</button>
@@ -844,6 +877,69 @@ async function renderApp(){
         <td><span class="badge ${o.status}">${esc(o.status)}</span></td></tr>`).join("")}
     </tbody></table>`;
   host.querySelectorAll("tr[data-id]").forEach(tr=>tr.onclick=()=>openOrder(tr.dataset.id));
+}
+
+/* ==================================================================== */
+/*  PAINEL — a porta de entrada                                         */
+/*                                                                      */
+/*  Caixas, não menu. O número grande de cada caixa é sempre o que      */
+/*  espera por ela, não o total: total não pede nada a ninguém, e a     */
+/*  queixa que originou esta tela foi conferir a mesma coisa três,      */
+/*  quatro vezes por medo de esquecer. O total fica ao lado, pequeno.   */
+/*                                                                      */
+/*  A lateral só aparece depois de entrar numa caixa, com "← Painel"    */
+/*  no topo para voltar.                                                */
+/* ==================================================================== */
+async function renderPainel(){
+  NAV = "painel";
+  app.innerHTML = `
+  <div class="topbar">
+    <span class="mark">TUSCAN LANDS</span>
+    <span class="sep">·</span><span class="ctx">Vendas &amp; Operações</span>
+    <div class="right"><button id="tb-out">Sair</button></div>
+  </div>
+  <div class="painel"><div class="dentro">
+    <div class="titulo">Painel</div>
+    <div class="risca"></div>
+    <div class="caixas" id="pn-caixas">
+      <div class="caixa parada"><div class="k">Carregando…</div></div>
+    </div>
+  </div></div>`;
+  el("tb-out").onclick = async () => { await sb.auth.signOut(); renderLogin(); };
+
+  const [{data:board},{data:props},{data:ords}] = await Promise.all([
+    sb.from("ops_opportunities_board").select("*"),
+    sb.from("ops_proposals_box").select("situacao"),
+    sb.from("ops_orders").select("id,status")
+  ]);
+  const b = board||[], pr = props||[], od = ords||[];
+
+  const abertas    = b.filter(o=>o.outcome==="open").length;
+  // Briefing pendente é oportunidade aberta sem briefing, ou com briefing
+  // ainda não marcado como completo. As duas pedem a mesma coisa dela.
+  const brFalta    = b.filter(o=>o.outcome==="open" && !o.briefing_done_at).length;
+  const prAguarda  = pr.filter(p=>p.situacao==="aguardando").length;
+  const odAguarda  = od.filter(o=>o.status==="sent").length;
+  const odRascunho = od.filter(o=>o.status==="draft").length;
+
+  const caixa = (k,num,total,d,ir,alerta) => `
+    <button class="caixa${ir?"":" parada"}"${ir?` data-ir="${ir}"`:""}>
+      <div class="k">${k}</div>
+      <div class="d">${d}</div>
+      <div class="n${(alerta && num>0)?" alerta":""}">${num}${total!=null?`<em>de ${total}</em>`:""}</div>
+    </button>`;
+
+  el("pn-caixas").innerHTML =
+      caixa("Oportunidades", abertas,    b.length,  "Em aberto agora", "opportunities")
+    + caixa("Briefings",     brFalta,    abertas,   "Ainda por completar", "opportunities", true)
+    + caixa("Propostas",     prAguarda,  pr.length, "Aguardando resposta da agência", "opportunities", true)
+    + caixa("Orders",        odAguarda,  od.length, "Link enviado, esperando a agência", "orders", true)
+    + caixa("Rascunhos",     odRascunho, null,      "Orders que você ainda não mandou", "orders")
+    + caixa("Checklist",     "—",        null,      "Depois do checkout. Em breve", null);
+
+  app.querySelectorAll(".caixa[data-ir]").forEach(c=>c.onclick=()=>{
+    if(c.dataset.ir==="orders") renderApp(); else renderOpportunities();
+  });
 }
 
 /* ==================================================================== */

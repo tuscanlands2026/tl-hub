@@ -7,8 +7,14 @@ documentos comerciais. Não substitui o CRM, que continua cuidando de pagamentos
 e faturamento.
 
 ## Estado atual
-Navegação lateral agrupada por área — Vendas, Operações — com os grupos abrindo e fechando.
-O plano proíbe lista corrida de abas: o CRM sofre desse problema e não deve ser replicado.
+Entrar no hub cai no **Painel**: fundo sage, caixas em creme, uma por área. O número grande
+de cada caixa é sempre o que espera por ela — não o total. Total não pede nada a ninguém, e
+a queixa que originou a tela foi conferir a mesma coisa três, quatro vezes por medo de
+esquecer.
+
+A navegação lateral só aparece depois de entrar numa caixa, agrupada por área — Vendas,
+Operações — com os grupos abrindo e fechando, e "← Painel" no topo. O plano proíbe lista
+corrida de abas: o CRM sofre desse problema e não deve ser replicado.
 
 Módulo **Oportunidade + Briefing** funcionando: lista com a etapa lida dos filhos, cadastro,
 editor, e o briefing em campos com documento em PDF pelo Ctrl+P. O briefing é escrito em
