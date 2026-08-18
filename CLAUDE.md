@@ -7,6 +7,19 @@ documentos comerciais. Não substitui o CRM, que continua cuidando de pagamentos
 e faturamento.
 
 ## Estado atual
+Navegação lateral agrupada por área — Vendas, Operações — com os grupos abrindo e fechando.
+O plano proíbe lista corrida de abas: o CRM sofre desse problema e não deve ser replicado.
+
+Módulo **Oportunidade + Briefing** funcionando: lista com a etapa lida dos filhos, cadastro,
+editor, e o briefing em campos com documento em PDF pelo Ctrl+P. O briefing é escrito em
+colunas e não anexado como arquivo — decisão da seção 6 do plano, que dizia "estruturado
+alimenta proposta e checklist sem redigitar". Sem Supabase Storage, sem upload.
+
+**Order ainda não se liga à oportunidade pela tela.** A coluna `opportunity_id` existe e o
+gatilho `tl_guard_order` bloqueia order de oportunidade sem proposta aceita. Ligar as duas
+sem a etapa de proposta faria a gravação falhar com erro de banco na cara dela. Fica para
+quando a proposta existir; até lá a order segue com `opportunity_code` como texto.
+
 Módulo **Order** funcionando: login, lista de orders, editor, e página pública onde o
 cliente ou a agência confere os serviços, informa os viajantes e aceita os termos. Ao
 enviar, a order vira `confirmed` e os dados aparecem no editor. Order pode ser duplicada:

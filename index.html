@@ -57,6 +57,22 @@ label{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase
 .topbar .right button{background:none;border:1px solid rgba(255,255,255,.45);color:#fff;padding:5px 11px;
   font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-weight:500;}
 .wrap{max-width:1080px;margin:0 auto;padding:24px 22px 80px;}
+/* Navegação agrupada por área, não lista corrida de abas: o plano diz que
+   o CRM sofre do problema oposto e não deve ser replicado. */
+.layout{display:grid;grid-template-columns:190px 1fr;align-items:start;}
+.side{border-right:1px solid var(--cream);min-height:calc(100vh - 44px);padding:18px 0;background:#fff;}
+.side .grp{margin-bottom:6px;}
+.side .grphead{width:100%;text-align:left;background:none;border:none;cursor:pointer;
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);font-weight:500;
+  padding:9px 18px;display:flex;align-items:center;gap:7px;}
+.side .grphead .caret{font-size:8px;opacity:.6;transition:none;}
+.side .item{display:block;padding:8px 18px 8px 26px;font-size:13px;color:var(--ink);
+  cursor:pointer;border-left:2px solid transparent;}
+.side .item:hover{background:var(--cream-light);}
+.side .item.on{border-left-color:var(--sage);color:var(--sage);font-weight:500;background:var(--cream-light);}
+.side .item.soon{color:var(--muted);cursor:default;}
+.side .item.soon:hover{background:none;}
+.side .item .cnt{float:right;font-size:11px;color:var(--muted);}
 .card{background:#fff;border:1px solid var(--cream);padding:20px;}
 .card+.card{margin-top:16px;}
 .stack{display:flex;flex-direction:column;gap:14px;}
@@ -232,6 +248,8 @@ table.rows td.x{width:30px;padding-right:0;}
   .confirm-block{padding:26px 18px;}
   .doc .head{flex-direction:column;gap:16px;}
   .doc .to{text-align:left;}
+  .layout{grid-template-columns:1fr;}
+  .side{min-height:0;border-right:none;border-bottom:1px solid var(--cream);padding:8px 0;}
   .cfg-row{grid-template-columns:1fr;}
   .addbar{grid-template-columns:1fr;}
   .doc table.data th{width:auto;display:block;border-bottom:none;padding-bottom:0;}
@@ -245,7 +263,8 @@ table.rows td.x{width:30px;padding-right:0;}
 @media print{
   @page{margin:14mm;}
   body{background:#fff;}
-  .topbar,.editor-actions,.confirm-block,.noprint{display:none !important;}
+  .topbar,.editor-actions,.confirm-block,.noprint,.side{display:none !important;}
+  .layout{display:block;}
   .doc{box-shadow:none;max-width:none;padding:0;}
   .docpad{padding:0 !important;background:#fff !important;}
   .doc table.svc thead th{background:var(--sage)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
@@ -384,7 +403,12 @@ const T = {
     sumRemarks:"Observações da agência", sumAckTerms:"Termos e condições",
     sumAckVehicle:"Veículo e bagagem", accepted:"Aceito", notAccepted:"Não aceito",
     notMarked:"Não marcado", blank:"— em branco", years:"anos", preShort:"pré-preenchido",
-    sumIntro:"Retrato do que foi enviado e assinado através do documento de confirmação de serviços."
+    sumIntro:"Retrato do que foi enviado e assinado através do documento de confirmação de serviços.",
+    brTitle:"Briefing", brIntro:"O que entendemos do pedido, para conferência antes da proposta.",
+    brWindow:"Período", brPax:"Passageiros", brSource:"Origem do pedido",
+    brScope:"O pedido", brBudget:"Orçamento", brConstraints:"Restrições e datas fixas",
+    brConfirm:"Confirme ou corrija este entendimento antes de seguirmos para a proposta.",
+    brOpp:"Oportunidade"
   },
   en:{
     docTitle:"Service Confirmation",
@@ -436,7 +460,12 @@ const T = {
     sumRemarks:"Remarks from the agency", sumAckTerms:"Terms and conditions",
     sumAckVehicle:"Vehicle and luggage", accepted:"Accepted", notAccepted:"Not accepted",
     notMarked:"Not ticked", blank:"— blank", years:"years old", preShort:"pre-filled",
-    sumIntro:"Record of what was submitted and signed through the service confirmation document."
+    sumIntro:"Record of what was submitted and signed through the service confirmation document.",
+    brTitle:"Briefing", brIntro:"Our understanding of the request, for review before the proposal.",
+    brWindow:"Period", brPax:"Travellers", brSource:"Where the request came from",
+    brScope:"The request", brBudget:"Budget", brConstraints:"Constraints and fixed dates",
+    brConfirm:"Please confirm or correct this understanding before we move on to the proposal.",
+    brOpp:"Opportunity"
   }
 };
 
@@ -704,6 +733,30 @@ function quemE(o){
   return [o.agency, o.final_client].map(v=>(v||"").trim()).filter(Boolean).join(" · ");
 }
 
+/* Onde estamos e quais grupos estão abertos. Guardado fora do desenho da
+   tela para o grupo não fechar sozinho a cada navegação. */
+let NAV = "orders";
+const NAVOPEN = {vendas:true, operacoes:true};
+const NAVMAP = {
+  vendas: {rotulo:"Vendas", itens:[
+    {k:"opportunities", rotulo:"Oportunidades", ir:()=>renderOpportunities()},
+    {k:"orders",        rotulo:"Orders",        ir:()=>renderApp()}
+  ]},
+  operacoes: {rotulo:"Operações", itens:[
+    {k:"checklist", rotulo:"Checklist", breve:true}
+  ]}
+};
+
+function navHTML(){
+  return Object.entries(NAVMAP).map(([gk,g])=>`
+    <div class="grp">
+      <button class="grphead" data-grp="${gk}">
+        <span class="caret">${NAVOPEN[gk]?"▼":"▶"}</span>${esc(g.rotulo)}</button>
+      ${NAVOPEN[gk]?g.itens.map(i=>`<div class="item${i.k===NAV?" on":""}${i.breve?" soon":""}"
+          ${i.breve?"":`data-nav="${i.k}"`}>${esc(i.rotulo)}${i.breve?`<span class="cnt">em breve</span>`:""}</div>`).join(""):""}
+    </div>`).join("");
+}
+
 function shell(inner, crumb){
   app.innerHTML = `
   <div class="topbar">
@@ -712,11 +765,35 @@ function shell(inner, crumb){
     ${crumb?`<span class="sep">·</span><span class="ctx">${esc(crumb)}</span>`:""}
     <div class="right"><button id="tb-out">Sair</button></div>
   </div>
-  <div class="wrap">${inner}</div>`;
+  <div class="layout">
+    <nav class="side noprint">${navHTML()}</nav>
+    <div class="wrap">${inner}</div>
+  </div>`;
   el("tb-out").onclick = async () => { await sb.auth.signOut(); renderLogin(); };
+  app.querySelectorAll(".grphead").forEach(b=>b.onclick=()=>{
+    NAVOPEN[b.dataset.grp] = !NAVOPEN[b.dataset.grp];
+    app.querySelector(".side").innerHTML = navHTML();
+    ligarNav();
+  });
+  ligarNav();
+}
+
+function ligarNav(){
+  app.querySelectorAll(".side .item[data-nav]").forEach(d=>d.onclick=()=>{
+    const alvo = d.dataset.nav;
+    if(alvo === NAV) return;
+    NAV = alvo;
+    Object.values(NAVMAP).forEach(g=>g.itens.forEach(i=>{ if(i.k===alvo && i.ir) i.ir(); }));
+  });
+  app.querySelectorAll(".grphead").forEach(b=>b.onclick=()=>{
+    NAVOPEN[b.dataset.grp] = !NAVOPEN[b.dataset.grp];
+    app.querySelector(".side").innerHTML = navHTML();
+    ligarNav();
+  });
 }
 
 async function renderApp(){
+  NAV = "orders";
   shell(`<div class="overline">Orders</div><div class="rule"></div>
     <div id="list-host" class="muted">Carregando…</div>
     <div class="card" style="margin-top:24px;">
@@ -767,6 +844,266 @@ async function renderApp(){
         <td><span class="badge ${o.status}">${esc(o.status)}</span></td></tr>`).join("")}
     </tbody></table>`;
   host.querySelectorAll("tr[data-id]").forEach(tr=>tr.onclick=()=>openOrder(tr.dataset.id));
+}
+
+/* ==================================================================== */
+/*  OPORTUNIDADE — o objeto central                                     */
+/*                                                                      */
+/*  Tudo pendura nela: briefing, proposta, order. As tabelas já         */
+/*  existiam no banco desde a sessão que escreveu tl-hub-opportunities  */
+/*  e nunca tinham ganhado tela — este é o pedaço que faltava.          */
+/* ==================================================================== */
+let OPP = null, BRIEF = null;
+
+const ETAPA = {
+  proposal:    "Proposta",
+  order:       "Order",
+  operating:   "Em operação",
+  closed_won:  "Ganha",
+  closed_lost: "Perdida"
+};
+
+async function renderOpportunities(){
+  NAV = "opportunities";
+  shell(`<div class="overline">Oportunidades</div><div class="rule"></div>
+    <div id="opp-host" class="muted">Carregando…</div>
+    <div class="card" style="margin-top:24px;">
+      <div class="section-title">Nova oportunidade</div>
+      <div class="grid3">
+        <div><label>Título</label><input id="o-title" placeholder="Família Souza · out 2026"></div>
+        <div><label>Nº no CRM (opcional)</label><input id="o-crm" placeholder="TL035-26"></div>
+        <div><label>Idioma</label><select id="o-lang">
+          <option value="pt">Português</option><option value="en">English</option></select></div>
+      </div>
+      <div class="grid3" style="margin-top:12px;">
+        <div><label>Agência</label><input id="o-agency" placeholder="Refina Travel"></div>
+        <div><label>Contato na agência</label><input id="o-contact"></div>
+        <div><label>Cliente final</label><input id="o-client" placeholder="Sobrenome da família"></div>
+      </div>
+      <button class="btn" id="o-go" style="margin-top:16px;">Criar oportunidade</button>
+    </div>`);
+
+  el("o-go").onclick = async () => {
+    const t = el("o-title").value.trim();
+    if(!t) return alert("O título é obrigatório. É por ele que você acha a oportunidade depois.");
+    const {data,error} = await sb.from("ops_opportunities").insert({
+      title:t, crm_code:el("o-crm").value.trim()||null, lang:el("o-lang").value,
+      agency:el("o-agency").value.trim(), agency_contact:el("o-contact").value.trim(),
+      final_client:el("o-client").value.trim()
+    }).select().single();
+    if(error) return alert(error.message);
+    openOpportunity(data.id);
+  };
+
+  // A view já devolve a etapa lida dos filhos, então ela nunca mente.
+  const {data,error} = await sb.from("ops_opportunities_board")
+    .select("*").order("created_at",{ascending:false});
+  const host = el("opp-host");
+  if(error){ host.innerHTML = `<div class="msg">${esc(error.message)}</div>`; return; }
+  if(!data || !data.length){ host.innerHTML = `<div class="muted">Nenhuma oportunidade ainda.</div>`; return; }
+  host.innerHTML = `<table class="list"><thead><tr>
+      <th>Título</th><th>CRM</th><th>Agência</th><th>Etapa</th><th>Briefing</th><th>Propostas</th><th>Orders</th></tr></thead><tbody>
+    ${data.map(o=>`<tr data-id="${o.id}">
+      <td>${esc(o.title)}</td>
+      <td>${esc(o.crm_code||"—")}</td>
+      <td>${esc(o.agency||"—")}</td>
+      <td><span class="badge ${o.outcome==="lost"?"draft":(o.outcome==="won"?"confirmed":"sent")}">${esc(ETAPA[o.stage]||o.stage)}</span></td>
+      <td>${o.briefing_done_at ? "completo" : (o.briefing_pending===null ? `<span class="req">falta</span>` : `<span class="req">em aberto</span>`)}</td>
+      <td>${o.proposals||0}${o.accepted_version?` · v${o.accepted_version} aceita`:""}</td>
+      <td>${o.orders||0}</td></tr>`).join("")}
+    </tbody></table>`;
+  host.querySelectorAll("tr[data-id]").forEach(tr=>tr.onclick=()=>openOpportunity(tr.dataset.id));
+}
+
+async function openOpportunity(id){
+  const [{data:o,error:e1},{data:b}] = await Promise.all([
+    sb.from("ops_opportunities").select("*").eq("id",id).single(),
+    sb.from("ops_briefings").select("*").eq("opportunity_id",id).maybeSingle()
+  ]);
+  if(e1) return alert(e1.message);
+  OPP = o; BRIEF = b || null;
+  renderOpportunity();
+}
+
+function renderOpportunity(){
+  NAV = "opportunities";
+  const o = OPP, b = BRIEF || {};
+  shell(`
+  <div class="editor-head">
+    <div>
+      <div class="overline">Oportunidade${o.crm_code?` · ${esc(o.crm_code)}`:""}</div>
+      <h1>${esc(o.title)}</h1>
+      <div class="who" id="op-who">${esc(quemE(o))}</div>
+    </div>
+    <div class="editor-actions">
+      <button class="btn ghost sm" id="op-back">Voltar</button>
+      <button class="btn sm" id="op-save">Salvar</button>
+      <button class="btn ghost sm" id="op-doc">Briefing em PDF</button>
+    </div>
+  </div>
+
+  <div class="card stack">
+    <div class="section-title">Identificação</div>
+    <div class="grid3">
+      <div><label>Título</label><input id="p-title" value="${esc(o.title)}"></div>
+      <div><label>Nº no CRM</label><input id="p-crm" value="${esc(o.crm_code||"")}"></div>
+      <div><label>Idioma</label><select id="p-lang">
+        <option value="pt"${o.lang==="pt"?" selected":""}>Português</option>
+        <option value="en"${o.lang==="en"?" selected":""}>English</option></select></div>
+    </div>
+    <div class="grid3">
+      <div><label>Agência</label><input id="p-agency" value="${esc(o.agency||"")}"></div>
+      <div><label>Contato na agência</label><input id="p-contact" value="${esc(o.agency_contact||"")}"></div>
+      <div><label>Cliente final</label><input id="p-client" value="${esc(o.final_client||"")}"></div>
+    </div>
+    <div class="grid2">
+      <div><label>Desfecho</label><select id="p-outcome">
+        <option value="open"${o.outcome==="open"?" selected":""}>Em aberto</option>
+        <option value="won"${o.outcome==="won"?" selected":""}>Ganha</option>
+        <option value="lost"${o.outcome==="lost"?" selected":""}>Perdida</option></select></div>
+      <div><label>Motivo, se perdida</label><input id="p-lost" value="${esc(o.lost_reason||"")}"
+        placeholder="Preço, data, cliente sumiu…"></div>
+    </div>
+    <div><label>Notas internas — nunca saem daqui</label>
+      <textarea id="p-notes" rows="2">${esc(o.internal_notes||"")}</textarea></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Briefing — etapa 1</div>
+    <div class="hint">É o documento que vai para a agência antes da proposta. Escrito em campos, e não
+      anexado como arquivo: assim ele alimenta a proposta e o checklist depois, sem você redigitar nada.</div>
+    <div class="stack">
+      <div class="grid3">
+        <div><label>Período da viagem</label><input id="b-window" value="${esc(b.travel_window||"")}"
+          placeholder="26 ago – 02 set 2026"></div>
+        <div><label>Passageiros</label><input id="b-pax" value="${esc(b.pax_summary||"")}"
+          placeholder="4 AD + 1 CHD"></div>
+        <div><label>De onde veio o pedido</label><input id="b-source" value="${esc(b.source||"")}"
+          placeholder="WhatsApp, e-mail, indicação…"></div>
+      </div>
+      <div><label>O que a agência está pedindo</label>
+        <textarea id="b-scope" rows="5" placeholder="O pedido como ele chegou, e o que você entendeu dele.">${esc(b.scope||"")}</textarea></div>
+      <div><label>Orçamento — o que foi dito</label>
+        <textarea id="b-budget" rows="2" placeholder="Faixa citada, silêncio da agência, referência de viagem anterior.">${esc(b.budget_note||"")}</textarea></div>
+      <div><label>Restrições e datas fixas</label>
+        <textarea id="b-constraints" rows="3" placeholder="Mobilidade, alimentação, voo que não muda, compromisso no meio da viagem.">${esc(b.constraints_note||"")}</textarea></div>
+      <div class="cfg-row" style="border-bottom:none;">
+        <div class="name">Briefing completo
+          <small>${b.completed_at ? "Marcado em "+stamp(b.completed_at,"pt") : "Enquanto não marcar, aparece como pendência na lista. Não trava nada."}</small></div>
+        <select id="b-done">
+          <option value="nao"${b.completed_at?"":" selected"}>Ainda em aberto</option>
+          <option value="sim"${b.completed_at?" selected":""}>Completo</option>
+        </select>
+      </div>
+    </div>
+  </div>`, o.title);
+
+  el("op-back").onclick = renderOpportunities;
+  el("op-save").onclick = saveOpportunity;
+  el("op-doc").onclick = renderBriefingDoc;
+}
+
+async function saveOpportunity(){
+  const btn = el("op-save");
+  const titulo = el("p-title").value.trim();
+  if(!titulo) return alert("O título é obrigatório.");
+  btn.disabled = true; btn.textContent = "Salvando…";
+
+  const outcome = el("p-outcome").value;
+  const patch = {
+    title:titulo, crm_code:el("p-crm").value.trim()||null, lang:el("p-lang").value,
+    agency:el("p-agency").value.trim(), agency_contact:el("p-contact").value.trim(),
+    final_client:el("p-client").value.trim(), outcome,
+    lost_reason: outcome==="lost" ? (el("p-lost").value.trim()||null) : null,
+    internal_notes: el("p-notes").value,
+    // Fechou agora, marca a data; reabriu, limpa. Data de fechamento em
+    // oportunidade aberta seria um fato que deixou de ser verdade.
+    closed_at: outcome==="open" ? null : (OPP.closed_at || new Date().toISOString())
+  };
+  const {error:e1} = await sb.from("ops_opportunities").update(patch).eq("id", OPP.id);
+
+  const bp = {
+    opportunity_id: OPP.id,
+    travel_window: el("b-window").value.trim(), pax_summary: el("b-pax").value.trim(),
+    source: el("b-source").value.trim(), scope: el("b-scope").value,
+    budget_note: el("b-budget").value, constraints_note: el("b-constraints").value,
+    completed_at: el("b-done").value==="sim"
+      ? ((BRIEF && BRIEF.completed_at) || new Date().toISOString()) : null,
+    updated_at: new Date().toISOString()
+  };
+  // upsert pela oportunidade: é uma por oportunidade, e a coluna é unique.
+  const {data:bd, error:e2} = await sb.from("ops_briefings")
+    .upsert(bp, {onConflict:"opportunity_id"}).select().single();
+
+  btn.disabled = false; btn.textContent = "Salvar";
+  const err = e1||e2;
+  if(err) return alert(err.message);
+  Object.assign(OPP, patch);
+  BRIEF = bd;
+  if(el("op-who")) el("op-who").textContent = quemE(OPP);
+  btn.textContent = "Salvo";
+  setTimeout(()=>btn.textContent="Salvar", 1600);
+}
+
+/* ---------------------------------------------- BRIEFING EM PDF ------
+   Mesmo caminho do resto da casa: Ctrl+P, sem biblioteca e sem serviço
+   novo. Sai no idioma da oportunidade, porque o destino é a agência.
+   ---------------------------------------------------------------------- */
+function renderBriefingDoc(){
+  const o = OPP, b = BRIEF || {}, t = T[o.lang||"pt"];
+  const bloco = (titulo, txt) => (txt||"").trim()
+    ? `<div class="blocktitle">${titulo}</div>
+       <div style="font-size:13.5px;line-height:1.8;white-space:pre-wrap;text-align:justify;">${nl2br(txt)}</div>`
+    : "";
+
+  app.innerHTML = `
+  <div class="noprint" style="background:var(--sage);padding:10px 22px;display:flex;gap:8px;align-items:center;">
+    <span style="color:#fff;font-size:11px;letter-spacing:.2em;text-transform:uppercase;">${t.brTitle} · ${esc(o.title)}</span>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn ghost sm" id="bd-back" style="border-color:rgba(255,255,255,.45);color:#fff;">Voltar</button>
+      <button class="btn sm" id="bd-print">${t.print}</button>
+    </div>
+  </div>
+  <div class="docpad" style="padding:24px 12px;background:var(--cream);">
+  <div class="doc">
+    <div class="head">
+      <div class="brand">
+        <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
+        <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
+      </div>
+      <div class="to">
+        <div class="lbl">${t.to}</div>
+        <div class="val">${esc(o.agency||o.final_client||"")}</div>
+        ${o.crm_code?`<div class="lbl">${t.brOpp}</div><div class="val">${esc(o.crm_code)}</div>`:""}
+      </div>
+    </div>
+
+    <h1 class="doctitle">${t.brTitle}</h1>
+    <div class="intro" style="text-align:left;">${t.brIntro}</div>
+
+    <div class="meta">
+      <div class="cell"><div class="k">${t.to}</div><div class="v">${esc(o.final_client||o.agency||"—")}</div></div>
+      <div class="cell"><div class="k">${t.brPax}</div><div class="v">${esc(b.pax_summary||"—")}</div></div>
+      <div class="cell"><div class="k">${t.brWindow}</div><div class="v">${esc(b.travel_window||"—")}</div></div>
+      <div class="cell"><div class="k">${t.brSource}</div><div class="v">${esc(b.source||"—")}</div></div>
+    </div>
+
+    ${bloco(t.brScope, b.scope)}
+    ${bloco(t.brConstraints, b.constraints_note)}
+    ${bloco(t.brBudget, b.budget_note)}
+
+    <div class="voucher-note" style="margin-top:26px;">${t.brConfirm}</div>
+
+    <div class="foot">
+      <div class="co">TUSCAN LANDS TRAVEL</div>
+      ${COMPANY.legal} · ${COMPANY.vat.replace(" · Pontassieve (FI), Italy","")} · ${COMPANY.email}
+    </div>
+  </div></div>`;
+
+  el("bd-back").onclick = renderOpportunity;
+  el("bd-print").onclick = () => window.print();
 }
 
 /* ------------------------------------------------------- EDITOR ------ */
