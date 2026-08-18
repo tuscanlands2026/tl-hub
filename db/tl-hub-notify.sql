@@ -2,7 +2,9 @@
 -- TUSCAN LANDS · HUB DE VENDAS E OPERAÇÕES
 -- AVISO POR E-MAIL QUANDO A AGÊNCIA CONFIRMA
 --
--- Rodar DEPOIS de tl-hub-orders.sql, no mesmo projeto Supabase.
+-- Rodar DEPOIS de tl-hub-orders.sql E de tl-hub-checkout.sql, no mesmo
+-- projeto Supabase. Reaplicar este arquivo mesmo se já tiver rodado
+-- antes: o corpo do e-mail foi reescrito para levar tudo.
 --
 -- Por que assim: o próprio banco manda o e-mail, via pg_net. Não precisa
 -- de servidor, nem de Edge Function, nem de ferramenta nova na sua
@@ -12,6 +14,19 @@
 -- é gravada de qualquer jeito. Perder o dado do cliente porque o e-mail
 -- não saiu seria trocar um problema por um pior. Todo o envio está dentro
 -- de um bloco que engole exceção, e o pg_net só dispara depois do commit.
+--
+-- ---------------------------------------------------------------------
+-- CONFERÊNCIA DA SEÇÃO 7 DO PLANO — feita antes de entregar, por escrito.
+-- Objetos que este arquivo cria ou altera, um a um:
+--   ops_notify_config          (create table)
+--   ops_notifications          (create table)
+--   ops_notifications_status   (create view)
+--   ops_confirmation_notify    (trigger em ops_order_confirmations)
+--   tl_eur, tl_html, tl_notify_confirmation
+--        (funções do hub, criadas por este mesmo arquivo)
+-- Nenhum drop de tabela. Nenhum delete, truncate ou update de dados.
+-- Nenhuma tabela do CRM é lida, escrita ou citada. Nenhum comando
+-- percorre o schema. Nenhuma service_role key aparece aqui.
 -- =====================================================================
 
 create extension if not exists pg_net with schema extensions;
@@ -25,6 +40,19 @@ create extension if not exists pg_net with schema extensions;
 create or replace function tl_eur(v numeric)
 returns text language sql immutable as $$
   select '€ ' || translate(to_char(coalesce(v,0), 'FM999,999,990.00'), ',.', '.,');
+$$;
+
+-- ---------------------------------------------------------------------
+-- O e-mail agora carrega texto digitado por quem está do outro lado do
+-- link: nome de passageiro, observações, respostas dos campos. Isso vai
+-- para dentro de HTML. Sem escapar, um apóstrofo tipográfico passa, mas
+-- um "<" come o resto da mensagem e um "<script>" chega vivo na caixa
+-- de entrada. Escapar aqui é mais barato que confiar no formulário.
+-- ---------------------------------------------------------------------
+create or replace function tl_html(v text)
+returns text language sql immutable as $$
+  select replace(replace(replace(replace(
+           coalesce(v,''), '&','&amp;'), '<','&lt;'), '>','&gt;'), '"','&quot;');
 $$;
 
 -- ---------------------------------------------------------------------
@@ -73,6 +101,12 @@ create policy "auth_read" on ops_notifications
 
 -- =====================================================================
 -- O GATILHO
+--
+-- O e-mail leva o conteúdo inteiro da confirmação, e não um aviso de que
+-- ela existe. Você recebe isto no celular, longe do computador, e
+-- precisa saber o que foi assinado sem abrir o hub: nomes completos como
+-- vão para o fornecedor, idades das crianças, o que a agência respondeu
+-- em cada campo configurado, os dois aceites, quem assinou e quando.
 -- =====================================================================
 create or replace function tl_notify_confirmation()
 returns trigger
@@ -84,11 +118,16 @@ declare
   c        ops_notify_config%rowtype;
   o        ops_orders%rowtype;
   linhas   text := '';
+  parcelas text := '';
+  campos   text := '';
+  adultos  text := '';
+  criancas text := '';
   total    numeric(12,2) := 0;
-  pax      text;
   assunto  text;
   corpo    text;
   req_id   bigint;
+  h_lbl    constant text := 'style="padding:3px 14px 3px 0;color:#6b6860;white-space:nowrap;vertical-align:top;"';
+  h_val    constant text := 'style="padding:3px 0;vertical-align:top;"';
 begin
   select * into c from ops_notify_config where id = 1;
 
@@ -105,38 +144,125 @@ begin
     from ops_order_items i where i.order_id = o.id;
 
   select string_agg(
-           '<tr><td style="padding:4px 10px 4px 0;">' || coalesce(i.service_date,'') ||
-           '</td><td style="padding:4px 10px 4px 0;">' || i.title ||
-           '</td><td style="padding:4px 0;text-align:right;">' ||
+           '<tr><td style="padding:4px 12px 4px 0;color:#595e49;white-space:nowrap;">'
+           || tl_html(coalesce(i.service_date,'')) ||
+           '</td><td style="padding:4px 12px 4px 0;">' || tl_html(i.title) ||
+           case when coalesce(i.details,'') <> ''
+                then '<br><span style="color:#6b6860;font-size:12px;">'
+                     || replace(tl_html(i.details), E'\n', '<br>') || '</span>'
+                else '' end ||
+           '</td><td style="padding:4px 0;text-align:right;white-space:nowrap;">' ||
            tl_eur(i.price) || '</td></tr>',
            '' order by i.sort)
     into linhas
     from ops_order_items i where i.order_id = o.id;
 
-  pax := coalesce(jsonb_array_length(new.adults),0)::text || ' adulto(s)'
-         || case when coalesce(jsonb_array_length(new.children),0) > 0
-                 then ' + ' || jsonb_array_length(new.children)::text || ' criança(s)'
-                 else '' end;
+  select string_agg(
+           '<tr><td style="padding:3px 12px 3px 0;">' || tl_html(p.label) ||
+           '</td><td style="padding:3px 12px 3px 0;color:#6b6860;">'
+           || tl_html(coalesce(p.due_date,'—')) ||
+           '</td><td style="padding:3px 12px 3px 0;text-align:right;">' || tl_eur(p.amount) ||
+           '</td><td style="padding:3px 0;color:#6b6860;">'
+           || case when p.status = 'paid' then 'pago' else 'a pagar' end ||
+           '</td></tr>', '' order by p.sort)
+    into parcelas
+    from ops_order_payments p where p.order_id = o.id;
+
+  -- Nomes exatamente como a agência digitou: é isto que vai para a
+  -- reserva no fornecedor, e é aqui que o erro de grafia aparece.
+  select string_agg(tl_html(a.txt), '<br>') into adultos
+    from (select jsonb_array_elements_text(coalesce(new.adults,'[]'::jsonb)) as txt) a;
+
+  -- Idade de criança sim, nome de criança não.
+  select string_agg(tl_html(ch.value->>'age') || ' anos', ' · ') into criancas
+    from jsonb_array_elements(coalesce(new.children,'[]'::jsonb)) as ch;
+
+  -- Campos variáveis daquele checkout, na ordem em que foram mostrados.
+  -- Pré-preenchido por você e confirmado pela agência vem marcado, para
+  -- você distinguir o que ela respondeu do que ela apenas aceitou.
+  select string_agg(
+           '<tr><td ' || h_lbl || '>' || tl_html(f.value->>'label_pt')
+           || case when (f.value->>'mode') = 'prefilled'
+                   then ' <span style="color:#a56850;">(pré-preenchido)</span>' else '' end
+           || '</td><td ' || h_val || '>'
+           || coalesce(nullif(replace(tl_html(f.value->>'value'), E'\n','<br>'),''),
+                       '<span style="color:#a2564c;">— em branco</span>')
+           || '</td></tr>', '')
+    into campos
+    from jsonb_array_elements(coalesce(new.fields,'[]'::jsonb)) with ordinality as f(value, ord);
 
   assunto := 'Order confirmada · ' || coalesce(o.order_ref,'')
              || ' · ' || coalesce(o.final_client, o.agency, 'cliente');
 
   corpo :=
-    '<div style="font-family:Helvetica,Arial,sans-serif;font-size:14px;color:#2a2a28;">'
-    || '<p style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#595e49;margin:0 0 14px;">Tuscan Lands · confirmação recebida</p>'
-    || '<p><strong>' || coalesce(o.final_client, o.agency, '') || '</strong><br>'
-    || 'Order ' || coalesce(o.order_ref,'') || ' · oportunidade ' || coalesce(o.opportunity_code,'—') || '<br>'
-    || 'Agência: ' || coalesce(o.agency,'—') || '<br>'
-    || 'Período: ' || coalesce(o.travel_window,'—') || '</p>'
-    || '<p>Assinado por <strong>' || coalesce(new.signature_name, new.lead_name, '—') || '</strong><br>'
-    || 'Contato: ' || coalesce(new.lead_email,'—') || ' · ' || coalesce(new.lead_phone,'—') || '<br>'
-    || 'Passageiros informados: ' || pax || '</p>'
-    || case when coalesce(new.remarks,'') <> ''
-            then '<p>Observações da agência:<br><em>' || new.remarks || '</em></p>'
+    '<div style="font-family:''Libre Franklin'',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#2a2a28;max-width:640px;">'
+    || '<p style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#772f25;margin:0 0 4px;">Tuscan Lands · confirmação recebida</p>'
+    || '<div style="width:30px;height:1px;background:#a56850;margin:0 0 18px;"></div>'
+
+    || '<p style="margin:0 0 18px;"><strong style="font-size:17px;">'
+    || tl_html(coalesce(o.final_client, o.agency, '')) || '</strong><br>'
+    || 'Order ' || tl_html(coalesce(o.order_ref,'')) || ' · oportunidade '
+    || tl_html(coalesce(o.opportunity_code,'—')) || '<br>'
+    || 'Agência: ' || tl_html(coalesce(o.agency,'—'))
+    || case when coalesce(o.agency_contact,'') <> ''
+            then ' · ' || tl_html(o.agency_contact) else '' end || '<br>'
+    || 'Período: ' || tl_html(coalesce(o.travel_window,'—')) || '</p>'
+
+    || '<p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#595e49;margin:22px 0 6px;">Assinatura</p>'
+    || '<table style="border-collapse:collapse;font-size:14px;">'
+    || '<tr><td ' || h_lbl || '>Assinado por</td><td ' || h_val || '><strong>'
+    || tl_html(coalesce(new.signature_name, new.lead_name, '—')) || '</strong></td></tr>'
+    || '<tr><td ' || h_lbl || '>Data e hora</td><td ' || h_val || '>'
+    || to_char(new.submitted_at at time zone 'Europe/Rome', 'DD/MM/YYYY HH24:MI')
+    || ' (Itália)</td></tr>'
+    || '<tr><td ' || h_lbl || '>Aceite dos termos</td><td ' || h_val || '>'
+    || case when new.ack_terms then 'aceito' else
+       '<span style="color:#a2564c;">NÃO aceito</span>' end || '</td></tr>'
+    || '<tr><td ' || h_lbl || '>Veículo e bagagem</td><td ' || h_val || '>'
+    || case when new.ack_vehicle then 'aceito' else 'não marcado' end || '</td></tr>'
+    || case when coalesce(o.terms_url,'') <> ''
+            then '<tr><td ' || h_lbl || '>Termos publicados</td><td ' || h_val || '><a href="'
+                 || tl_html(o.terms_url) || '" style="color:#772f25;">'
+                 || tl_html(o.terms_url) || '</a></td></tr>'
             else '' end
-    || '<table style="border-collapse:collapse;margin:16px 0;">' || coalesce(linhas,'') || '</table>'
-    || '<p><strong>Total: ' || tl_eur(total) || '</strong></p>'
-    || '<p style="font-size:12px;color:#6b6860;">Aviso automático do hub. Abra o hub para ver os nomes completos dos passageiros.</p>'
+    || '</table>'
+
+    || '<p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#595e49;margin:22px 0 6px;">Contato responsável</p>'
+    || '<table style="border-collapse:collapse;font-size:14px;">'
+    || '<tr><td ' || h_lbl || '>Nome</td><td ' || h_val || '>' || tl_html(coalesce(new.lead_name,'—')) || '</td></tr>'
+    || '<tr><td ' || h_lbl || '>E-mail</td><td ' || h_val || '>' || tl_html(coalesce(new.lead_email,'—')) || '</td></tr>'
+    || '<tr><td ' || h_lbl || '>Telefone</td><td ' || h_val || '>' || tl_html(coalesce(new.lead_phone,'—')) || '</td></tr>'
+    || '</table>'
+
+    || '<p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#595e49;margin:22px 0 6px;">Passageiros</p>'
+    || '<table style="border-collapse:collapse;font-size:14px;">'
+    || '<tr><td ' || h_lbl || '>Adultos</td><td ' || h_val || '>'
+    || coalesce(adultos, '<span style="color:#a2564c;">— nenhum informado</span>') || '</td></tr>'
+    || '<tr><td ' || h_lbl || '>Crianças</td><td ' || h_val || '>'
+    || coalesce(criancas, '—') || '</td></tr>'
+    || '</table>'
+
+    || case when coalesce(campos,'') <> ''
+            then '<p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#595e49;margin:22px 0 6px;">Dados do checkout</p>'
+                 || '<table style="border-collapse:collapse;font-size:14px;">' || campos || '</table>'
+            else '' end
+
+    || case when coalesce(new.remarks,'') <> ''
+            then '<p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#595e49;margin:22px 0 6px;">Observações da agência</p>'
+                 || '<p style="margin:0;">' || replace(tl_html(new.remarks), E'\n','<br>') || '</p>'
+            else '' end
+
+    || '<p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#595e49;margin:22px 0 6px;">Serviços</p>'
+    || '<table style="border-collapse:collapse;font-size:14px;width:100%;">' || coalesce(linhas,'') || '</table>'
+    || '<p style="margin:10px 0 0;text-align:right;"><strong>Total ' || tl_eur(total) || '</strong></p>'
+
+    || case when coalesce(parcelas,'') <> ''
+            then '<p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#595e49;margin:22px 0 6px;">Pagamentos</p>'
+                 || '<table style="border-collapse:collapse;font-size:14px;width:100%;">' || parcelas || '</table>'
+            else '' end
+
+    || '<p style="font-size:11px;color:#6b6860;margin-top:26px;border-top:1px solid #eae4db;padding-top:12px;">'
+    || 'Aviso automático do hub. O resumo em PDF para encaminhar à agência sai pelo botão “Resumo (PDF)” no editor da order.</p>'
     || '</div>';
 
   -- O envio inteiro protegido: qualquer falha aqui NÃO desfaz a
