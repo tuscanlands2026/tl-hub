@@ -269,6 +269,12 @@ const LOGO = "https://i.postimg.cc/k45xbsK4/grosseto.png";
    não para a caixa operacional. */
 const CONTACT_EMAIL = "hello@tuscanlandstravel.com";
 
+/* Termos publicados no site. Toda order nova já nasce com este endereço,
+   e o botão "Usar o padrão" repõe numa order antiga. Deixar em branco
+   também é escolha válida: o texto integral dos termos está dentro do
+   documento de qualquer jeito, e o link é acréscimo. */
+const DEFAULT_TERMS_URL = "https://tuscanlandstravel.com/terms-conditions-tours/";
+
 const COMPANY = {
   legal: "Tuscan Lands di Batistella Maria Fernanda",
   vat: "VAT IT06873750480 · Pontassieve (FI), Italy",
@@ -698,7 +704,8 @@ async function renderApp(){
     if(!opp || !ref) return alert("Número da oportunidade e referência são obrigatórios.");
     const {data,error} = await sb.from("ops_orders").insert({
       opportunity_code:opp, order_ref:ref, lang:el("n-lang").value,
-      agency:el("n-agency").value.trim(), final_client:el("n-client").value.trim()
+      agency:el("n-agency").value.trim(), final_client:el("n-client").value.trim(),
+      terms_url: DEFAULT_TERMS_URL
     }).select().single();
     if(error) return alert(error.message);
     // A order nova nasce com os campos de sempre. Ela tira o que não se
@@ -787,9 +794,13 @@ function renderEditor(){
     </div>
     <div>
       <label>Link dos termos e condições (opcional)</label>
-      <input id="f-terms" value="${esc(o.terms_url||"")}" placeholder="https://tuscanlandstravel.com/termos-e-condicoes">
-      <div class="hint" style="margin:5px 0 0;">Sai como link clicável no fim do documento do cliente, embaixo dos termos.
-        O texto integral continua dentro do documento: o link é acréscimo, não substituição.</div>
+      <div class="linkbox" style="margin-top:0;">
+        <input id="f-terms" value="${esc(o.terms_url||"")}" placeholder="${DEFAULT_TERMS_URL}">
+        <button class="btn ghost sm" id="tu-std">Usar o padrão</button>
+      </div>
+      <div class="hint" style="margin:5px 0 0;">Sai como link clicável no fim do documento do cliente e nas palavras
+        “termos e condições” do aceite. O texto integral continua dentro do documento: o link é acréscimo,
+        não substituição.</div>
     </div>
     <div><label>Texto de abertura (opcional)</label><textarea id="f-intro" rows="3">${esc(o.intro||"")}</textarea></div>
     <div><label>Notas internas — nunca aparecem para o cliente</label><textarea id="f-notes" rows="2">${esc(o.internal_notes||"")}</textarea></div>
@@ -861,6 +872,7 @@ function renderEditor(){
   el("fl-add").onclick = addLibField;
   el("fl-free").onclick = addFreeField;
   el("fl-std").onclick = addStandardFields;
+  el("tu-std").onclick = () => { el("f-terms").value = DEFAULT_TERMS_URL; };
   el("pn-wait").onclick = () => { el("f-paynote").value = "Aguardando confirmação da agência."; };
   el("pn-clear").onclick = () => { el("f-paynote").value = ""; };
   drawLibOptions();
