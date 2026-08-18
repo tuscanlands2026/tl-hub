@@ -4,152 +4,229 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tuscan Lands · Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Sorts+Mill+Goudy:ital@0;1&family=Libre+Franklin:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- Uma fonte só, seção 8 do plano. Variação por peso, tamanho e cor. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+/* =====================================================================
+   IDENTIDADE VISUAL — seção 8 do plano. Cor carrega informação:
+     sage      · a casa no dia a dia. Interface inteira, documento interno.
+     terracota · confirmação e fechamento. Só o que sai assinado.
+   Ver terracota na tela significa que aquilo fechou ou está prestes a.
+   Uma fonte só, border-radius zero, sem exceção.
+   ===================================================================== */
 :root{
   --cream-light:#f6f3f0; --cream:#eae4db; --terracotta:#772f25;
   --sage:#595e49; --brown:#a2564c; --copper:#a56850;
   --ink:#2a2a28; --muted:#6b6860; --white:#fff;
 }
 *{box-sizing:border-box;margin:0;padding:0;border-radius:0;}
-body{font-family:'Libre Franklin',sans-serif;font-weight:300;color:var(--ink);background:var(--cream-light);}
-h1,h2,h3{font-family:'Sorts Mill Goudy',serif;font-weight:400;}
-a{color:var(--terracotta);}
-input,select,textarea,button{font-family:'Libre Franklin';font-size:14px;font-weight:300;}
-input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--cream);background:#fff;color:var(--ink);}
-input:focus,select:focus,textarea:focus{outline:1px solid var(--copper);}
-textarea{resize:vertical;line-height:1.6;}
-label{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);font-weight:500;margin-bottom:5px;}
-.btn{font-weight:500;font-size:12px;text-transform:uppercase;letter-spacing:.1em;padding:11px 18px;
-  border:1px solid var(--terracotta);background:var(--terracotta);color:#fff;cursor:pointer;}
-.btn.ghost{background:transparent;color:var(--terracotta);}
-.btn.sage{background:var(--sage);border-color:var(--sage);}
+/* Interface: peso 400, ferramenta usada horas por dia. */
+body{font-family:'Libre Franklin',Helvetica,Arial,sans-serif;font-weight:400;
+  font-size:14px;line-height:1.5;color:var(--ink);background:var(--cream-light);
+  -webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:inherit;font-weight:500;letter-spacing:-.01em;line-height:1.25;}
+a{color:var(--sage);}
+input,select,textarea,button{font-family:inherit;font-size:13px;font-weight:400;color:var(--ink);}
+input,select,textarea{width:100%;padding:8px 9px;border:1px solid var(--cream);background:#fff;}
+input:focus,select:focus,textarea:focus{outline:1px solid var(--sage);}
+input:disabled,select:disabled,textarea:disabled{background:var(--cream-light);color:var(--muted);}
+textarea{resize:vertical;line-height:1.55;}
+label{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--sage);font-weight:500;margin-bottom:4px;}
+.btn{font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.18em;
+  padding:10px 16px;border:1px solid var(--sage);background:var(--sage);color:#fff;cursor:pointer;}
+.btn.ghost{background:transparent;color:var(--sage);}
+/* Terracota nos botões que levam ao que fecha a venda. */
+.btn.close{background:var(--terracotta);border-color:var(--terracotta);color:#fff;}
+.btn.close.ghost{background:transparent;color:var(--terracotta);}
 .btn:disabled{opacity:.45;cursor:default;}
-.btn.sm{padding:7px 12px;font-size:11px;}
+.btn.sm{padding:6px 11px;font-size:10px;letter-spacing:.14em;}
 .hide{display:none !important;}
 
 /* ---------- shell ---------- */
-.topbar{background:var(--terracotta);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:18px;}
-.topbar .mark{font-family:'Sorts Mill Goudy';font-size:16px;letter-spacing:.14em;}
-.topbar .sep{opacity:.5;font-size:12px;}
-.topbar .right{margin-left:auto;display:flex;align-items:center;gap:14px;font-size:12px;}
-.topbar .right button{background:none;border:1px solid rgba(255,255,255,.5);color:#fff;padding:6px 12px;
-  font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;}
-.wrap{max-width:1080px;margin:0 auto;padding:28px 24px 80px;}
-.card{background:#fff;border:1px solid var(--cream);padding:24px;}
-.stack{display:flex;flex-direction:column;gap:18px;}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-.overline{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);font-weight:500;}
-.rule{width:30px;height:1px;background:var(--copper);margin:10px 0 18px;}
-.muted{color:var(--muted);font-size:13px;line-height:1.6;}
+.topbar{background:var(--sage);color:#fff;padding:12px 22px;display:flex;align-items:center;gap:14px;}
+.topbar .mark{font-size:14px;letter-spacing:.22em;font-weight:500;}
+.topbar .sep{opacity:.45;}
+.topbar .ctx{font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:400;opacity:.9;}
+.topbar .right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.topbar .right button{background:none;border:1px solid rgba(255,255,255,.45);color:#fff;padding:5px 11px;
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;font-weight:500;}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 22px 80px;}
+.card{background:#fff;border:1px solid var(--cream);padding:20px;}
+.card+.card{margin-top:16px;}
+.stack{display:flex;flex-direction:column;gap:14px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.overline{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--sage);font-weight:500;}
+.rule{width:30px;height:1px;background:var(--sage);margin:9px 0 16px;}
+.muted{color:var(--muted);font-size:12.5px;line-height:1.6;}
+.hint{color:var(--muted);font-size:11.5px;line-height:1.55;margin-bottom:12px;}
 
 /* ---------- login / setup ---------- */
-.gate{max-width:400px;margin:12vh auto;padding:0 24px;}
-.gate .mark{font-family:'Sorts Mill Goudy';font-size:22px;letter-spacing:.16em;color:var(--terracotta);text-align:center;}
-.gate .sub{text-align:center;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:8px 0 30px;}
-.msg{font-size:13px;padding:10px 12px;border-left:2px solid var(--brown);background:#fbf7f4;color:var(--brown);}
+.gate{max-width:380px;margin:12vh auto;padding:0 22px;}
+.gate .mark{font-size:19px;letter-spacing:.26em;color:var(--sage);text-align:center;font-weight:500;}
+.gate .sub{text-align:center;font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--muted);margin:8px 0 28px;}
+.msg{font-size:12.5px;padding:9px 11px;border-left:2px solid var(--brown);background:#fbf7f4;
+  color:var(--brown);line-height:1.55;}
 
 /* ---------- lista ---------- */
 table.list{width:100%;border-collapse:collapse;background:#fff;}
-table.list thead th{background:var(--sage);color:#fff;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
-  font-weight:500;padding:11px 12px;text-align:left;}
-table.list tbody td{padding:12px;border-bottom:1px solid var(--cream);font-size:14px;vertical-align:middle;}
+table.list thead th{background:var(--sage);color:#fff;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;font-weight:500;padding:10px 11px;text-align:left;}
+table.list tbody td{padding:10px 11px;border-bottom:1px solid var(--cream);font-size:13px;vertical-align:middle;}
 table.list tbody tr:hover{background:var(--cream-light);cursor:pointer;}
-.badge{display:inline-block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;padding:3px 9px;color:#fff;}
+.badge{display:inline-block;font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:500;padding:3px 8px;color:#fff;}
 .badge.draft{background:var(--muted);}
-.badge.sent{background:var(--copper);}
-.badge.confirmed{background:var(--sage);}
+.badge.sent{background:var(--copper);}      /* prestes a fechar */
+.badge.confirmed{background:var(--terracotta);}  /* fechado */
 
 /* ---------- editor ---------- */
-.editor-head{display:flex;align-items:flex-start;gap:16px;margin-bottom:22px;}
-.editor-head h1{font-size:30px;color:var(--terracotta);}
-.editor-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;}
-.section-title{font-family:'Libre Franklin';font-size:11px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--sage);font-weight:500;border-bottom:1px solid var(--cream);padding-bottom:7px;margin-bottom:16px;}
+.editor-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;}
+.editor-head h1{font-size:25px;color:var(--sage);font-weight:500;}
+.editor-actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;}
+.section-title{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);
+  font-weight:500;border-bottom:1px solid var(--cream);padding-bottom:6px;margin-bottom:14px;}
 table.rows{width:100%;border-collapse:collapse;}
-table.rows th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--sage);font-weight:500;
-  text-align:left;padding:0 8px 6px 0;}
-table.rows td{padding:0 8px 8px 0;vertical-align:top;}
-table.rows td.x{width:34px;padding-right:0;}
-.iconbtn{border:none;background:none;color:var(--brown);cursor:pointer;font-size:15px;padding:8px 4px;}
-.totalline{display:flex;justify-content:flex-end;gap:34px;align-items:baseline;margin-top:14px;}
-.totalline .lbl{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);font-weight:500;}
-.totalline .amt{font-family:'Sorts Mill Goudy';font-size:26px;color:var(--terracotta);}
-.linkbox{display:flex;gap:8px;align-items:center;margin-top:12px;}
+table.rows th{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);
+  font-weight:500;text-align:left;padding:0 7px 5px 0;}
+table.rows td{padding:0 7px 7px 0;vertical-align:top;}
+table.rows td.x{width:30px;padding-right:0;}
+.iconbtn{border:none;background:none;color:var(--brown);cursor:pointer;font-size:15px;padding:7px 4px;}
+.totalline{display:flex;justify-content:flex-end;gap:28px;align-items:baseline;margin-top:12px;}
+.totalline .lbl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);font-weight:500;}
+.totalline .amt{font-size:22px;font-weight:400;color:var(--sage);font-variant-numeric:tabular-nums;}
+.linkbox{display:flex;gap:7px;align-items:center;margin-top:10px;}
 .linkbox input{font-size:12px;color:var(--muted);}
+.closing{border-top:1px solid var(--cream);margin-top:18px;padding-top:16px;}
+.closing .section-title{color:var(--terracotta);}
 
-/* ---------- documento do cliente ---------- */
-.doc{max-width:900px;margin:0 auto;background:#fff;padding:48px 52px;box-shadow:0 1px 12px rgba(0,0,0,.08);}
-.doc .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--terracotta);padding-bottom:20px;}
-.doc .brand .logo-img{height:76px;width:auto;display:block;margin-bottom:12px;}
-.doc .brand .logo-text{font-family:'Sorts Mill Goudy';font-size:22px;letter-spacing:.14em;color:var(--terracotta);}
-.doc .brand .contact{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6;}
+/* ---------- configuração do checkout ---------- */
+.cfg-row{display:grid;grid-template-columns:1fr 190px;gap:10px;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--cream);}
+.cfg-row .name{font-size:13px;}
+.cfg-row .name small{display:block;color:var(--muted);font-size:11px;margin-top:2px;line-height:1.45;}
+.cfg-row.fixed .name small{color:var(--sage);}
+.cfg-fill{padding:10px 0 4px 0;border-bottom:1px solid var(--cream);}
+.cfg-fill .inner{border-left:2px solid var(--copper);padding-left:12px;}
+.addbar{display:grid;grid-template-columns:190px 1fr auto auto;gap:7px;align-items:end;
+  margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--cream);}
+.fld-lbl-en{margin-top:4px;font-size:12px;color:var(--muted);}
+.tag{display:inline-block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:500;padding:2px 6px;border:1px solid var(--copper);color:var(--copper);}
+
+/* =====================================================================
+   DOCUMENTO — o que sai da casa. Peso 300, respiração ampla,
+   texto justificado. Terracota, porque é o que fecha.
+   ===================================================================== */
+.doc{max-width:900px;margin:0 auto;background:#fff;padding:46px 50px;
+  box-shadow:0 1px 12px rgba(0,0,0,.07);font-weight:300;line-height:1.6;}
+.doc .head{display:flex;justify-content:space-between;align-items:flex-start;
+  border-bottom:2px solid var(--terracotta);padding-bottom:18px;}
+.doc .brand .logo-img{height:74px;width:auto;display:block;margin-bottom:11px;}
+.doc .brand .logo-text{font-size:19px;letter-spacing:.26em;color:var(--terracotta);font-weight:500;}
+.doc .brand .contact{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.65;}
 .doc .to{text-align:right;max-width:320px;}
-.doc .to .lbl{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--sage);font-weight:500;}
-.doc .to .val{font-family:'Sorts Mill Goudy';font-size:17px;margin:2px 0 8px;line-height:1.35;}
-.doc h1.doctitle{font-family:'Libre Franklin';font-weight:400;font-size:26px;color:var(--terracotta);margin:26px 0 4px;}
-.doc .meta{display:grid;grid-template-columns:repeat(4,1fr);margin:20px 0 8px;border:1px solid var(--cream);}
-.doc .meta .cell{padding:12px 14px;border-right:1px solid var(--cream);}
+.doc .to .lbl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);font-weight:500;}
+.doc .to .val{font-size:16px;margin:2px 0 8px;line-height:1.35;font-weight:400;}
+.doc h1.doctitle{font-size:24px;font-weight:500;color:var(--terracotta);margin:24px 0 4px;letter-spacing:-.01em;}
+.doc .meta{display:grid;grid-template-columns:repeat(4,1fr);margin:18px 0 8px;border:1px solid var(--cream);}
+.doc .meta .cell{padding:11px 13px;border-right:1px solid var(--cream);}
 .doc .meta .cell:last-child{border-right:none;}
-.doc .meta .k{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);font-weight:500;}
-.doc .meta .v{font-size:14px;margin-top:5px;}
-.doc .intro{font-size:14px;line-height:1.75;text-align:justify;margin:22px 0 4px;white-space:pre-wrap;}
-.doc table.svc{width:100%;border-collapse:collapse;margin-top:22px;}
-.doc table.svc thead th{background:var(--sage);color:#fff;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
-  font-weight:500;padding:11px 12px;text-align:left;}
+.doc .meta .k{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);font-weight:500;}
+.doc .meta .v{font-size:13.5px;margin-top:4px;font-weight:400;}
+.doc .intro{font-size:13.5px;line-height:1.8;text-align:justify;margin:20px 0 4px;white-space:pre-wrap;}
+.doc .blocktitle{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);
+  font-weight:500;border-bottom:1px solid var(--cream);padding-bottom:6px;margin:26px 0 12px;}
+.doc table.svc{width:100%;border-collapse:collapse;margin-top:20px;}
+.doc table.svc thead th{background:var(--terracotta);color:#fff;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;font-weight:500;padding:10px 12px;text-align:left;}
 .doc table.svc thead th.money{text-align:right;width:130px;}
-.doc table.svc tbody td{padding:12px;border-bottom:1px solid var(--cream);vertical-align:top;font-size:14px;}
-.doc table.svc tbody td.money{text-align:right;}
+.doc table.svc tbody td{padding:11px 12px;border-bottom:1px solid var(--cream);vertical-align:top;font-size:13.5px;}
+.doc table.svc tbody td.money{text-align:right;font-variant-numeric:tabular-nums;}
 .doc table.svc tbody tr:nth-child(even){background:var(--cream-light);}
-.doc .date-cell{font-weight:500;color:var(--sage);white-space:nowrap;}
-.doc .svc-title{font-weight:500;}
-.doc .svc-sub{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.6;white-space:pre-wrap;}
-.doc .total-row{display:flex;justify-content:flex-end;margin-top:20px;}
-.doc .total-box{background:var(--cream);padding:16px 28px;display:flex;gap:40px;align-items:center;}
-.doc .total-box .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);font-weight:500;}
-.doc .total-box .amt{font-family:'Sorts Mill Goudy';font-size:28px;color:var(--terracotta);}
-.doc table.pay{width:100%;border-collapse:collapse;margin-top:14px;}
-.doc table.pay th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--sage);font-weight:500;
-  text-align:left;padding:8px 10px;border-bottom:1px solid var(--cream);}
-.doc table.pay td{padding:9px 10px;border-bottom:1px solid var(--cream);font-size:13.5px;}
-.doc table.pay td.money{text-align:right;}
-.doc .terms{margin-top:34px;border-top:1px solid var(--cream);padding-top:22px;}
-.doc .terms h2{font-size:22px;color:var(--terracotta);text-align:center;margin-bottom:6px;}
-.doc .terms h3{font-family:'Libre Franklin';font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);
-  font-weight:500;margin:22px 0 10px;border-bottom:1px solid var(--cream);padding-bottom:6px;}
+.doc .date-cell{font-weight:500;color:var(--terracotta);white-space:nowrap;}
+.doc .svc-title{font-weight:400;}
+.doc .svc-sub{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;white-space:pre-wrap;}
+.doc .total-row{display:flex;justify-content:flex-end;margin-top:18px;}
+.doc .total-box{background:var(--cream);padding:14px 26px;display:flex;gap:36px;align-items:baseline;}
+.doc .total-box .lbl{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--terracotta);font-weight:500;}
+.doc .total-box .amt{font-size:24px;color:var(--terracotta);font-weight:400;font-variant-numeric:tabular-nums;}
+.doc table.pay{width:100%;border-collapse:collapse;margin-top:12px;}
+.doc table.pay th{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);
+  font-weight:500;text-align:left;padding:7px 9px;border-bottom:1px solid var(--cream);}
+.doc table.pay td{padding:8px 9px;border-bottom:1px solid var(--cream);font-size:13px;}
+.doc table.pay td.money{text-align:right;font-variant-numeric:tabular-nums;}
+.doc .terms{margin-top:32px;border-top:1px solid var(--cream);padding-top:20px;}
+.doc .terms h2{font-size:20px;color:var(--terracotta);text-align:center;margin-bottom:6px;font-weight:500;}
+.doc .terms h3{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);
+  font-weight:500;margin:20px 0 9px;border-bottom:1px solid var(--cream);padding-bottom:5px;}
 .doc .terms ol{margin:0 0 4px 18px;}
-.doc .terms li{font-size:12.5px;line-height:1.65;margin-bottom:9px;text-align:justify;}
-.doc .terms ul{margin:8px 0 4px 18px;}
-.doc .foot{margin-top:30px;text-align:center;font-size:11px;color:var(--muted);line-height:1.7;}
-.doc .foot .co{font-family:'Sorts Mill Goudy';font-size:13px;color:var(--sage);letter-spacing:.06em;}
+.doc .terms li{font-size:12px;line-height:1.7;margin-bottom:8px;text-align:justify;}
+.doc .terms ul{margin:7px 0 4px 18px;}
+.doc .terms-link{margin-top:16px;font-size:12.5px;line-height:1.6;}
+.doc .terms-link a{color:var(--terracotta);text-decoration:underline;text-underline-offset:2px;word-break:break-word;}
+.doc .foot{margin-top:28px;text-align:center;font-size:10.5px;color:var(--muted);line-height:1.75;}
+.doc .foot .co{font-size:12px;color:var(--terracotta);letter-spacing:.22em;font-weight:500;}
+/* Retrato dos dados no resumo interno */
+.doc table.data{width:100%;border-collapse:collapse;margin-top:4px;}
+.doc table.data th{width:230px;text-align:left;font-size:11px;letter-spacing:.1em;color:var(--muted);
+  font-weight:400;padding:7px 14px 7px 0;vertical-align:top;border-bottom:1px solid var(--cream);}
+.doc table.data td{font-size:13.5px;padding:7px 0;vertical-align:top;border-bottom:1px solid var(--cream);
+  white-space:pre-wrap;}
+.doc .blank{color:var(--brown);}
+.doc .ack{font-size:13px;line-height:1.7;margin-bottom:7px;}
+.doc .ack b{font-weight:500;}
 
 /* ---------- formulário de confirmação ---------- */
-.confirm-block{max-width:900px;margin:26px auto 60px;background:#fff;border:1px solid var(--cream);padding:40px 52px;}
-.confirm-block h2{font-size:24px;color:var(--terracotta);}
-.pax-row{display:grid;grid-template-columns:1fr 34px;gap:8px;margin-bottom:8px;align-items:center;}
-.check{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.6;margin-bottom:14px;}
+.confirm-block{max-width:900px;margin:24px auto 60px;background:#fff;border:1px solid var(--cream);
+  padding:38px 50px;font-weight:400;}
+.confirm-block h2{font-size:22px;color:var(--terracotta);font-weight:500;}
+.confirm-block .rule{background:var(--copper);}
+.confirm-block .section-title{color:var(--terracotta);letter-spacing:.2em;}
+.pax-row{display:grid;grid-template-columns:1fr 30px;gap:7px;margin-bottom:7px;align-items:center;}
+.check{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.65;margin-bottom:12px;}
 .check input{width:auto;margin-top:3px;}
-.done{max-width:640px;margin:16vh auto;text-align:center;padding:0 24px;}
-.done h2{font-size:28px;color:var(--terracotta);margin-bottom:14px;}
+.check label{font-size:13px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:400;margin:0;}
+.req{color:var(--brown);font-weight:500;}
+.fld{margin-bottom:14px;}
+.fld .pre{font-size:11.5px;color:var(--copper);margin-top:4px;line-height:1.5;}
+.done{max-width:620px;margin:16vh auto;text-align:center;padding:0 22px;}
+.done h2{font-size:26px;color:var(--terracotta);margin-bottom:12px;font-weight:500;}
 
 @media (max-width:760px){
   .grid2,.grid3,.doc .meta{grid-template-columns:1fr;}
-  .doc{padding:28px 20px;}
-  .confirm-block{padding:28px 20px;}
-  .doc .head{flex-direction:column;gap:18px;}
+  .doc{padding:26px 18px;}
+  .confirm-block{padding:26px 18px;}
+  .doc .head{flex-direction:column;gap:16px;}
   .doc .to{text-align:left;}
+  .cfg-row{grid-template-columns:1fr;}
+  .addbar{grid-template-columns:1fr;}
+  .doc table.data th{width:auto;display:block;border-bottom:none;padding-bottom:0;}
+  .doc table.data td{display:block;padding-top:2px;}
 }
+
+/* =====================================================================
+   IMPRESSÃO — Ctrl+P sai só com o documento. Interface, navegação e
+   formulário somem. Vale para o documento do cliente e para o resumo.
+   ===================================================================== */
 @media print{
+  @page{margin:14mm;}
   body{background:#fff;}
   .topbar,.editor-actions,.confirm-block,.noprint{display:none !important;}
-  .doc{box-shadow:none;max-width:none;padding:20px 24px;}
-  .doc table.svc thead th{background:var(--sage)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .doc{box-shadow:none;max-width:none;padding:0;}
+  .docpad{padding:0 !important;background:#fff !important;}
+  .doc table.svc thead th{background:var(--terracotta)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .doc table.svc tbody tr:nth-child(even){background:var(--cream-light)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .doc .total-box{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .doc .terms h3{break-after:avoid;}
-  .doc .terms li{break-inside:avoid;}
+  .doc .total-box{background:var(--cream)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .doc .head{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .doc .terms h3,.doc .blocktitle{break-after:avoid;}
+  .doc .terms li,.doc table.data tr{break-inside:avoid;}
+  .doc table.svc thead{display:table-header-group;}
 }
 </style>
 </head>
@@ -161,6 +238,12 @@ table.rows td.x{width:34px;padding-right:0;}
    CONFIGURAÇÃO — cole aqui a URL e a anon key do projeto Supabase do HUB.
    Enquanto estiverem vazias, o app pede as duas na tela (só na sessão).
    ===================================================================== */
+/* Endereço público do hub, o que a agência vai abrir. Preenchido, o link
+   do cliente sai sempre certo, não importa de onde você abriu o editor.
+   Vazio, o programa usa o endereço da janela aberta — e avisa na tela se
+   esse endereço não servir para mandar a ninguém. */
+const PUBLIC_BASE_URL = "";
+
 const SUPABASE_URL = "https://iloznrjpiedrohlhrmce.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlsb3pucmpwaWVkcm9obGhybWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NjQxMjUsImV4cCI6MjA5OTM0MDEyNX0.nz8KvP-BIh3Bm6QWj2WjjOWBTLd_lVhaZJewGkwTunA";
 
@@ -177,6 +260,22 @@ const el = id => document.getElementById(id);
 const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const eur = n => "€ " + (Number(n)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
 const nl2br = s => esc(s).replace(/\n/g,"<br>");
+/* Monta o link do cliente. Devolve null quando não há endereço público
+   possível — arquivo aberto direto do computador, por exemplo, que geraria
+   um caminho que só funciona na máquina de quem copiou. */
+function clientLink(token){
+  let base = (PUBLIC_BASE_URL||"").trim();
+  if(!base){
+    if(location.protocol === "file:") return null;
+    base = location.origin + location.pathname;
+  }
+  base = base.replace(/#.*$/,"").trim();
+  if(!/\/$|\.html?$/i.test(base)) base += "/";
+  return base + "#/confirm/" + token;
+}
+
+const stamp = (iso,lang) => iso ? new Date(iso).toLocaleString(lang==="en"?"en-GB":"pt-BR",
+  {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}) : "—";
 
 /* ------------------------------------------------------------ TEXTOS */
 const T = {
@@ -201,7 +300,24 @@ const T = {
     alreadyTitle:"Serviços já confirmados", alreadyText:"Este documento já foi confirmado. Para alterações, fale com a Tuscan Lands.",
     expired:"Este link expirou.", notFound:"Documento não encontrado.",
     errFill:"Preencha nome, e-mail e assinatura, e aceite os termos.",
-    print:"Imprimir / PDF"
+    errMissing:"Faltam dados obrigatórios:",
+    print:"Imprimir / PDF",
+    required:"obrigatório",
+    prefilled:"Pré-preenchido pela Tuscan Lands — confira e corrija se precisar.",
+    termsLinkLabel:"Termos e condições completos:",
+    grp:{transfer:"Transfers",tour:"Tours",hotel:"Hospedagem",dinner:"Jantares",
+         experience:"Experiências",general:"Informações gerais"},
+    miss:{ack_terms:"aceite dos termos",signature_name:"assinatura",lead_name:"nome do contato",
+          lead_email:"e-mail do contato",adults:"nome dos adultos"},
+    yes:"Sim", no:"Não",
+    sumTitle:"Resumo da confirmação", sumServices:"Serviços confirmados",
+    sumLead:"Contato responsável", sumPax:"Passageiros informados",
+    sumFields:"Dados do checkout", sumAcks:"Aceites", sumSign:"Assinatura",
+    sumSignedBy:"Assinado por", sumSignedAt:"Data e hora do envio",
+    sumRemarks:"Observações da agência", sumAckTerms:"Termos e condições",
+    sumAckVehicle:"Veículo e bagagem", accepted:"Aceito", notAccepted:"Não aceito",
+    notMarked:"Não marcado", blank:"— em branco", years:"anos", preShort:"pré-preenchido",
+    sumIntro:"Retrato do que foi enviado e assinado através do documento de confirmação de serviços."
   },
   en:{
     docTitle:"Service Confirmation",
@@ -224,11 +340,31 @@ const T = {
     alreadyTitle:"Already confirmed", alreadyText:"This document has already been confirmed. For changes, contact Tuscan Lands.",
     expired:"This link has expired.", notFound:"Document not found.",
     errFill:"Please fill in name, email and signature, and accept the terms.",
-    print:"Print / PDF"
+    errMissing:"Required information is missing:",
+    print:"Print / PDF",
+    required:"required",
+    prefilled:"Pre-filled by Tuscan Lands — please check and correct if needed.",
+    termsLinkLabel:"Full terms and conditions:",
+    grp:{transfer:"Transfers",tour:"Tours",hotel:"Accommodation",dinner:"Dinners",
+         experience:"Experiences",general:"General information"},
+    miss:{ack_terms:"acceptance of the terms",signature_name:"signature",lead_name:"contact name",
+          lead_email:"contact email",adults:"adult names"},
+    yes:"Yes", no:"No",
+    sumTitle:"Confirmation summary", sumServices:"Confirmed services",
+    sumLead:"Lead contact", sumPax:"Travellers declared",
+    sumFields:"Checkout details", sumAcks:"Acceptances", sumSign:"Signature",
+    sumSignedBy:"Signed by", sumSignedAt:"Submitted on",
+    sumRemarks:"Remarks from the agency", sumAckTerms:"Terms and conditions",
+    sumAckVehicle:"Vehicle and luggage", accepted:"Accepted", notAccepted:"Not accepted",
+    notMarked:"Not ticked", blank:"— blank", years:"years old", preShort:"pre-filled",
+    sumIntro:"Record of what was submitted and signed through the service confirmation document."
   }
 };
 
 /* ------------------------------------------------- TERMOS E CONDIÇÕES */
+/* Texto jurídico da casa. Não reescrever, não resumir, não "melhorar".
+   Copiado byte a byte da versão anterior. O link publicado da order é
+   adicional a este texto, nunca substituto dele. */
 const TERMS = {
 pt:`<h2>Termos e Condições</h2>
 <h3>Serviços de Transporte e Transfers</h3>
@@ -293,6 +429,105 @@ en:`<h2>Terms &amp; Conditions</h2>
 </li>
 </ol>`
 };
+
+/* =====================================================================
+   BIBLIOTECA DE CAMPOS DO CHECKOUT — seção 4 do plano
+   Organizada por tipo de serviço. Cada campo escolhido vira uma linha em
+   ops_order_fields, com um dos dois estados que existem no banco:
+   aparece vazio ou aparece já preenchido. O terceiro estado da seção 4,
+   "não aparece", é simplesmente não ter a linha.
+
+   ATENÇÃO: esta relação é PROVISÓRIA. O plano diz que a lista exata de
+   cada tipo de serviço será fornecida pela Maria Fernanda. Até lá, isto
+   é ponto de partida, não decisão fechada. Mexer aqui não exige mexer no
+   banco: rótulo, tipo e opções viajam junto com o campo escolhido.
+
+   A chave é 'grupo.campo' e é única dentro da order — o banco recusa o
+   mesmo campo duas vezes no mesmo checkout.
+   ===================================================================== */
+const LANGS = ["Português","English","Italiano","Español"];
+const FIELD_LIB = {
+  transfer: [
+    {k:"flight_in",     t:"text",  pt:"Voo de chegada — companhia e número", en:"Arrival flight — airline and number"},
+    {k:"flight_in_when",t:"text",  pt:"Data e horário de chegada",           en:"Arrival date and time"},
+    {k:"terminal_in",   t:"text",  pt:"Terminal de chegada",                 en:"Arrival terminal"},
+    {k:"pickup_addr",   t:"text",  pt:"Endereço de embarque",                en:"Pick-up address"},
+    {k:"pickup_time",   t:"text",  pt:"Horário de embarque",                 en:"Pick-up time"},
+    {k:"dropoff_addr",  t:"text",  pt:"Endereço de desembarque",             en:"Drop-off address"},
+    {k:"flight_out",    t:"text",  pt:"Voo de saída — companhia e número",   en:"Departure flight — airline and number"},
+    {k:"flight_out_when",t:"text", pt:"Data e horário de saída",             en:"Departure date and time"},
+    {k:"luggage",       t:"text",  pt:"Malas despachadas e de mão",          en:"Checked and cabin bags"},
+    {k:"child_seat",    t:"text",  pt:"Cadeirinha — idade e peso da criança",en:"Child seat — child age and weight"},
+    {k:"sign_name",     t:"text",  pt:"Nome na placa de encontro",           en:"Name on the meeting sign"},
+    {k:"phone_italy",   t:"text",  pt:"Telefone em uso na Itália",           en:"Phone in use in Italy"}
+  ],
+  tour: [
+    {k:"meeting_point", t:"text",  pt:"Ponto de encontro",                   en:"Meeting point"},
+    {k:"meeting_time",  t:"text",  pt:"Horário de encontro",                 en:"Meeting time"},
+    {k:"hotel_pickup",  t:"textarea",pt:"Hotel de embarque — nome e endereço",en:"Pick-up hotel — name and address"},
+    {k:"guide_lang",    t:"select",pt:"Idioma do guia",                      en:"Guide language", o:LANGS},
+    {k:"diet",          t:"textarea",pt:"Restrições alimentares",            en:"Dietary restrictions"},
+    {k:"mobility",      t:"textarea",pt:"Limitações de mobilidade",          en:"Mobility limitations"},
+    {k:"interests",     t:"textarea",pt:"Interesses declarados pelo cliente", en:"Interests stated by the client"}
+  ],
+  hotel: [
+    {k:"checkin",       t:"text",  pt:"Check-in",                            en:"Check-in"},
+    {k:"checkout",      t:"text",  pt:"Check-out",                           en:"Check-out"},
+    {k:"rooms",         t:"textarea",pt:"Configuração dos quartos",          en:"Room configuration"},
+    {k:"bed",           t:"select",pt:"Cama",                                en:"Bed", o:["Double","Twin"]},
+    {k:"eta",           t:"text",  pt:"Horário previsto de chegada ao hotel",en:"Estimated arrival at the hotel"},
+    {k:"occasion",      t:"text",  pt:"Ocasião especial",                    en:"Special occasion"},
+    {k:"room_names",    t:"textarea",pt:"Divisão dos hóspedes por quarto",   en:"Guest allocation per room"}
+  ],
+  dinner: [
+    {k:"when",          t:"text",  pt:"Data e horário",                      en:"Date and time"},
+    {k:"covers",        t:"number",pt:"Pessoas à mesa",                      en:"Number of covers"},
+    {k:"diet",          t:"textarea",pt:"Restrições alimentares",            en:"Dietary restrictions"},
+    {k:"allergies",     t:"textarea",pt:"Alergias",                          en:"Allergies"},
+    {k:"occasion",      t:"text",  pt:"Ocasião",                             en:"Occasion"}
+  ],
+  experience: [
+    {k:"when",          t:"text",  pt:"Data e horário",                      en:"Date and time"},
+    {k:"meeting_point", t:"text",  pt:"Ponto de encontro",                   en:"Meeting point"},
+    {k:"exp_lang",      t:"select",pt:"Idioma da experiência",               en:"Experience language", o:LANGS},
+    {k:"diet",          t:"textarea",pt:"Restrições alimentares",            en:"Dietary restrictions"},
+    {k:"mobility",      t:"textarea",pt:"Limitações de mobilidade",          en:"Mobility limitations"},
+    {k:"participants",  t:"number",pt:"Participantes",                       en:"Participants"}
+  ],
+  general: [
+    {k:"stay_italy",    t:"textarea",pt:"Hospedagem na Itália — hotel e endereço",en:"Accommodation in Italy — hotel and address"},
+    {k:"arrival_city",  t:"text",  pt:"Cidade de chegada na Itália",         en:"City of arrival in Italy"},
+    {k:"emergency",     t:"text",  pt:"Contato de emergência — nome e telefone",en:"Emergency contact — name and phone"},
+    {k:"insurance",     t:"text",  pt:"Seguro viagem — seguradora e apólice",en:"Travel insurance — provider and policy"},
+    {k:"trip_phone",    t:"text",  pt:"Telefone em uso durante a viagem",    en:"Phone in use during the trip"},
+    {k:"invoice_data",  t:"textarea",pt:"Dados para a fatura",               en:"Invoicing details"}
+  ]
+};
+const GROUPS = ["transfer","tour","hotel","dinner","experience","general"];
+const libLabel = (g,k) => (FIELD_LIB[g]||[]).find(f=>f.k===k) || null;
+
+/* Blocos fixos do checkout. Aceite dos termos e assinatura não entram
+   aqui de propósito: sem os dois isto não é uma confirmação. */
+const BLOCKS = [
+  {k:"lead",     pt:"Contato responsável",  en:"Lead contact",  three:true,
+   note:"Nome, e-mail e telefone de quem responde pela viagem."},
+  {k:"adults",   pt:"Nomes dos adultos",    en:"Adult names",   three:true,
+   note:"Como vão para a reserva no fornecedor. Ligado, exige ao menos um nome."},
+  {k:"children", pt:"Idades das crianças",  en:"Children ages", three:true,
+   note:"Idade sim, nome não."},
+  {k:"ack_vehicle",pt:"Aceite de veículo e bagagem", en:"Vehicle and luggage acceptance", three:false,
+   note:"Faz sentido quando há transporte na venda."},
+  {k:"remarks",  pt:"Campo livre de observações", en:"Free remarks", three:false,
+   note:"Espaço aberto para a agência escrever."}
+];
+const blockMode = (o,k) => {
+  const c = o.checkout_config || {};
+  const v = c[k];
+  const b = BLOCKS.find(x=>x.k===k);
+  if(b && !b.three) return v === false ? "off" : "on";
+  return (v==="off"||v==="prefilled") ? v : "blank";
+};
+const prefill = o => ((o.checkout_config||{}).prefill)||{};
 
 /* ==================================================================== */
 /*  BOOT                                                                */
@@ -364,14 +599,14 @@ function renderLogin(){
 /* ==================================================================== */
 /*  APP INTERNO                                                         */
 /* ==================================================================== */
-let ORDER = null, ITEMS = [], PAYS = [], CONF = null;
+let ORDER = null, ITEMS = [], PAYS = [], CONF = null, FIELDS = [], CFG = null;
 
 function shell(inner, crumb){
   app.innerHTML = `
   <div class="topbar">
     <span class="mark">TUSCAN LANDS</span>
-    <span class="sep">·</span><span style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;">Vendas &amp; Operações</span>
-    ${crumb?`<span class="sep">·</span><span style="font-size:12px;">${esc(crumb)}</span>`:""}
+    <span class="sep">·</span><span class="ctx">Vendas &amp; Operações</span>
+    ${crumb?`<span class="sep">·</span><span class="ctx">${esc(crumb)}</span>`:""}
     <div class="right"><button id="tb-out">Sair</button></div>
   </div>
   <div class="wrap">${inner}</div>`;
@@ -381,7 +616,7 @@ function shell(inner, crumb){
 async function renderApp(){
   shell(`<div class="overline">Orders</div><div class="rule"></div>
     <div id="list-host" class="muted">Carregando…</div>
-    <div class="card" style="margin-top:26px;">
+    <div class="card" style="margin-top:24px;">
       <div class="section-title">Nova order</div>
       <div class="grid3">
         <div><label>Nº da oportunidade (CRM)</label><input id="n-opp" placeholder="TL035-26"></div>
@@ -389,11 +624,11 @@ async function renderApp(){
         <div><label>Idioma do documento</label>
           <select id="n-lang"><option value="pt">Português</option><option value="en">English</option></select></div>
       </div>
-      <div class="grid2" style="margin-top:14px;">
+      <div class="grid2" style="margin-top:12px;">
         <div><label>Agência</label><input id="n-agency" placeholder="Refina Travel"></div>
         <div><label>Cliente final</label><input id="n-client" placeholder="Sobrenome da família"></div>
       </div>
-      <button class="btn" id="n-go" style="margin-top:18px;">Criar order</button>
+      <button class="btn" id="n-go" style="margin-top:16px;">Criar order</button>
     </div>`);
 
   el("n-go").onclick = async () => {
@@ -425,14 +660,20 @@ async function renderApp(){
 
 /* ------------------------------------------------------- EDITOR ------ */
 async function openOrder(id){
-  const [{data:o,error:e1}, {data:it}, {data:pg}, {data:cf}] = await Promise.all([
+  const [{data:o,error:e1}, {data:it}, {data:pg}, {data:cf}, {data:fl}] = await Promise.all([
     sb.from("ops_orders").select("*").eq("id",id).single(),
     sb.from("ops_order_items").select("*").eq("order_id",id).order("sort"),
     sb.from("ops_order_payments").select("*").eq("order_id",id).order("sort"),
-    sb.from("ops_order_confirmations").select("*").eq("order_id",id).order("submitted_at",{ascending:false})
+    sb.from("ops_order_confirmations").select("*").eq("order_id",id).order("submitted_at",{ascending:false}),
+    sb.from("ops_order_fields").select("*").eq("order_id",id).order("sort")
   ]);
   if(e1) return alert(e1.message);
-  ORDER = o; ITEMS = it||[]; PAYS = pg||[]; CONF = (cf&&cf[0])||null;
+  ORDER = o; ITEMS = it||[]; PAYS = pg||[]; CONF = (cf&&cf[0])||null; FIELDS = fl||[];
+  CFG = {
+    lead: blockMode(o,"lead"), adults: blockMode(o,"adults"), children: blockMode(o,"children"),
+    ack_vehicle: blockMode(o,"ack_vehicle"), remarks: blockMode(o,"remarks"),
+    prefill: Object.assign({lead_name:"",lead_email:"",lead_phone:"",adults:[],children:[]}, prefill(o))
+  };
   renderEditor();
 }
 
@@ -446,8 +687,9 @@ function renderEditor(){
     </div>
     <div class="editor-actions">
       <button class="btn ghost sm" id="ed-back">Voltar</button>
-      <button class="btn sage sm" id="ed-save">Salvar</button>
-      <button class="btn sm" id="ed-preview">Ver como o cliente vê</button>
+      <button class="btn sm" id="ed-save">Salvar</button>
+      <button class="btn close ghost sm" id="ed-preview">Ver como o cliente vê</button>
+      ${CONF?`<button class="btn close sm" id="ed-sum">Resumo (PDF)</button>`:""}
     </div>
   </div>
 
@@ -472,41 +714,73 @@ function renderEditor(){
         ${["draft","sent","confirmed"].map(s=>`<option value="${s}"${o.status===s?" selected":""}>${s}</option>`).join("")}
       </select></div>
     </div>
+    <div>
+      <label>Link dos termos e condições (opcional)</label>
+      <input id="f-terms" value="${esc(o.terms_url||"")}" placeholder="https://tuscanlandstravel.com/termos-e-condicoes">
+      <div class="hint" style="margin:5px 0 0;">Sai como link clicável no fim do documento do cliente, embaixo dos termos.
+        O texto integral continua dentro do documento: o link é acréscimo, não substituição.</div>
+    </div>
     <div><label>Texto de abertura (opcional)</label><textarea id="f-intro" rows="3">${esc(o.intro||"")}</textarea></div>
     <div><label>Notas internas — nunca aparecem para o cliente</label><textarea id="f-notes" rows="2">${esc(o.internal_notes||"")}</textarea></div>
   </div>
 
-  <div class="card" style="margin-top:20px;">
+  <div class="card">
     <div class="section-title">Serviços confirmados</div>
     <div id="items-host"></div>
-    <button class="btn ghost sm" id="it-add" style="margin-top:6px;">+ Serviço</button>
+    <button class="btn ghost sm" id="it-add" style="margin-top:5px;">+ Serviço</button>
     <div class="totalline"><span class="lbl">Total</span><span class="amt" id="it-total">—</span></div>
   </div>
 
-  <div class="card" style="margin-top:20px;">
+  <div class="card">
     <div class="section-title">Pagamentos</div>
     <div id="pays-host"></div>
-    <button class="btn ghost sm" id="pg-add" style="margin-top:6px;">+ Parcela</button>
+    <button class="btn ghost sm" id="pg-add" style="margin-top:5px;">+ Parcela</button>
     <div class="totalline"><span class="lbl">Somado</span><span class="amt" id="pg-total">—</span></div>
   </div>
 
-  <div class="card" style="margin-top:20px;">
+  <div class="card">
+    <div class="section-title">Checkout — o que a agência vê</div>
+    <div class="hint">Cada campo tem três estados: não aparece, aparece vazio para a agência preencher,
+      ou aparece já preenchido por você, para ela só confirmar. Aceite dos termos e assinatura aparecem
+      sempre e não são configuráveis — sem os dois isto não é uma confirmação.</div>
+    <div id="cfg-host"></div>
+
+    <div class="section-title" style="margin-top:24px;">Campos por tipo de serviço</div>
+    <div class="addbar">
+      <div><label>Tipo de serviço</label>
+        <select id="fl-grp">${GROUPS.map(g=>`<option value="${g}">${T.pt.grp[g]}</option>`).join("")}</select></div>
+      <div><label>Campo</label><select id="fl-key"></select></div>
+      <div><button class="btn ghost sm" id="fl-add">Adicionar</button></div>
+      <div><button class="btn ghost sm" id="fl-free">+ Campo livre</button></div>
+    </div>
+    <div id="fld-host"></div>
+  </div>
+
+  <div class="card">
     <div class="section-title">Link do cliente</div>
     <div class="muted">Token aleatório. Quem tem o link vê o documento e confirma os dados. Nada da sua base fica exposto.</div>
-    <div class="linkbox">
-      <input id="lk" readonly value="${location.origin+location.pathname}#/confirm/${esc(o.token)}">
+    ${clientLink(o.token) ? `<div class="linkbox">
+      <input id="lk" readonly value="${esc(clientLink(o.token))}">
       <button class="btn sm" id="lk-copy">Copiar</button>
-    </div>
-    <div id="conf-host" style="margin-top:20px;"></div>
+    </div>` : `<div class="msg" style="margin-top:10px;">Este hub está aberto como arquivo do seu
+      computador, e um link daqui só funcionaria nesta máquina. Abra o hub pelo endereço do site
+      para copiar o link, ou preencha <b>PUBLIC_BASE_URL</b> no topo do arquivo.</div>`}
+    <div id="conf-host" class="closing"></div>
   </div>`, o.order_ref);
 
   el("ed-back").onclick = renderApp;
   el("ed-save").onclick = saveOrder;
   el("ed-preview").onclick = () => { location.hash = "#/confirm/"+ORDER.token; };
-  el("lk-copy").onclick = () => { el("lk").select(); document.execCommand("copy"); el("lk-copy").textContent="Copiado"; };
+  if(el("ed-sum")) el("ed-sum").onclick = renderSummary;
+  if(el("lk-copy")) el("lk-copy").onclick = () => {
+    el("lk").select(); document.execCommand("copy"); el("lk-copy").textContent="Copiado"; };
   el("it-add").onclick = () => { ITEMS.push({service_date:"",title:"",details:"",price:0,sort:ITEMS.length}); drawItems(); };
   el("pg-add").onclick = () => { PAYS.push({label:"",due_date:"",amount:0,status:"pending",sort:PAYS.length}); drawPays(); };
-  drawItems(); drawPays(); drawConfirmation();
+  el("fl-grp").onchange = drawLibOptions;
+  el("fl-add").onclick = addLibField;
+  el("fl-free").onclick = addFreeField;
+  drawLibOptions();
+  drawItems(); drawPays(); drawConfig(); drawFields(); drawConfirmation();
 }
 
 function drawItems(){
@@ -516,7 +790,7 @@ function drawItems(){
       <td><input value="${esc(r.service_date||"")}" oninput="ITEMS[${i}].service_date=this.value"></td>
       <td>
         <input value="${esc(r.title||"")}" placeholder="Título do serviço" oninput="ITEMS[${i}].title=this.value">
-        <textarea rows="2" placeholder="Detalhes, um por linha" style="margin-top:6px;font-size:13px;" oninput="ITEMS[${i}].details=this.value">${esc(r.details||"")}</textarea>
+        <textarea rows="2" placeholder="Detalhes, um por linha" style="margin-top:5px;font-size:12.5px;" oninput="ITEMS[${i}].details=this.value">${esc(r.details||"")}</textarea>
       </td>
       <td><input type="number" step="0.01" value="${Number(r.price)||0}" style="text-align:right;" oninput="ITEMS[${i}].price=parseFloat(this.value)||0;sumItems()"></td>
       <td class="x"><button class="iconbtn" onclick="ITEMS.splice(${i},1);drawItems()">×</button></td>
@@ -541,23 +815,194 @@ function drawPays(){
 }
 function sumPays(){ el("pg-total").textContent = eur(PAYS.reduce((s,p)=>s+(Number(p.amount)||0),0)); }
 
+/* --------------------------------------- CONFIGURAÇÃO DO CHECKOUT ---- */
+const MODE3 = [["blank","Aparece vazio"],["prefilled","Já preenchido por mim"],["off","Não aparece"]];
+const MODE2 = [["on","Aparece"],["off","Não aparece"]];
+const TYPES = [["text","Linha de texto"],["textarea","Texto longo"],["number","Número"],
+               ["date","Data"],["select","Lista de opções"],["checkbox","Sim / não"]];
+
+function drawConfig(){
+  const rows = BLOCKS.map(b=>{
+    const cur = CFG[b.k], opts = b.three ? MODE3 : MODE2;
+    return `<div class="cfg-row">
+      <div class="name">${b.pt}<small>${b.note}</small></div>
+      <select onchange="CFG['${b.k}']=this.value;drawConfig()">
+        ${opts.map(([v,l])=>`<option value="${v}"${cur===v?" selected":""}>${l}</option>`).join("")}
+      </select>
+    </div>${(b.three && cur==="prefilled") ? fillFor(b.k) : ""}`;
+  }).join("");
+  el("cfg-host").innerHTML = rows + `
+    <div class="cfg-row fixed">
+      <div class="name">Aceite dos termos e assinatura digitada
+        <small>Aparecem sempre. Sem os dois o envio é recusado pelo banco, não só pela tela.</small></div>
+      <div class="muted" style="font-size:11px;">Fixo</div>
+    </div>`;
+}
+
+function fillFor(k){
+  const p = CFG.prefill;
+  if(k==="lead") return `<div class="cfg-fill"><div class="inner"><div class="grid3">
+      <div><label>Nome do contato</label><input value="${esc(p.lead_name||"")}" oninput="CFG.prefill.lead_name=this.value"></div>
+      <div><label>E-mail</label><input value="${esc(p.lead_email||"")}" oninput="CFG.prefill.lead_email=this.value"></div>
+      <div><label>Telefone</label><input value="${esc(p.lead_phone||"")}" oninput="CFG.prefill.lead_phone=this.value"></div>
+    </div></div></div>`;
+  if(k==="adults") return `<div class="cfg-fill"><div class="inner">
+      <label>Nomes como vão para o fornecedor</label>
+      ${(p.adults||[]).map((a,i)=>`<div class="pax-row">
+        <input value="${esc(a)}" oninput="CFG.prefill.adults[${i}]=this.value" placeholder="Nome completo">
+        <button class="iconbtn" onclick="CFG.prefill.adults.splice(${i},1);drawConfig()">×</button></div>`).join("")}
+      <button class="btn ghost sm" onclick="CFG.prefill.adults.push('');drawConfig()">+ Adulto</button>
+    </div></div>`;
+  if(k==="children") return `<div class="cfg-fill"><div class="inner">
+      <label>Idades na data da viagem</label>
+      ${(p.children||[]).map((c,i)=>`<div class="pax-row">
+        <input type="number" min="0" max="17" value="${esc(c.age)}" oninput="CFG.prefill.children[${i}].age=this.value" placeholder="Idade">
+        <button class="iconbtn" onclick="CFG.prefill.children.splice(${i},1);drawConfig()">×</button></div>`).join("")}
+      <button class="btn ghost sm" onclick="CFG.prefill.children.push({age:''});drawConfig()">+ Criança</button>
+    </div></div>`;
+  return "";
+}
+
+/* ------------------------------------------- CAMPOS POR TIPO --------- */
+function drawLibOptions(){
+  const g = el("fl-grp").value;
+  el("fl-key").innerHTML = (FIELD_LIB[g]||[])
+    .map(f=>`<option value="${f.k}">${esc(f.pt)}</option>`).join("");
+}
+
+function addLibField(){
+  const g = el("fl-grp").value, k = el("fl-key").value, def = libLabel(g,k);
+  if(!def) return;
+  const key = g+"."+k;
+  if(FIELDS.some(f=>f.field_key===key)) return alert("Esse campo já está neste checkout.");
+  FIELDS.push({field_key:key, group_key:g, label_pt:def.pt, label_en:def.en,
+    input_type:def.t, options:def.o||[], required:false, mode:"blank", prefill_value:"", sort:FIELDS.length});
+  drawFields();
+}
+
+function addFreeField(){
+  let n = 1;
+  while(FIELDS.some(f=>f.field_key==="custom."+n)) n++;
+  FIELDS.push({field_key:"custom."+n, group_key:el("fl-grp").value, label_pt:"", label_en:"",
+    input_type:"text", options:[], required:false, mode:"blank", prefill_value:"", sort:FIELDS.length});
+  drawFields();
+}
+
+function prefillControl(f,i){
+  if(f.mode!=="prefilled") return `<input disabled placeholder="—">`;
+  const set = `oninput="FIELDS[${i}].prefill_value=this.value"`;
+  const setc = `onchange="FIELDS[${i}].prefill_value=this.value"`;
+  if(f.input_type==="select"){
+    return `<select ${setc}><option value="">—</option>${(f.options||[]).map(op=>
+      `<option value="${esc(op)}"${f.prefill_value===op?" selected":""}>${esc(op)}</option>`).join("")}</select>`;
+  }
+  if(f.input_type==="checkbox"){
+    return `<select ${setc}>
+      <option value="true"${f.prefill_value==="true"?" selected":""}>Sim</option>
+      <option value="false"${f.prefill_value!=="true"?" selected":""}>Não</option></select>`;
+  }
+  if(f.input_type==="textarea") return `<textarea rows="2" ${set}>${esc(f.prefill_value||"")}</textarea>`;
+  const t = f.input_type==="number" ? "number" : (f.input_type==="date" ? "date" : "text");
+  return `<input type="${t}" value="${esc(f.prefill_value||"")}" ${set}>`;
+}
+
+function drawFields(){
+  const host = el("fld-host");
+  if(!FIELDS.length){
+    host.innerHTML = `<div class="muted">Nenhum campo além dos blocos fixos. O checkout sai só com contato,
+      passageiros, aceites e assinatura.</div>`;
+    return;
+  }
+  host.innerHTML = `<table class="rows">
+    <thead><tr><th>Campo</th><th style="width:120px;">Tipo</th><th style="width:80px;">Obrigatório</th>
+      <th style="width:150px;">Estado</th><th style="width:210px;">Valor pré-preenchido</th><th class="x"></th></tr></thead>
+    <tbody>${FIELDS.map((f,i)=>`<tr>
+      <td>
+        <input value="${esc(f.label_pt||"")}" placeholder="Rótulo em português" oninput="FIELDS[${i}].label_pt=this.value">
+        <input class="fld-lbl-en" value="${esc(f.label_en||"")}" placeholder="Rótulo em inglês" oninput="FIELDS[${i}].label_en=this.value">
+        ${f.input_type==="select"?`<input class="fld-lbl-en" value="${esc((f.options||[]).join(", "))}"
+          placeholder="Opções separadas por vírgula"
+          oninput="FIELDS[${i}].options=this.value.split(',').map(s=>s.trim()).filter(Boolean)">`:""}
+        <div class="muted" style="font-size:10.5px;margin-top:3px;">${esc(T.pt.grp[f.group_key]||f.group_key)} · ${esc(f.field_key)}</div>
+      </td>
+      <td><select onchange="FIELDS[${i}].input_type=this.value;FIELDS[${i}].prefill_value='';drawFields()">
+        ${TYPES.map(([v,l])=>`<option value="${v}"${f.input_type===v?" selected":""}>${l}</option>`).join("")}</select></td>
+      <td style="text-align:center;padding-top:8px;">
+        <input type="checkbox" style="width:auto;"${f.required?" checked":""} onchange="FIELDS[${i}].required=this.checked"></td>
+      <td><select onchange="FIELDS[${i}].mode=this.value;drawFields()">
+        <option value="blank"${f.mode==="blank"?" selected":""}>Aparece vazio</option>
+        <option value="prefilled"${f.mode==="prefilled"?" selected":""}>Já preenchido</option></select></td>
+      <td>${prefillControl(f,i)}</td>
+      <td class="x"><button class="iconbtn" title="Não aparece no checkout"
+        onclick="FIELDS.splice(${i},1);drawFields()">×</button></td>
+    </tr>`).join("")}</tbody></table>
+    <div class="hint" style="margin-top:10px;">Remover a linha com o × é o estado “não aparece”: o campo some do
+      checkout e não deixa rastro na order.</div>`;
+}
+
+/* ------------------------------------------- CONFIRMAÇÃO RECEBIDA ---- */
 function drawConfirmation(){
   const host = el("conf-host");
-  if(!CONF){ host.innerHTML = `<div class="muted">Nenhuma confirmação recebida até agora.</div>`; return; }
+  if(!CONF){
+    host.innerHTML = `<div class="section-title">Confirmação</div>
+      <div class="muted">Nenhuma confirmação recebida até agora.</div>`;
+    return;
+  }
+  const t = T.pt;
   const ad = (CONF.adults||[]).map(a=>esc(a)).join("<br>") || "—";
   const ch = (CONF.children||[]).map(c=>esc(c.age)+" anos").join(" · ") || "—";
+  const fl = (CONF.fields||[]);
   host.innerHTML = `<div class="section-title">Confirmação recebida</div>
     <div class="grid3">
       <div><label>Contato</label><div class="muted">${esc(CONF.lead_name||"")}<br>${esc(CONF.lead_email||"")}<br>${esc(CONF.lead_phone||"")}</div></div>
       <div><label>Adultos</label><div class="muted">${ad}</div></div>
       <div><label>Crianças</label><div class="muted">${ch}</div></div>
     </div>
-    <div style="margin-top:14px;"><label>Assinatura / data</label>
-      <div class="muted">${esc(CONF.signature_name||"")} · ${new Date(CONF.submitted_at).toLocaleString("pt-BR")}</div></div>
+    ${fl.length?`<div style="margin-top:14px;"><label>Dados do checkout</label>
+      <table class="rows" style="margin-top:4px;"><tbody>${fl.map(f=>`<tr>
+        <td style="width:250px;padding:3px 10px 3px 0;"><span class="muted">${esc(f.label_pt||f.key)}</span>
+          ${f.mode==="prefilled"?` <span class="tag">pré</span>`:""}</td>
+        <td style="padding:3px 0;">${f.value?nl2br(f.value):`<span class="muted">— em branco</span>`}</td>
+      </tr>`).join("")}</tbody></table></div>`:""}
+    <div class="grid3" style="margin-top:14px;">
+      <div><label>Aceite dos termos</label><div class="muted">${CONF.ack_terms?"Aceito":"Não aceito"}</div></div>
+      <div><label>Veículo e bagagem</label><div class="muted">${CONF.ack_vehicle?"Aceito":"Não marcado"}</div></div>
+      <div><label>Assinatura / data</label>
+        <div class="muted">${esc(CONF.signature_name||"")}<br>${stamp(CONF.submitted_at,"pt")}</div></div>
+    </div>
     ${CONF.remarks?`<div style="margin-top:14px;"><label>Observações</label><div class="muted">${nl2br(CONF.remarks)}</div></div>`:""}`;
 }
 
+/* ------------------------------------------------------ GRAVAR ------- */
+function cfgToJson(){
+  const p = CFG.prefill, c = {
+    lead: CFG.lead, adults: CFG.adults, children: CFG.children,
+    ack_vehicle: CFG.ack_vehicle !== "off",
+    remarks: CFG.remarks !== "off",
+    prefill: {}
+  };
+  // Só guarda o pré-preenchido do bloco que está pré-preenchido. Valor
+  // órfão de bloco desligado voltaria a aparecer sozinho se ela religasse.
+  if(CFG.lead==="prefilled"){
+    c.prefill.lead_name = (p.lead_name||"").trim();
+    c.prefill.lead_email = (p.lead_email||"").trim();
+    c.prefill.lead_phone = (p.lead_phone||"").trim();
+  }
+  if(CFG.adults==="prefilled")
+    c.prefill.adults = (p.adults||[]).map(s=>(s||"").trim()).filter(Boolean);
+  if(CFG.children==="prefilled")
+    c.prefill.children = (p.children||[]).filter(x=>String(x.age||"").trim()!=="");
+  return c;
+}
+
 async function saveOrder(){
+  // Rótulo vazio quebra a coluna not null e sai como campo sem nome para
+  // a agência. Barrar aqui é melhor que descobrir pelo erro do banco.
+  const semRotulo = FIELDS.findIndex(f=>!(f.label_pt||"").trim());
+  if(semRotulo >= 0) return alert("Há campo do checkout sem rótulo em português (linha "+(semRotulo+1)+").");
+  const vazio = FIELDS.find(f=>f.mode==="prefilled" && !String(f.prefill_value||"").trim());
+  if(vazio) return alert("O campo “"+vazio.label_pt+"” está como já preenchido, mas sem valor. Preencha ou volte para “aparece vazio”.");
+
   const btn = el("ed-save"); btn.disabled = true; btn.textContent = "Salvando…";
   const patch = {
     opportunity_code: el("f-opp").value.trim(), order_ref: el("f-ref").value.trim(),
@@ -565,17 +1010,25 @@ async function saveOrder(){
     agency: el("f-agency").value.trim(), agency_contact: el("f-contact").value.trim(),
     final_client: el("f-client").value.trim(), pax_summary: el("f-pax").value.trim(),
     travel_window: el("f-window").value.trim(), intro: el("f-intro").value,
+    terms_url: el("f-terms").value.trim() || null,
+    checkout_config: cfgToJson(),
     internal_notes: el("f-notes").value, updated_at: new Date().toISOString()
   };
   const {error:e1} = await sb.from("ops_orders").update(patch).eq("id",ORDER.id);
   await sb.from("ops_order_items").delete().eq("order_id",ORDER.id);
   await sb.from("ops_order_payments").delete().eq("order_id",ORDER.id);
+  await sb.from("ops_order_fields").delete().eq("order_id",ORDER.id);
   const {error:e2} = ITEMS.length ? await sb.from("ops_order_items").insert(
     ITEMS.map((r,i)=>({order_id:ORDER.id,sort:i,service_date:r.service_date,title:r.title,details:r.details,price:r.price}))) : {};
   const {error:e3} = PAYS.length ? await sb.from("ops_order_payments").insert(
     PAYS.map((p,i)=>({order_id:ORDER.id,sort:i,label:p.label,due_date:p.due_date,amount:p.amount,status:p.status}))) : {};
+  const {error:e4} = FIELDS.length ? await sb.from("ops_order_fields").insert(
+    FIELDS.map((f,i)=>({order_id:ORDER.id, sort:i, group_key:f.group_key, field_key:f.field_key,
+      label_pt:(f.label_pt||"").trim(), label_en:(f.label_en||"").trim()||null,
+      input_type:f.input_type, options:f.options||[], required:!!f.required,
+      mode:f.mode, prefill_value: f.mode==="prefilled" ? f.prefill_value : null}))) : {};
   btn.disabled = false; btn.textContent = "Salvar";
-  const err = e1||e2||e3;
+  const err = e1||e2||e3||e4;
   if(err) return alert(err.message);
   Object.assign(ORDER, patch);
   btn.textContent = "Salvo";
@@ -583,9 +1036,122 @@ async function saveOrder(){
 }
 
 /* ==================================================================== */
+/*  RESUMO EM PDF — para encaminhar à agência                           */
+/*                                                                      */
+/*  Sai pelo Ctrl+P, como o resto da casa. Nenhuma biblioteca nova: a    */
+/*  regra de impressão já esconde interface e botões, e o navegador      */
+/*  gera o PDF. Sai no idioma da order, porque o destino é a agência.    */
+/*  É documento de fechamento, então vem em terracota.                   */
+/* ==================================================================== */
+function renderSummary(){
+  const o = ORDER, t = T[o.lang||"pt"], c = CONF;
+  const total = ITEMS.reduce((s,r)=>s+(Number(r.price)||0),0);
+  const linha = (k,v) => `<tr><th>${k}</th><td>${v}</td></tr>`;
+  const branco = `<span class="blank">${t.blank}</span>`;
+
+  const adultos = (c.adults||[]).length
+    ? (c.adults||[]).map(a=>esc(a)).join("<br>") : branco;
+  const criancas = (c.children||[]).length
+    ? (c.children||[]).map(x=>esc(x.age)+" "+t.years).join(" · ") : "—";
+  const campos = (c.fields||[]).map(f=>linha(
+      esc((o.lang==="en" ? (f.label_en||f.label_pt) : f.label_pt) || f.key)
+        + (f.mode==="prefilled" ? ` <span style="color:var(--copper);">· ${t.preShort}</span>` : ""),
+      f.value ? nl2br(f.value) : branco)).join("");
+
+  app.innerHTML = `
+  <div class="noprint" style="background:var(--sage);padding:10px 22px;display:flex;gap:8px;align-items:center;">
+    <span style="color:#fff;font-size:11px;letter-spacing:.2em;text-transform:uppercase;">Resumo · ${esc(o.order_ref)}</span>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn ghost sm" id="sm-back" style="border-color:rgba(255,255,255,.45);color:#fff;">Voltar</button>
+      <button class="btn close sm" id="sm-print">${t.print}</button>
+    </div>
+  </div>
+  <div class="docpad" style="padding:24px 12px;background:var(--cream);">
+  <div class="doc">
+    <div class="head">
+      <div class="brand">
+        <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
+        <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
+      </div>
+      <div class="to">
+        <div class="lbl">${t.to}</div>
+        <div class="val">${esc(o.agency||o.final_client||"")}</div>
+        <div class="lbl">${t.ref}</div>
+        <div class="val">${esc(o.order_ref)}</div>
+      </div>
+    </div>
+
+    <h1 class="doctitle">${t.sumTitle}</h1>
+    <div class="intro" style="text-align:left;">${t.sumIntro}</div>
+
+    <div class="meta">
+      <div class="cell"><div class="k">${t.opp}</div><div class="v">${esc(o.opportunity_code)}</div></div>
+      <div class="cell"><div class="k">${t.to}</div><div class="v">${esc(o.final_client||o.agency||"—")}</div></div>
+      <div class="cell"><div class="k">${t.period}</div><div class="v">${esc(o.travel_window||"—")}</div></div>
+      <div class="cell"><div class="k">${t.status}</div><div class="v">${t.statusVal[o.status]||o.status}</div></div>
+    </div>
+
+    <div class="blocktitle">${t.sumSign}</div>
+    <table class="data">
+      ${linha(t.sumSignedBy, `<b>${esc(c.signature_name||c.lead_name||"—")}</b>`)}
+      ${linha(t.sumSignedAt, esc(stamp(c.submitted_at, o.lang)))}
+      ${linha(t.sumAckTerms, c.ack_terms ? t.accepted : `<span class="blank">${t.notAccepted}</span>`)}
+      ${linha(t.sumAckVehicle, c.ack_vehicle ? t.accepted : t.notMarked)}
+      ${o.terms_url?linha(t.termsLinkLabel.replace(":",""),
+          `<a href="${esc(o.terms_url)}" style="color:var(--terracotta);">${esc(o.terms_url)}</a>`):""}
+    </table>
+
+    <div class="blocktitle">${t.sumLead}</div>
+    <table class="data">
+      ${linha(t.leadName,  esc(c.lead_name)||branco)}
+      ${linha(t.leadEmail, esc(c.lead_email)||branco)}
+      ${linha(t.leadPhone, esc(c.lead_phone)||"—")}
+    </table>
+
+    <div class="blocktitle">${t.sumPax}</div>
+    <table class="data">
+      ${linha(t.adults, adultos)}
+      ${linha(t.children, criancas)}
+    </table>
+
+    ${campos?`<div class="blocktitle">${t.sumFields}</div><table class="data">${campos}</table>`:""}
+
+    ${c.remarks?`<div class="blocktitle">${t.sumRemarks}</div>
+      <div style="font-size:13.5px;line-height:1.7;white-space:pre-wrap;">${nl2br(c.remarks)}</div>`:""}
+
+    <div class="blocktitle">${t.sumServices}</div>
+    <table class="svc">
+      <thead><tr><th style="width:100px;">${t.date}</th><th>${t.service}</th><th class="money">${t.price}</th></tr></thead>
+      <tbody>${ITEMS.map(r=>`<tr>
+        <td class="date-cell">${esc(r.service_date||"")}</td>
+        <td><div class="svc-title">${esc(r.title)}</div>${r.details?`<div class="svc-sub">${nl2br(r.details)}</div>`:""}</td>
+        <td class="money">${eur(r.price)}</td></tr>`).join("")}</tbody>
+    </table>
+    <div class="total-row"><div class="total-box"><span class="lbl">${t.total}</span><span class="amt">${eur(total)}</span></div></div>
+
+    ${PAYS.length?`<div class="blocktitle">${t.payTitle}</div>
+      <table class="pay"><thead><tr><th>${t.payLabel}</th><th>${t.payDue}</th>
+        <th style="text-align:right;">${t.payAmount}</th><th style="text-align:right;">${t.payStatus}</th></tr></thead>
+      <tbody>${PAYS.map(p=>`<tr><td>${esc(p.label)}</td><td>${esc(p.due_date||"—")}</td>
+        <td class="money">${eur(p.amount)}</td>
+        <td class="money">${p.status==="paid"?t.paid:t.pending}</td></tr>`).join("")}</tbody></table>`:""}
+
+    <div class="foot">
+      <div class="co">TUSCAN LANDS TRAVEL</div>
+      ${COMPANY.legal} · ${COMPANY.vat.replace(" · Pontassieve (FI), Italy","")} · ${COMPANY.email}
+    </div>
+  </div></div>`;
+
+  el("sm-back").onclick = renderEditor;
+  el("sm-print").onclick = () => window.print();
+}
+
+/* ==================================================================== */
 /*  VISTA PÚBLICA — o que o cliente/agência recebe                      */
 /* ==================================================================== */
-let PUB = null, PAX = {adults:[""], children:[]};
+let PUB = null, PAX = {adults:[""], children:[]}, FLD = {};
 
 async function renderPublic(token){
   app.innerHTML = `<div class="done"><div class="muted">…</div></div>`;
@@ -593,23 +1159,75 @@ async function renderPublic(token){
   if(error || !data) return app.innerHTML = message(T.pt.notFound);
   if(data.expired) return app.innerHTML = message(T.pt.expired);
   PUB = data; PUB.token = token;
-  const t = T[PUB.order.lang||"pt"];
-  PAX = {adults:[""], children:[]};
+  const o = PUB.order, p = prefill(o);
+
+  // Pré-preenchido é ponto de partida editável, não campo travado: se a
+  // agência vir um nome errado, ela precisa poder corrigir na hora.
+  PAX = {
+    adults:   blockMode(o,"adults")==="prefilled"   ? (p.adults||[]).slice()   : [""],
+    children: blockMode(o,"children")==="prefilled" ? (p.children||[]).map(c=>({age:c.age})) : []
+  };
+  if(!PAX.adults.length) PAX.adults = [""];
+  FLD = {};
+  (PUB.fields||[]).forEach(f=>{
+    FLD[f.field_key] = f.mode==="prefilled" ? (f.prefill_value||"") : (f.input_type==="checkbox"?"false":"");
+  });
   drawPublic();
-  if(PUB.order.status === "confirmed") return;
 }
 
 function message(txt){
   return `<div class="done"><h2>Tuscan Lands</h2><div class="muted">${esc(txt)}</div></div>`;
 }
 
+/* Um campo configurado, do jeito que a agência vê. */
+function pubField(f, t){
+  const lbl = (PUB.order.lang==="en" ? (f.label_en||f.label_pt) : f.label_pt) || f.field_key;
+  const v = FLD[f.field_key]||"";
+  const k = f.field_key.replace(/'/g,"\\'");
+  const set = `oninput="FLD['${k}']=this.value"`;
+  const setc = `onchange="FLD['${k}']=this.value"`;
+  let input;
+  if(f.input_type==="textarea")
+    input = `<textarea rows="2" ${set}>${esc(v)}</textarea>`;
+  else if(f.input_type==="select")
+    input = `<select ${setc}><option value="">—</option>${(f.options||[]).map(op=>
+      `<option value="${esc(op)}"${v===op?" selected":""}>${esc(op)}</option>`).join("")}</select>`;
+  else if(f.input_type==="checkbox")
+    input = `<div class="check" style="margin:0;"><input type="checkbox" id="fx-${esc(f.field_key)}"${v==="true"?" checked":""}
+      onchange="FLD['${k}']=this.checked?'true':'false'">
+      <label for="fx-${esc(f.field_key)}">${esc(lbl)}</label></div>`;
+  else
+    input = `<input type="${f.input_type==="number"?"number":(f.input_type==="date"?"date":"text")}" value="${esc(v)}" ${set}>`;
+
+  return `<div class="fld">
+    ${f.input_type==="checkbox" ? input :
+      `<label>${esc(lbl)}${f.required?` <span class="req">· ${t.required}</span>`:""}</label>${input}`}
+    ${f.mode==="prefilled"?`<div class="pre">${t.prefilled}</div>`:""}
+    ${(PUB.order.lang==="en"?f.help_en:f.help_pt)?`<div class="muted" style="margin-top:3px;">${esc(PUB.order.lang==="en"?f.help_en:f.help_pt)}</div>`:""}
+  </div>`;
+}
+
 function drawPublic(){
   const o = PUB.order, t = T[o.lang||"pt"], items = PUB.items, pays = PUB.payments;
   const total = items.reduce((s,r)=>s+(Number(r.price)||0),0);
   const confirmed = o.status === "confirmed";
+  const p = prefill(o);
+  const bLead = blockMode(o,"lead"), bAd = blockMode(o,"adults"),
+        bCh = blockMode(o,"children"), bVeh = blockMode(o,"ack_vehicle"),
+        bRem = blockMode(o,"remarks");
+
+  // Campos agrupados por tipo de serviço, na ordem em que ela montou.
+  let campos = "", grpAtual = null;
+  (PUB.fields||[]).forEach(f=>{
+    if(f.group_key !== grpAtual){
+      grpAtual = f.group_key;
+      campos += `<div class="section-title" style="margin-top:22px;">${esc(t.grp[grpAtual]||grpAtual)}</div>`;
+    }
+    campos += pubField(f, t);
+  });
 
   app.innerHTML = `
-  <div style="padding:24px 12px;background:var(--cream);">
+  <div class="docpad" style="padding:24px 12px;background:var(--cream);">
   <div class="doc">
     <div class="head">
       <div class="brand">
@@ -647,8 +1265,8 @@ function drawPublic(){
 
     <div class="total-row"><div class="total-box"><span class="lbl">${t.total}</span><span class="amt">${eur(total)}</span></div></div>
 
-    ${pays.length?`<div style="margin-top:26px;">
-      <div class="section-title">${t.payTitle}</div>
+    ${pays.length?`<div style="margin-top:24px;">
+      <div class="blocktitle">${t.payTitle}</div>
       <table class="pay"><thead><tr><th>${t.payLabel}</th><th>${t.payDue}</th>
         <th style="text-align:right;">${t.payAmount}</th><th style="text-align:right;">${t.payStatus}</th></tr></thead>
       <tbody>${pays.map(p=>`<tr><td>${esc(p.label)}</td><td>${esc(p.due_date||"—")}</td>
@@ -656,7 +1274,10 @@ function drawPublic(){
         <td class="money">${p.status==="paid"?t.paid:t.pending}</td></tr>`).join("")}</tbody></table>
     </div>`:""}
 
-    <div class="terms">${TERMS[o.lang||"pt"]}</div>
+    <div class="terms">${TERMS[o.lang||"pt"]}
+      ${o.terms_url?`<div class="terms-link">${t.termsLinkLabel}
+        <a href="${esc(o.terms_url)}" target="_blank" rel="noopener">${esc(o.terms_url)}</a></div>`:""}
+    </div>
 
     <div class="foot">
       <div class="co">TUSCAN LANDS TRAVEL</div>
@@ -669,55 +1290,68 @@ function drawPublic(){
     <h2>${t.alreadyTitle}</h2>
     <div class="rule"></div>
     <div class="muted">${t.alreadyText}</div>
-    <button class="btn ghost sm noprint" style="margin-top:18px;" onclick="window.print()">${t.print}</button>
+    <button class="btn close ghost sm noprint" style="margin-top:16px;" onclick="window.print()">${t.print}</button>
   </div>` : `
   <div class="confirm-block">
     <h2>${t.confirmTitle}</h2>
     <div class="rule"></div>
-    <div class="muted" style="margin-bottom:22px;">${t.confirmIntro}</div>
+    ${bAd!=="off"?`<div class="muted" style="margin-bottom:20px;">${t.confirmIntro}</div>`:""}
 
+    ${bLead!=="off"?`
     <div class="section-title">${t.lead}</div>
-    <div class="grid3" style="margin-bottom:24px;">
-      <div><label>${t.leadName}</label><input id="c-name"></div>
-      <div><label>${t.leadEmail}</label><input id="c-mail" type="email"></div>
-      <div><label>${t.leadPhone}</label><input id="c-phone"></div>
+    <div class="grid3" style="margin-bottom:20px;">
+      <div><label>${t.leadName} <span class="req">· ${t.required}</span></label>
+        <input id="c-name" value="${bLead==="prefilled"?esc(p.lead_name||""):""}"></div>
+      <div><label>${t.leadEmail} <span class="req">· ${t.required}</span></label>
+        <input id="c-mail" type="email" value="${bLead==="prefilled"?esc(p.lead_email||""):""}"></div>
+      <div><label>${t.leadPhone}</label>
+        <input id="c-phone" value="${bLead==="prefilled"?esc(p.lead_phone||""):""}"></div>
     </div>
+    ${bLead==="prefilled"?`<div style="margin:-14px 0 20px;font-size:11.5px;color:var(--copper);
+      line-height:1.5;">${t.prefilled}</div>`:""}`:""}
 
-    <div class="section-title">${t.adults}</div>
-    <div id="ad-host" style="margin-bottom:10px;"></div>
-    <button class="btn ghost sm" id="ad-add" style="margin-bottom:24px;">${t.addAdult}</button>
+    ${bAd!=="off"?`
+    <div class="section-title">${t.adults} <span class="req">· ${t.required}</span></div>
+    <div id="ad-host" style="margin-bottom:8px;"></div>
+    <button class="btn ghost sm" id="ad-add" style="margin-bottom:20px;">${t.addAdult}</button>`:""}
 
+    ${bCh!=="off"?`
     <div class="section-title">${t.children}</div>
-    <div id="ch-host" style="margin-bottom:10px;"></div>
-    <button class="btn ghost sm" id="ch-add" style="margin-bottom:26px;">${t.addChild}</button>
+    <div id="ch-host" style="margin-bottom:8px;"></div>
+    <button class="btn ghost sm" id="ch-add" style="margin-bottom:22px;">${t.addChild}</button>`:""}
 
-    <div class="check"><input type="checkbox" id="c-veh"><label for="c-veh" style="font-size:13.5px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:300;margin:0;">${t.ackVehicle}</label></div>
-    <div class="check"><input type="checkbox" id="c-terms"><label for="c-terms" style="font-size:13.5px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:300;margin:0;">${t.ackTerms}</label></div>
+    ${campos}
 
-    <div style="margin-top:18px;"><label>${t.remarks}</label><textarea id="c-rem" rows="3"></textarea></div>
-    <div style="margin-top:18px;"><label>${t.signature}</label><input id="c-sign"></div>
+    <div style="margin-top:24px;"></div>
+    ${bVeh!=="off"?`<div class="check"><input type="checkbox" id="c-veh">
+      <label for="c-veh">${t.ackVehicle}</label></div>`:""}
+    <div class="check"><input type="checkbox" id="c-terms">
+      <label for="c-terms">${t.ackTerms}${o.terms_url?` <a href="${esc(o.terms_url)}" target="_blank" rel="noopener">${t.termsLinkLabel.replace(":","")}</a>`:""}</label></div>
 
-    <div id="c-msg" style="margin-top:16px;"></div>
-    <button class="btn" id="c-go" style="margin-top:18px;">${t.submit}</button>
-    <button class="btn ghost noprint" style="margin-top:18px;" onclick="window.print()">${t.print}</button>
+    ${bRem!=="off"?`<div style="margin-top:16px;"><label>${t.remarks}</label><textarea id="c-rem" rows="3"></textarea></div>`:""}
+    <div style="margin-top:16px;"><label>${t.signature} <span class="req">· ${t.required}</span></label><input id="c-sign"></div>
+
+    <div id="c-msg" style="margin-top:14px;"></div>
+    <button class="btn close" id="c-go" style="margin-top:16px;">${t.submit}</button>
+    <button class="btn close ghost noprint" style="margin-top:16px;" onclick="window.print()">${t.print}</button>
   </div>`}
   </div>`;
 
   if(confirmed) return;
   drawPax();
-  el("ad-add").onclick = () => { PAX.adults.push(""); drawPax(); };
-  el("ch-add").onclick = () => { PAX.children.push({age:""}); drawPax(); };
+  if(el("ad-add")) el("ad-add").onclick = () => { PAX.adults.push(""); drawPax(); };
+  if(el("ch-add")) el("ch-add").onclick = () => { PAX.children.push({age:""}); drawPax(); };
   el("c-go").onclick = submitConfirmation;
 }
 
 function drawPax(){
   const t = T[PUB.order.lang||"pt"];
-  el("ad-host").innerHTML = PAX.adults.map((a,i)=>`
+  if(el("ad-host")) el("ad-host").innerHTML = PAX.adults.map((a,i)=>`
     <div class="pax-row">
       <input value="${esc(a)}" placeholder="${t.leadName}" oninput="PAX.adults[${i}]=this.value">
       <button class="iconbtn" onclick="PAX.adults.splice(${i},1);drawPax()">×</button>
     </div>`).join("");
-  el("ch-host").innerHTML = PAX.children.map((c,i)=>`
+  if(el("ch-host")) el("ch-host").innerHTML = PAX.children.map((c,i)=>`
     <div class="pax-row">
       <input type="number" min="0" max="17" value="${esc(c.age)}" placeholder="${t.age}" oninput="PAX.children[${i}].age=this.value">
       <button class="iconbtn" onclick="PAX.children.splice(${i},1);drawPax()">×</button>
@@ -725,22 +1359,47 @@ function drawPax(){
 }
 
 async function submitConfirmation(){
-  const t = T[PUB.order.lang||"pt"];
+  const o = PUB.order, t = T[o.lang||"pt"];
+  const val = id => el(id) ? el(id).value.trim() : "";
+  const chk = id => el(id) ? el(id).checked : false;
   const payload = {
-    lead_name: el("c-name").value.trim(), lead_email: el("c-mail").value.trim(),
-    lead_phone: el("c-phone").value.trim(),
+    lead_name: val("c-name"), lead_email: val("c-mail"), lead_phone: val("c-phone"),
     adults: PAX.adults.map(a=>a.trim()).filter(Boolean),
-    children: PAX.children.filter(c=>c.age!==""),
-    ack_vehicle: el("c-veh").checked, ack_terms: el("c-terms").checked,
-    signature_name: el("c-sign").value.trim(), remarks: el("c-rem").value.trim()
+    children: PAX.children.filter(c=>String(c.age).trim()!==""),
+    ack_vehicle: chk("c-veh"), ack_terms: chk("c-terms"),
+    signature_name: val("c-sign"), remarks: val("c-rem"),
+    field_values: FLD
   };
-  if(!payload.lead_name || !payload.lead_email || !payload.signature_name || !payload.ack_terms){
-    el("c-msg").innerHTML = `<div class="msg">${t.errFill}</div>`; return;
+  // A tela confere primeiro para dar resposta imediata; a palavra final é
+  // do banco, que confere de novo e recusa o que estiver faltando.
+  const falta = [];
+  if(!payload.ack_terms) falta.push(t.miss.ack_terms);
+  if(!payload.signature_name) falta.push(t.miss.signature_name);
+  if(blockMode(o,"lead")!=="off"){
+    if(!payload.lead_name)  falta.push(t.miss.lead_name);
+    if(!payload.lead_email) falta.push(t.miss.lead_email);
   }
+  if(blockMode(o,"adults")!=="off" && !payload.adults.length) falta.push(t.miss.adults);
+  (PUB.fields||[]).forEach(f=>{
+    if(!f.required) return;
+    const v = String(FLD[f.field_key]||"").trim();
+    if(!v || (f.input_type==="checkbox" && v!=="true"))
+      falta.push((o.lang==="en" ? (f.label_en||f.label_pt) : f.label_pt) || f.field_key);
+  });
+  if(falta.length){
+    el("c-msg").innerHTML = `<div class="msg">${t.errMissing} ${esc(falta.join(" · "))}</div>`;
+    return;
+  }
+
   const btn = el("c-go"); btn.disabled = true; btn.textContent = t.sending;
   const {data,error} = await sb.rpc("tl_submit_confirmation",{p_token:PUB.token, p_payload:payload});
   if(error || !data || !data.ok){
-    el("c-msg").innerHTML = `<div class="msg">${esc((error&&error.message)||(data&&data.error)||"erro")}</div>`;
+    let txt = (error&&error.message) || (data&&data.error) || "erro";
+    if(data && data.error==="missing_fields" && data.missing)
+      txt = t.errMissing+" "+data.missing.map(m=>t.miss[m]||m).join(" · ");
+    if(data && data.error==="already_confirmed") txt = t.alreadyText;
+    if(data && data.error==="expired") txt = t.expired;
+    el("c-msg").innerHTML = `<div class="msg">${esc(txt)}</div>`;
     btn.disabled = false; btn.textContent = t.submit; return;
   }
   app.innerHTML = `<div class="done"><h2>${t.doneTitle}</h2><div class="muted">${t.doneText}</div></div>`;
