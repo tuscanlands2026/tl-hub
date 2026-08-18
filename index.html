@@ -693,7 +693,7 @@ function renderLogin(){
 /* ==================================================================== */
 /*  APP INTERNO                                                         */
 /* ==================================================================== */
-let ORDER = null, ITEMS = [], PAYS = [], CONF = null, FIELDS = [], CFG = null;
+let ORDER = null, ITEMS = [], PAYS = [], CONF = null, CONFS = [], FIELDS = [], CFG = null;
 
 function shell(inner, crumb){
   app.innerHTML = `
@@ -770,7 +770,7 @@ async function openOrder(id){
     sb.from("ops_order_fields").select("*").eq("order_id",id).order("sort")
   ]);
   if(e1) return alert(e1.message);
-  ORDER = o; ITEMS = it||[]; PAYS = pg||[]; CONF = (cf&&cf[0])||null; FIELDS = fl||[];
+  ORDER = o; ITEMS = it||[]; PAYS = pg||[]; CONFS = cf||[]; CONF = CONFS[0]||null; FIELDS = fl||[];
   CFG = {
     lead: blockMode(o,"lead"), travellers: blockMode(o,"travellers"),
     travellers_count: travCount(o), passport_names: passportNames(o),
@@ -1147,7 +1147,57 @@ function drawConfirmation(){
       <div><label>Confirmado por / data</label>
         <div class="muted">${esc(CONF.lead_name||CONF.signature_name||"")}<br>${stamp(CONF.submitted_at,"pt")}</div></div>
     </div>
-    ${CONF.remarks?`<div style="margin-top:14px;"><label>Observações</label><div class="muted">${nl2br(CONF.remarks)}</div></div>`:""}`;
+    ${CONF.remarks?`<div style="margin-top:14px;"><label>Observações</label><div class="muted">${nl2br(CONF.remarks)}</div></div>`:""}
+
+    ${CONFS.length>1?`<div style="margin-top:16px;"><label>Respostas anteriores</label>
+      <div class="muted">${CONFS.slice(1).map(c=>
+        `${esc(c.lead_name||"—")} · ${stamp(c.submitted_at,"pt")}`).join("<br>")}</div>
+      <div class="hint" style="margin-top:4px;">Acima aparece sempre a mais recente.</div></div>`:""}
+
+    <div style="margin-top:18px;display:flex;gap:7px;flex-wrap:wrap;">
+      <button class="btn ghost sm" id="cf-reopen">Reabrir para nova resposta</button>
+      <button class="btn ghost sm" id="cf-del"
+        style="border-color:var(--brown);color:var(--brown);">Apagar esta resposta</button>
+    </div>
+    <div class="hint" style="margin-top:7px;">Reabrir mantém o que já chegou e volta a aceitar envio no mesmo link.
+      Apagar remove só esta resposta; sumindo a última, a order volta a aguardar confirmação.</div>`;
+
+  el("cf-reopen").onclick = reopenOrder;
+  el("cf-del").onclick = deleteConfirmation;
+}
+
+/* ------------------------------------------- MEXER NA CONFIRMAÇÃO ----
+   Teste precisa sair, e agência que mandou o dado errado precisa poder
+   mandar de novo. As duas coisas mexem só na resposta, nunca na order:
+   apagar a venda inteira para corrigir um nome seria desproporcional.
+
+   Reabrir preserva o que chegou. Se a agência enviar outra vez, entra
+   como resposta nova e a anterior fica no histórico — foi ela quem
+   assinou aquilo, com data e hora, e isso não se sobrescreve.
+   ---------------------------------------------------------------------- */
+async function reopenOrder(){
+  if(!confirm(`Reabrir ${ORDER.order_ref} para nova resposta?\n\nO link volta a aceitar envio. A resposta atual, de ${CONF.lead_name||"—"} em ${stamp(CONF.submitted_at,"pt")}, continua guardada.`)) return;
+  const btn = el("cf-reopen"); btn.disabled = true; btn.textContent = "Reabrindo…";
+  const {error} = await sb.from("ops_orders")
+    .update({status:"sent", confirmed_at:null, updated_at:new Date().toISOString()})
+    .eq("id", ORDER.id);
+  if(error){ btn.disabled=false; btn.textContent="Reabrir para nova resposta"; return alert(error.message); }
+  openOrder(ORDER.id);
+}
+
+async function deleteConfirmation(){
+  if(!confirm(`Apagar a resposta de ${CONF.lead_name||"—"}, enviada em ${stamp(CONF.submitted_at,"pt")}?\n\nNão tem desfazer.`)) return;
+  const btn = el("cf-del"); btn.disabled = true; btn.textContent = "Apagando…";
+  const {error} = await sb.from("ops_order_confirmations").delete().eq("id", CONF.id);
+  if(error){ btn.disabled=false; btn.textContent="Apagar esta resposta"; return alert(error.message); }
+  // Sem resposta nenhuma, a order não pode continuar dizendo que está
+  // confirmada: o status descreveria um fato que deixou de existir.
+  if(CONFS.length <= 1){
+    await sb.from("ops_orders")
+      .update({status:"sent", confirmed_at:null, updated_at:new Date().toISOString()})
+      .eq("id", ORDER.id);
+  }
+  openOrder(ORDER.id);
 }
 
 /* ------------------------------------------------------ GRAVAR ------- */
