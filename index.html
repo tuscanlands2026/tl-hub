@@ -220,7 +220,11 @@ table.rows td.x{width:30px;padding-right:0;}
 .done{max-width:620px;margin:16vh auto;text-align:center;padding:0 22px;}
 .done h2{font-size:26px;color:var(--sage);margin-bottom:12px;font-weight:500;}
 
-@media (max-width:760px){
+/* screen and — sem isso a regra vale para qualquer mídia, e a impressão
+   cai nela: página Carta com margem dá cerca de 710px de largura útil, e
+   o documento saía empilhado em coluna única, como num celular. Foi o que
+   desconfigurou o PDF de confirmação. */
+@media screen and (max-width:760px){
   .grid2,.grid3,.doc .meta{grid-template-columns:1fr;}
   .doc{padding:26px 18px;}
   .confirm-block{padding:26px 18px;}
@@ -246,6 +250,16 @@ table.rows td.x{width:30px;padding-right:0;}
   .doc table.svc tbody tr:nth-child(even){background:var(--cream-light)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .doc .total-box{background:var(--cream)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .doc .head{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  /* RODAPÉ. Ele fica logo depois do conteúdo, e não colado no pé da
+     última página. Não é escolha: o motor de impressão do navegador não
+     tem como fixar rodapé só na última página. As três saídas foram
+     testadas e as três falharam — coluna flex com altura mínima de uma
+     página joga o rodapé para uma página nova quase em branco;
+     position:fixed some do PDF; table-footer-group desmonta o layout.
+     Então ele fica onde o texto termina, separado por régua e com folga,
+     lendo como rodapé em vez de parecer conteúdo interrompido. */
+  .doc .foot{break-inside:avoid;border-top:1px solid var(--cream);
+    margin-top:26px;padding-top:14px;}
   .doc .terms h3,.doc .blocktitle{break-after:avoid;}
   .doc .terms li,.doc table.data tr{break-inside:avoid;}
   .doc table.svc thead{display:table-header-group;}
@@ -778,6 +792,7 @@ function renderEditor(){
       <button class="btn ghost sm" id="ed-back">Voltar</button>
       <button class="btn sm" id="ed-save">Salvar</button>
       <button class="btn ghost sm" id="ed-dup">Duplicar</button>
+      <button class="btn ghost sm" id="ed-del" style="border-color:var(--brown);color:var(--brown);">Excluir</button>
       <button class="btn ghost sm" id="ed-preview">Ver como o cliente vê</button>
       ${CONF?`<button class="btn sm" id="ed-sum">Resumo (PDF)</button>`:""}
     </div>
@@ -875,6 +890,7 @@ function renderEditor(){
   el("ed-save").onclick = saveOrder;
   el("ed-preview").onclick = () => { location.hash = "#/confirm/"+ORDER.token; };
   el("ed-dup").onclick = duplicateOrder;
+  el("ed-del").onclick = deleteOrder;
   if(el("ed-sum")) el("ed-sum").onclick = renderSummary;
   if(el("lk-copy")) el("lk-copy").onclick = () => {
     el("lk").select(); document.execCommand("copy"); el("lk-copy").textContent="Copiado"; };
@@ -1197,6 +1213,30 @@ async function saveOrder(){
   Object.assign(ORDER, patch);
   btn.textContent = "Salvo";
   setTimeout(()=>btn.textContent="Salvar", 1600);
+}
+
+/* ---------------------------------------------------------- EXCLUIR ---
+   Teste vira lixo dentro de dois dias, e lixo na lista faz a pessoa
+   procurar a order certa entre as erradas. Apagar leva junto serviços,
+   parcelas, campos e a confirmação, porque o banco tem cascata: order
+   sem os filhos não significaria nada.
+
+   Order confirmada exige confirmação em separado. Ali existe resposta de
+   agência, com data e hora, e isso é documento — não pode sair no mesmo
+   clique de um rascunho de teste.
+   ---------------------------------------------------------------------- */
+async function deleteOrder(){
+  const o = ORDER, btn = el("ed-del");
+  let aviso = `Excluir a order ${o.order_ref}?\n\nSaem junto os serviços, as parcelas e os campos do checkout. Não tem desfazer.`;
+  if(CONF) aviso += `\n\nATENÇÃO: esta order tem confirmação recebida de ${CONF.lead_name||"—"} em ${stamp(CONF.submitted_at,"pt")}. Ela será apagada também.`;
+  if(!confirm(aviso)) return;
+  if(CONF && !confirm(`Confirma apagar a resposta da agência junto com a order ${o.order_ref}?`)) return;
+
+  btn.disabled = true; btn.textContent = "Excluindo…";
+  const {error} = await sb.from("ops_orders").delete().eq("id", o.id);
+  if(error){ btn.disabled = false; btn.textContent = "Excluir"; return alert(error.message); }
+  ORDER = null; ITEMS = []; PAYS = []; CONF = null; FIELDS = [];
+  renderApp();
 }
 
 /* --------------------------------------------------------- DUPLICAR ---
