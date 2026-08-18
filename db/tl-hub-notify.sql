@@ -204,7 +204,7 @@ begin
 
   corpo :=
     '<div style="font-family:''Libre Franklin'',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#2a2a28;max-width:640px;">'
-    || '<p style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#772f25;margin:0 0 4px;">Tuscan Lands · confirmação recebida</p>'
+    || '<p style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#595e49;margin:0 0 4px;">Tuscan Lands · confirmação recebida</p>'
     || '<div style="width:30px;height:1px;background:#a56850;margin:0 0 18px;"></div>'
 
     || '<p style="margin:0 0 18px;"><strong style="font-size:17px;">'
@@ -230,7 +230,7 @@ begin
     || case when new.ack_vehicle then 'aceito' else 'não marcado' end || '</td></tr>'
     || case when coalesce(o.terms_url,'') <> ''
             then '<tr><td ' || h_lbl || '>Termos publicados</td><td ' || h_val || '><a href="'
-                 || tl_html(o.terms_url) || '" style="color:#772f25;">'
+                 || tl_html(o.terms_url) || '" style="color:#595e49;">'
                  || tl_html(o.terms_url) || '</a></td></tr>'
             else '' end
     || '</table>'

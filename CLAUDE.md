@@ -80,11 +80,17 @@ instruções não podem conviver.
 **Uma fonte só: Libre Franklin.** Variação por peso, tamanho e cor. Sem serifada.
 300 para texto de documento, 400 para interface, 500 para labels, botões e títulos.
 
-**Cor carrega informação:**
-- **Sage `#595e49`** é a casa no dia a dia. Interface interna inteira e documentos de
-  trabalho — briefing, listas, editores.
-- **Terracota `#772f25`** é confirmação e fechamento: a order, o checkout do cliente, o
-  resumo assinado. Ver terracota na tela significa que aquilo fechou ou está prestes a.
+**Cor — corrigido em agosto/26, por instrução da Maria Fernanda.**
+**Este módulo é todo sage `#595e49`**: interface, documento do cliente, resumo em PDF e
+o e-mail de aviso. Sem exceção.
+
+A seção 8 do plano reservava terracota para "confirmação e fechamento" e mandava o
+documento do cliente sair nessa cor, para ele reconhecer a mesma cara da cotação. Não
+vale mais: **terracota é do Booking, que é outro módulo.** Aqui não entra. A variável
+`--terracotta` continua na paleta e está sem uso — não reintroduzir sem instrução dela.
+
+Copper `#a56850` é o acento quente que sobrou: réguas, overlines de documento, marcação
+de campo pré-preenchido.
 
 Paleta de apoio: cream-light `#f6f3f0` · cream `#eae4db` · brown `#a2564c` ·
 copper `#a56850` · ink `#2a2a28` · muted `#6b6860`.
@@ -94,6 +100,10 @@ Régua de 30px em sage ou copper como acento, nunca linha de largura total.
 
 **Densidade.** Interface é ferramenta usada horas por dia: peso 400, espaçamento apertado.
 Documento que sai é outra coisa: peso 300, respiração ampla, texto justificado.
+
+**Caixa alta só em rótulo curto.** Título de seção e label de uma ou duas palavras vão em
+overline maiúsculo. Pergunta inteira ao cliente, não: em caixa alta parece grito. As
+perguntas do checkout saem em caixa normal, peso 400, na cor do texto.
 
 **Impressão.** Toda página de documento sai limpa em PDF pelo Ctrl+P. A regra de impressão
 esconde interface, navegação e formulário, e deixa só o documento. É assim que o resumo
