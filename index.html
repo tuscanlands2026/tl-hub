@@ -161,6 +161,11 @@ table.rows td.x{width:30px;padding-right:0;}
   font-weight:500;text-align:left;padding:7px 9px;border-bottom:1px solid var(--cream);}
 .doc table.pay td{padding:8px 9px;border-bottom:1px solid var(--cream);font-size:13px;}
 .doc table.pay td.money{text-align:right;font-variant-numeric:tabular-nums;}
+.doc .voucher-note{margin-top:18px;font-size:13px;color:var(--muted);line-height:1.7;
+  border-left:2px solid var(--copper);padding-left:12px;}
+.doc .pay-note{margin-top:10px;font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-wrap;}
+.trav-head{display:grid;grid-template-columns:1fr 170px 30px;gap:7px;margin-bottom:5px;
+  font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);font-weight:500;}
 .doc .terms{margin-top:32px;border-top:1px solid var(--cream);padding-top:20px;}
 .doc .terms h2{font-size:20px;color:var(--terracotta);text-align:center;margin-bottom:6px;font-weight:500;}
 .doc .terms h3{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);
@@ -189,6 +194,7 @@ table.rows td.x{width:30px;padding-right:0;}
 .confirm-block .rule{background:var(--copper);}
 .confirm-block .section-title{color:var(--terracotta);letter-spacing:.2em;}
 .pax-row{display:grid;grid-template-columns:1fr 30px;gap:7px;margin-bottom:7px;align-items:center;}
+.trav-row{display:grid;grid-template-columns:1fr 170px 30px;gap:7px;margin-bottom:7px;align-items:center;}
 .check{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.65;margin-bottom:12px;}
 .check input{width:auto;margin-top:3px;}
 .check label{font-size:13px;letter-spacing:0;text-transform:none;color:var(--ink);font-weight:400;margin:0;}
@@ -288,32 +294,41 @@ const T = {
     payAmount:"Valor", payStatus:"Situação", paid:"Pago", pending:"A pagar",
     confirmTitle:"Confirmação dos dados",
     confirmIntro:"Os nomes abaixo são os que constarão nas reservas junto aos fornecedores. Escreva exatamente como aparecem no passaporte.",
-    lead:"Contato principal da viagem", leadName:"Nome completo", leadEmail:"E-mail",
-    leadPhone:"Telefone com WhatsApp", adults:"Adultos", children:"Crianças (somente idade na data da viagem)",
-    addAdult:"+ Adulto", addChild:"+ Criança", age:"Idade",
+    lead:"Contato durante a viagem", leadName:"Nome completo", leadEmail:"E-mail",
+    leadPhone:"Telefone com código do país",
+    leadIntro:"Nome completo e telefone de um dos passageiros. Informe o número que estará ativo durante a viagem na Itália.",
+    travellers:"Viajantes", travName:"Nome completo", travDob:"Data de nascimento",
+    addTraveller:"+ Viajante",
+    travIntro:"Os nomes abaixo são os que constarão nas reservas junto aos fornecedores.",
+    passportNote:"Para a emissão de bilhetes de alguns monumentos, o nome informado precisa ser exatamente igual ao do passaporte.",
+    logistics:"Informações de Logística e Saúde",
     ackVehicle:"Confirmo que o número de passageiros e o volume de bagagem informados estão corretos. Bagagem excedente pode exigir veículo maior e ajuste de valor.",
     ackTerms:"Li e aceito os termos e condições deste documento.",
-    signature:"Assinatura digital — digite seu nome completo",
     remarks:"Observações (opcional)",
     submit:"Confirmar serviços", sending:"Enviando…",
     doneTitle:"Confirmação recebida", doneText:"Os dados chegaram até nós. Qualquer ajuste, responda o e-mail da Tuscan Lands.",
     alreadyTitle:"Serviços já confirmados", alreadyText:"Este documento já foi confirmado. Para alterações, fale com a Tuscan Lands.",
     expired:"Este link expirou.", notFound:"Documento não encontrado.",
-    errFill:"Preencha nome, e-mail e assinatura, e aceite os termos.",
+    errFill:"Preencha os campos obrigatórios e aceite os termos.",
     errMissing:"Faltam dados obrigatórios:",
     print:"Imprimir / PDF",
     required:"obrigatório",
     prefilled:"Pré-preenchido pela Tuscan Lands — confira e corrija se precisar.",
     termsLinkLabel:"Termos e condições completos:",
-    grp:{transfer:"Transfers",tour:"Tours",hotel:"Hospedagem",dinner:"Jantares",
+    grp:{health:"Informações de Logística e Saúde",
+         transfer:"Serviços de Transfer e/ou VIP Meet and Greet",
+         tour:"Tours",hotel:"Hospedagem",dinner:"Jantares",
          experience:"Experiências",general:"Informações gerais"},
-    miss:{ack_terms:"aceite dos termos",signature_name:"assinatura",lead_name:"nome do contato",
-          lead_email:"e-mail do contato",adults:"nome dos adultos"},
+    miss:{ack_terms:"aceite dos termos",lead_name:"nome do contato",
+          lead_phone:"telefone do contato",lead_email:"e-mail do contato",
+          travellers:"viajantes",traveller_name:"nome do viajante",traveller_dob:"nascimento do viajante"},
+    voucherNote:"Detalhes de horários e meeting point serão enviados no voucher de confirmação.",
+    payNote:"Pagamento",
     yes:"Sim", no:"Não",
     sumTitle:"Resumo da confirmação", sumServices:"Serviços confirmados",
     sumLead:"Contato responsável", sumPax:"Passageiros informados",
-    sumFields:"Dados do checkout", sumAcks:"Aceites", sumSign:"Assinatura",
-    sumSignedBy:"Assinado por", sumSignedAt:"Data e hora do envio",
+    sumFields:"Dados do checkout", sumAcks:"Aceites", sumSign:"Aceite",
+    sumSignedBy:"Confirmado por", sumSignedAt:"Data e hora do envio",
     sumRemarks:"Observações da agência", sumAckTerms:"Termos e condições",
     sumAckVehicle:"Veículo e bagagem", accepted:"Aceito", notAccepted:"Não aceito",
     notMarked:"Não marcado", blank:"— em branco", years:"anos", preShort:"pré-preenchido",
@@ -328,32 +343,41 @@ const T = {
     payAmount:"Amount", payStatus:"Status", paid:"Paid", pending:"Due",
     confirmTitle:"Confirm your details",
     confirmIntro:"The names below go into the supplier bookings. Please write them exactly as they appear on the passport.",
-    lead:"Lead contact", leadName:"Full name", leadEmail:"Email",
-    leadPhone:"Phone with WhatsApp", adults:"Adults", children:"Children (age at travel date only)",
-    addAdult:"+ Adult", addChild:"+ Child", age:"Age",
+    lead:"Contact during the trip", leadName:"Full name", leadEmail:"Email",
+    leadPhone:"Phone with country code",
+    leadIntro:"Full name and phone number of one of the travellers. Please give the number that will be active during the trip in Italy.",
+    travellers:"Travellers", travName:"Full name", travDob:"Date of birth",
+    addTraveller:"+ Traveller",
+    travIntro:"The names below go into the supplier bookings.",
+    passportNote:"For ticketing at certain monuments, the name given must match the passport exactly.",
+    logistics:"Logistics and Health",
     ackVehicle:"I confirm the number of travellers and the luggage volume are correct. Extra luggage may require a larger vehicle and a price adjustment.",
     ackTerms:"I have read and accept the terms and conditions in this document.",
-    signature:"Digital signature — type your full name",
     remarks:"Remarks (optional)",
     submit:"Confirm services", sending:"Sending…",
     doneTitle:"Confirmation received", doneText:"We have your details. For any change, reply to the Tuscan Lands email.",
     alreadyTitle:"Already confirmed", alreadyText:"This document has already been confirmed. For changes, contact Tuscan Lands.",
     expired:"This link has expired.", notFound:"Document not found.",
-    errFill:"Please fill in name, email and signature, and accept the terms.",
+    errFill:"Please fill in the required fields and accept the terms.",
     errMissing:"Required information is missing:",
     print:"Print / PDF",
     required:"required",
     prefilled:"Pre-filled by Tuscan Lands — please check and correct if needed.",
     termsLinkLabel:"Full terms and conditions:",
-    grp:{transfer:"Transfers",tour:"Tours",hotel:"Accommodation",dinner:"Dinners",
+    grp:{health:"Logistics and Health",
+         transfer:"Transfer and/or VIP Meet and Greet Services",
+         tour:"Tours",hotel:"Accommodation",dinner:"Dinners",
          experience:"Experiences",general:"General information"},
-    miss:{ack_terms:"acceptance of the terms",signature_name:"signature",lead_name:"contact name",
-          lead_email:"contact email",adults:"adult names"},
+    miss:{ack_terms:"acceptance of the terms",lead_name:"contact name",
+          lead_phone:"contact phone",lead_email:"contact email",
+          travellers:"travellers",traveller_name:"traveller name",traveller_dob:"traveller date of birth"},
+    voucherNote:"Timings and meeting points will be sent in the confirmation voucher.",
+    payNote:"Payment",
     yes:"Yes", no:"No",
     sumTitle:"Confirmation summary", sumServices:"Confirmed services",
     sumLead:"Lead contact", sumPax:"Travellers declared",
-    sumFields:"Checkout details", sumAcks:"Acceptances", sumSign:"Signature",
-    sumSignedBy:"Signed by", sumSignedAt:"Submitted on",
+    sumFields:"Checkout details", sumAcks:"Acceptances", sumSign:"Acceptance",
+    sumSignedBy:"Confirmed by", sumSignedAt:"Submitted on",
     sumRemarks:"Remarks from the agency", sumAckTerms:"Terms and conditions",
     sumAckVehicle:"Vehicle and luggage", accepted:"Accepted", notAccepted:"Not accepted",
     notMarked:"Not ticked", blank:"— blank", years:"years old", preShort:"pre-filled",
@@ -447,77 +471,92 @@ en:`<h2>Terms &amp; Conditions</h2>
    ===================================================================== */
 const LANGS = ["Português","English","Italiano","Español"];
 const FIELD_LIB = {
+  /* Os campos que a Maria Fernanda pede em quase toda venda. Redigidos
+     como ela os escreve para a agência, em pergunta, e não em rótulo
+     seco: quem responde é a advisor, não um sistema. */
+  health: [
+    {k:"diet", t:"textarea", std:true,
+     pt:"Algum dos viajantes possui restrições alimentares ou alergias? Se sim, informe o nome e a restrição",
+     en:"Do any of the travellers have dietary restrictions or allergies? If so, please give the name and the restriction"},
+    {k:"mobility", t:"textarea", std:true,
+     pt:"Algum dos passageiros possui restrições de mobilidade ou condições de saúde das quais devemos ter conhecimento? Se sim, especifique",
+     en:"Do any of the travellers have mobility restrictions or health conditions we should be aware of? If so, please specify"}
+  ],
   transfer: [
-    {k:"flight_in",     t:"text",  pt:"Voo de chegada — companhia e número", en:"Arrival flight — airline and number"},
-    {k:"flight_in_when",t:"text",  pt:"Data e horário de chegada",           en:"Arrival date and time"},
-    {k:"terminal_in",   t:"text",  pt:"Terminal de chegada",                 en:"Arrival terminal"},
-    {k:"pickup_addr",   t:"text",  pt:"Endereço de embarque",                en:"Pick-up address"},
-    {k:"pickup_time",   t:"text",  pt:"Horário de embarque",                 en:"Pick-up time"},
-    {k:"dropoff_addr",  t:"text",  pt:"Endereço de desembarque",             en:"Drop-off address"},
-    {k:"flight_out",    t:"text",  pt:"Voo de saída — companhia e número",   en:"Departure flight — airline and number"},
-    {k:"flight_out_when",t:"text", pt:"Data e horário de saída",             en:"Departure date and time"},
-    {k:"luggage",       t:"text",  pt:"Malas despachadas e de mão",          en:"Checked and cabin bags"},
-    {k:"child_seat",    t:"text",  pt:"Cadeirinha — idade e peso da criança",en:"Child seat — child age and weight"},
-    {k:"sign_name",     t:"text",  pt:"Nome na placa de encontro",           en:"Name on the meeting sign"},
-    {k:"phone_italy",   t:"text",  pt:"Telefone em uso na Itália",           en:"Phone in use in Italy"}
+    {k:"flight_in", t:"textarea", std:true,
+     pt:"Voo de chegada — número, companhia aérea, horário e aeroporto",
+     en:"Arrival flight — number, airline, time and airport"},
+    {k:"flight_out", t:"textarea", std:true,
+     pt:"Voo de retorno — número, companhia aérea e horário",
+     en:"Return flight — number, airline and time"},
+    {k:"pickup_addr",  t:"text",     pt:"Endereço de embarque",            en:"Pick-up address"},
+    {k:"pickup_time",  t:"text",     pt:"Horário de embarque",             en:"Pick-up time"},
+    {k:"dropoff_addr", t:"text",     pt:"Endereço de desembarque",         en:"Drop-off address"},
+    {k:"luggage",      t:"text",     pt:"Malas despachadas e de mão",      en:"Checked and cabin bags"},
+    {k:"child_seat",   t:"text",     pt:"Cadeirinha — idade e peso da criança", en:"Child seat — child age and weight"},
+    {k:"sign_name",    t:"text",     pt:"Nome na placa de encontro",       en:"Name on the meeting sign"}
   ],
   tour: [
-    {k:"meeting_point", t:"text",  pt:"Ponto de encontro",                   en:"Meeting point"},
-    {k:"meeting_time",  t:"text",  pt:"Horário de encontro",                 en:"Meeting time"},
-    {k:"hotel_pickup",  t:"textarea",pt:"Hotel de embarque — nome e endereço",en:"Pick-up hotel — name and address"},
-    {k:"guide_lang",    t:"select",pt:"Idioma do guia",                      en:"Guide language", o:LANGS},
-    {k:"diet",          t:"textarea",pt:"Restrições alimentares",            en:"Dietary restrictions"},
-    {k:"mobility",      t:"textarea",pt:"Limitações de mobilidade",          en:"Mobility limitations"},
-    {k:"interests",     t:"textarea",pt:"Interesses declarados pelo cliente", en:"Interests stated by the client"}
+    {k:"meeting_point",t:"text",     pt:"Ponto de encontro",               en:"Meeting point"},
+    {k:"meeting_time", t:"text",     pt:"Horário de encontro",             en:"Meeting time"},
+    {k:"hotel_pickup", t:"textarea", pt:"Hotel de embarque — nome e endereço", en:"Pick-up hotel — name and address"},
+    {k:"guide_lang",   t:"select",   pt:"Idioma do guia",                  en:"Guide language", o:LANGS},
+    {k:"interests",    t:"textarea", pt:"Interesses declarados pelo cliente", en:"Interests stated by the client"}
   ],
   hotel: [
-    {k:"checkin",       t:"text",  pt:"Check-in",                            en:"Check-in"},
-    {k:"checkout",      t:"text",  pt:"Check-out",                           en:"Check-out"},
-    {k:"rooms",         t:"textarea",pt:"Configuração dos quartos",          en:"Room configuration"},
-    {k:"bed",           t:"select",pt:"Cama",                                en:"Bed", o:["Double","Twin"]},
-    {k:"eta",           t:"text",  pt:"Horário previsto de chegada ao hotel",en:"Estimated arrival at the hotel"},
-    {k:"occasion",      t:"text",  pt:"Ocasião especial",                    en:"Special occasion"},
-    {k:"room_names",    t:"textarea",pt:"Divisão dos hóspedes por quarto",   en:"Guest allocation per room"}
+    {k:"checkin",   t:"text",     pt:"Check-in",                           en:"Check-in"},
+    {k:"checkout",  t:"text",     pt:"Check-out",                          en:"Check-out"},
+    {k:"rooms",     t:"textarea", pt:"Configuração dos quartos",           en:"Room configuration"},
+    {k:"bed",       t:"select",   pt:"Cama",                               en:"Bed", o:["Double","Twin"]},
+    {k:"eta",       t:"text",     pt:"Horário previsto de chegada ao hotel", en:"Estimated arrival at the hotel"},
+    {k:"occasion",  t:"text",     pt:"Ocasião especial",                   en:"Special occasion"},
+    {k:"room_names",t:"textarea", pt:"Divisão dos hóspedes por quarto",    en:"Guest allocation per room"}
   ],
   dinner: [
-    {k:"when",          t:"text",  pt:"Data e horário",                      en:"Date and time"},
-    {k:"covers",        t:"number",pt:"Pessoas à mesa",                      en:"Number of covers"},
-    {k:"diet",          t:"textarea",pt:"Restrições alimentares",            en:"Dietary restrictions"},
-    {k:"allergies",     t:"textarea",pt:"Alergias",                          en:"Allergies"},
-    {k:"occasion",      t:"text",  pt:"Ocasião",                             en:"Occasion"}
+    {k:"when",     t:"text",     pt:"Data e horário",                      en:"Date and time"},
+    {k:"covers",   t:"number",   pt:"Pessoas à mesa",                      en:"Number of covers"},
+    {k:"occasion", t:"text",     pt:"Ocasião",                             en:"Occasion"}
   ],
   experience: [
-    {k:"when",          t:"text",  pt:"Data e horário",                      en:"Date and time"},
-    {k:"meeting_point", t:"text",  pt:"Ponto de encontro",                   en:"Meeting point"},
-    {k:"exp_lang",      t:"select",pt:"Idioma da experiência",               en:"Experience language", o:LANGS},
-    {k:"diet",          t:"textarea",pt:"Restrições alimentares",            en:"Dietary restrictions"},
-    {k:"mobility",      t:"textarea",pt:"Limitações de mobilidade",          en:"Mobility limitations"},
-    {k:"participants",  t:"number",pt:"Participantes",                       en:"Participants"}
+    {k:"when",          t:"text",   pt:"Data e horário",                   en:"Date and time"},
+    {k:"meeting_point", t:"text",   pt:"Ponto de encontro",                en:"Meeting point"},
+    {k:"exp_lang",      t:"select", pt:"Idioma da experiência",            en:"Experience language", o:LANGS},
+    {k:"participants",  t:"number", pt:"Participantes",                    en:"Participants"}
   ],
   general: [
-    {k:"stay_italy",    t:"textarea",pt:"Hospedagem na Itália — hotel e endereço",en:"Accommodation in Italy — hotel and address"},
-    {k:"arrival_city",  t:"text",  pt:"Cidade de chegada na Itália",         en:"City of arrival in Italy"},
-    {k:"emergency",     t:"text",  pt:"Contato de emergência — nome e telefone",en:"Emergency contact — name and phone"},
-    {k:"insurance",     t:"text",  pt:"Seguro viagem — seguradora e apólice",en:"Travel insurance — provider and policy"},
-    {k:"trip_phone",    t:"text",  pt:"Telefone em uso durante a viagem",    en:"Phone in use during the trip"},
-    {k:"invoice_data",  t:"textarea",pt:"Dados para a fatura",               en:"Invoicing details"}
+    {k:"stay_italy",   t:"textarea", pt:"Hospedagem na Itália — hotel e endereço", en:"Accommodation in Italy — hotel and address"},
+    {k:"arrival_city", t:"text",     pt:"Cidade de chegada na Itália",     en:"City of arrival in Italy"},
+    {k:"emergency",    t:"text",     pt:"Contato de emergência — nome e telefone", en:"Emergency contact — name and phone"},
+    {k:"insurance",    t:"text",     pt:"Seguro viagem — seguradora e apólice", en:"Travel insurance — provider and policy"},
+    {k:"invoice_data", t:"textarea", pt:"Dados para a fatura",             en:"Invoicing details"}
   ]
 };
-const GROUPS = ["transfer","tour","hotel","dinner","experience","general"];
+const GROUPS = ["health","transfer","tour","hotel","dinner","experience","general"];
 const libLabel = (g,k) => (FIELD_LIB[g]||[]).find(f=>f.k===k) || null;
 
-/* Blocos fixos do checkout. Aceite dos termos e assinatura não entram
-   aqui de propósito: sem os dois isto não é uma confirmação. */
+/* Os campos marcados std:true entram sozinhos em toda order nova, e
+   voltam pelo botão "Campos padrão". Remontar a mesma lista a cada venda
+   é trabalho repetido, e trabalho repetido é onde nasce o esquecimento. */
+function standardFields(){
+  const out = [];
+  GROUPS.forEach(g => (FIELD_LIB[g]||[]).forEach(f => {
+    if(f.std) out.push({field_key:g+"."+f.k, group_key:g, label_pt:f.pt, label_en:f.en,
+      input_type:f.t, options:f.o||[], required:false, mode:"blank",
+      prefill_value:"", sort:out.length});
+  }));
+  return out;
+}
+
+/* Blocos fixos do checkout. O aceite dos termos não entra aqui: sem ele
+   aquilo não é confirmação nenhuma. */
 const BLOCKS = [
-  {k:"lead",     pt:"Contato responsável",  en:"Lead contact",  three:true,
-   note:"Nome, e-mail e telefone de quem responde pela viagem."},
-  {k:"adults",   pt:"Nomes dos adultos",    en:"Adult names",   three:true,
-   note:"Como vão para a reserva no fornecedor. Ligado, exige ao menos um nome."},
-  {k:"children", pt:"Idades das crianças",  en:"Children ages", three:true,
-   note:"Idade sim, nome não."},
-  {k:"ack_vehicle",pt:"Aceite de veículo e bagagem", en:"Vehicle and luggage acceptance", three:false,
+  {k:"lead", pt:"Contato durante a viagem", three:true,
+   note:"Nome completo e telefone de um dos passageiros, ativo na Itália."},
+  {k:"travellers", pt:"Viajantes — nome e nascimento", three:true,
+   note:"Uma linha por viajante, na quantidade que você definir. Ligado, exige nome e nascimento de todos."},
+  {k:"ack_vehicle", pt:"Aceite de veículo e bagagem", three:false,
    note:"Faz sentido quando há transporte na venda."},
-  {k:"remarks",  pt:"Campo livre de observações", en:"Free remarks", three:false,
+  {k:"remarks", pt:"Campo livre de observações", three:false,
    note:"Espaço aberto para a agência escrever."}
 ];
 const blockMode = (o,k) => {
@@ -527,6 +566,8 @@ const blockMode = (o,k) => {
   if(b && !b.three) return v === false ? "off" : "on";
   return (v==="off"||v==="prefilled") ? v : "blank";
 };
+const travCount = o => Math.max(1, Math.min(30, parseInt((o.checkout_config||{}).travellers_count,10) || 2));
+const passportNames = o => (o.checkout_config||{}).passport_names !== false;
 const prefill = o => ((o.checkout_config||{}).prefill)||{};
 
 /* ==================================================================== */
@@ -639,6 +680,13 @@ async function renderApp(){
       agency:el("n-agency").value.trim(), final_client:el("n-client").value.trim()
     }).select().single();
     if(error) return alert(error.message);
+    // A order nova nasce com os campos de sempre. Ela tira o que não se
+    // aplica, que é mais rápido do que remontar a lista a cada venda.
+    const padrao = standardFields();
+    if(padrao.length) await sb.from("ops_order_fields").insert(
+      padrao.map((f,i)=>({order_id:data.id, sort:i, group_key:f.group_key, field_key:f.field_key,
+        label_pt:f.label_pt, label_en:f.label_en, input_type:f.input_type,
+        options:f.options, required:false, mode:"blank"})));
     openOrder(data.id);
   };
 
@@ -670,9 +718,10 @@ async function openOrder(id){
   if(e1) return alert(e1.message);
   ORDER = o; ITEMS = it||[]; PAYS = pg||[]; CONF = (cf&&cf[0])||null; FIELDS = fl||[];
   CFG = {
-    lead: blockMode(o,"lead"), adults: blockMode(o,"adults"), children: blockMode(o,"children"),
+    lead: blockMode(o,"lead"), travellers: blockMode(o,"travellers"),
+    travellers_count: travCount(o), passport_names: passportNames(o),
     ack_vehicle: blockMode(o,"ack_vehicle"), remarks: blockMode(o,"remarks"),
-    prefill: Object.assign({lead_name:"",lead_email:"",lead_phone:"",adults:[],children:[]}, prefill(o))
+    prefill: Object.assign({lead_name:"",lead_email:"",lead_phone:"",travellers:[]}, prefill(o))
   };
   renderEditor();
 }
@@ -688,6 +737,7 @@ function renderEditor(){
     <div class="editor-actions">
       <button class="btn ghost sm" id="ed-back">Voltar</button>
       <button class="btn sm" id="ed-save">Salvar</button>
+      <button class="btn ghost sm" id="ed-dup">Duplicar</button>
       <button class="btn close ghost sm" id="ed-preview">Ver como o cliente vê</button>
       ${CONF?`<button class="btn close sm" id="ed-sum">Resumo (PDF)</button>`:""}
     </div>
@@ -736,6 +786,14 @@ function renderEditor(){
     <div id="pays-host"></div>
     <button class="btn ghost sm" id="pg-add" style="margin-top:5px;">+ Parcela</button>
     <div class="totalline"><span class="lbl">Somado</span><span class="amt" id="pg-total">—</span></div>
+    <div style="margin-top:16px;">
+      <label>Observação de pagamento — sai no documento do cliente</label>
+      <textarea id="f-paynote" rows="2" placeholder="O que a agência informou sobre a forma de pagamento">${esc(o.payment_note||"")}</textarea>
+      <div style="margin-top:6px;">
+        <button class="btn ghost sm" id="pn-wait">Aguardando confirmação da agência</button>
+        <button class="btn ghost sm" id="pn-clear">Limpar</button>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -751,9 +809,10 @@ function renderEditor(){
         <select id="fl-grp">${GROUPS.map(g=>`<option value="${g}">${T.pt.grp[g]}</option>`).join("")}</select></div>
       <div><label>Campo</label><select id="fl-key"></select></div>
       <div><button class="btn ghost sm" id="fl-add">Adicionar</button></div>
-      <div><button class="btn ghost sm" id="fl-free">+ Campo livre</button></div>
+      <div><button class="btn ghost sm" id="fl-std">Campos padrão</button></div>
     </div>
     <div id="fld-host"></div>
+    <button class="btn ghost sm" id="fl-free" style="margin-top:10px;">+ Campo livre</button>
   </div>
 
   <div class="card">
@@ -771,6 +830,7 @@ function renderEditor(){
   el("ed-back").onclick = renderApp;
   el("ed-save").onclick = saveOrder;
   el("ed-preview").onclick = () => { location.hash = "#/confirm/"+ORDER.token; };
+  el("ed-dup").onclick = duplicateOrder;
   if(el("ed-sum")) el("ed-sum").onclick = renderSummary;
   if(el("lk-copy")) el("lk-copy").onclick = () => {
     el("lk").select(); document.execCommand("copy"); el("lk-copy").textContent="Copiado"; };
@@ -779,6 +839,9 @@ function renderEditor(){
   el("fl-grp").onchange = drawLibOptions;
   el("fl-add").onclick = addLibField;
   el("fl-free").onclick = addFreeField;
+  el("fl-std").onclick = addStandardFields;
+  el("pn-wait").onclick = () => { el("f-paynote").value = "Aguardando confirmação da agência."; };
+  el("pn-clear").onclick = () => { el("f-paynote").value = ""; };
   drawLibOptions();
   drawItems(); drawPays(); drawConfig(); drawFields(); drawConfirmation();
 }
@@ -829,7 +892,7 @@ function drawConfig(){
       <select onchange="CFG['${b.k}']=this.value;drawConfig()">
         ${opts.map(([v,l])=>`<option value="${v}"${cur===v?" selected":""}>${l}</option>`).join("")}
       </select>
-    </div>${(b.three && cur==="prefilled") ? fillFor(b.k) : ""}`;
+    </div>${(b.k==="travellers" && cur!=="off") ? travOptions() : ""}${(b.three && cur==="prefilled") ? fillFor(b.k) : ""}`;
   }).join("");
   el("cfg-host").innerHTML = rows + `
     <div class="cfg-row fixed">
@@ -839,6 +902,25 @@ function drawConfig(){
     </div>`;
 }
 
+/* Quantos viajantes e se o nome precisa bater com o passaporte. A
+   quantidade decide quantas linhas a agência vê: pedir "acrescente
+   quantos forem" produz lista incompleta, pedir o número exato produz
+   conferência. */
+function travOptions(){
+  return `<div class="cfg-fill"><div class="inner">
+    <div class="grid2">
+      <div><label>Quantidade de viajantes</label>
+        <input type="number" min="1" max="30" value="${CFG.travellers_count}"
+          oninput="CFG.travellers_count=Math.max(1,Math.min(30,parseInt(this.value,10)||1))"></div>
+      <div><label>Nome igual ao passaporte</label>
+        <select onchange="CFG.passport_names=(this.value==='sim');drawConfig()">
+          <option value="sim"${CFG.passport_names?" selected":""}>Sim — avisa sobre o bilhete de monumento</option>
+          <option value="nao"${!CFG.passport_names?" selected":""}>Não — nome usual basta</option>
+        </select></div>
+    </div>
+  </div></div>`;
+}
+
 function fillFor(k){
   const p = CFG.prefill;
   if(k==="lead") return `<div class="cfg-fill"><div class="inner"><div class="grid3">
@@ -846,19 +928,13 @@ function fillFor(k){
       <div><label>E-mail</label><input value="${esc(p.lead_email||"")}" oninput="CFG.prefill.lead_email=this.value"></div>
       <div><label>Telefone</label><input value="${esc(p.lead_phone||"")}" oninput="CFG.prefill.lead_phone=this.value"></div>
     </div></div></div>`;
-  if(k==="adults") return `<div class="cfg-fill"><div class="inner">
-      <label>Nomes como vão para o fornecedor</label>
-      ${(p.adults||[]).map((a,i)=>`<div class="pax-row">
-        <input value="${esc(a)}" oninput="CFG.prefill.adults[${i}]=this.value" placeholder="Nome completo">
-        <button class="iconbtn" onclick="CFG.prefill.adults.splice(${i},1);drawConfig()">×</button></div>`).join("")}
-      <button class="btn ghost sm" onclick="CFG.prefill.adults.push('');drawConfig()">+ Adulto</button>
-    </div></div>`;
-  if(k==="children") return `<div class="cfg-fill"><div class="inner">
-      <label>Idades na data da viagem</label>
-      ${(p.children||[]).map((c,i)=>`<div class="pax-row">
-        <input type="number" min="0" max="17" value="${esc(c.age)}" oninput="CFG.prefill.children[${i}].age=this.value" placeholder="Idade">
-        <button class="iconbtn" onclick="CFG.prefill.children.splice(${i},1);drawConfig()">×</button></div>`).join("")}
-      <button class="btn ghost sm" onclick="CFG.prefill.children.push({age:''});drawConfig()">+ Criança</button>
+  if(k==="travellers") return `<div class="cfg-fill"><div class="inner">
+      <label>Nome e nascimento, como vão para o fornecedor</label>
+      ${(p.travellers||[]).map((t,i)=>`<div class="trav-row">
+        <input value="${esc(t.name||"")}" oninput="CFG.prefill.travellers[${i}].name=this.value" placeholder="Nome completo">
+        <input type="date" value="${esc(t.dob||"")}" oninput="CFG.prefill.travellers[${i}].dob=this.value">
+        <button class="iconbtn" onclick="CFG.prefill.travellers.splice(${i},1);drawConfig()">×</button></div>`).join("")}
+      <button class="btn ghost sm" onclick="CFG.prefill.travellers.push({name:'',dob:''});drawConfig()">+ Viajante</button>
     </div></div>`;
   return "";
 }
@@ -877,6 +953,16 @@ function addLibField(){
   if(FIELDS.some(f=>f.field_key===key)) return alert("Esse campo já está neste checkout.");
   FIELDS.push({field_key:key, group_key:g, label_pt:def.pt, label_en:def.en,
     input_type:def.t, options:def.o||[], required:false, mode:"blank", prefill_value:"", sort:FIELDS.length});
+  drawFields();
+}
+
+/* Acrescenta o conjunto que ela usa em quase toda venda, sem repetir o
+   que já estiver lá. */
+function addStandardFields(){
+  const tem = new Set(FIELDS.map(f=>f.field_key));
+  const novos = standardFields().filter(f=>!tem.has(f.field_key));
+  if(!novos.length) return alert("Os campos padrão já estão neste checkout.");
+  novos.forEach(f=>{ f.sort = FIELDS.length; FIELDS.push(f); });
   drawFields();
 }
 
@@ -949,14 +1035,15 @@ function drawConfirmation(){
     return;
   }
   const t = T.pt;
-  const ad = (CONF.adults||[]).map(a=>esc(a)).join("<br>") || "—";
-  const ch = (CONF.children||[]).map(c=>esc(c.age)+" anos").join(" · ") || "—";
+  const tv = (CONF.travellers||[]);
+  const pax = tv.length
+    ? tv.map(x=>`${esc(x.name||"—")} · ${esc(x.dob||"—")}`).join("<br>")
+    : ((CONF.adults||[]).map(a=>esc(a)).join("<br>") || "—");
   const fl = (CONF.fields||[]);
   host.innerHTML = `<div class="section-title">Confirmação recebida</div>
-    <div class="grid3">
-      <div><label>Contato</label><div class="muted">${esc(CONF.lead_name||"")}<br>${esc(CONF.lead_email||"")}<br>${esc(CONF.lead_phone||"")}</div></div>
-      <div><label>Adultos</label><div class="muted">${ad}</div></div>
-      <div><label>Crianças</label><div class="muted">${ch}</div></div>
+    <div class="grid2">
+      <div><label>Contato</label><div class="muted">${esc(CONF.lead_name||"")}<br>${esc(CONF.lead_phone||"")}<br>${esc(CONF.lead_email||"")}</div></div>
+      <div><label>Viajantes · nome e nascimento</label><div class="muted">${pax}</div></div>
     </div>
     ${fl.length?`<div style="margin-top:14px;"><label>Dados do checkout</label>
       <table class="rows" style="margin-top:4px;"><tbody>${fl.map(f=>`<tr>
@@ -967,8 +1054,8 @@ function drawConfirmation(){
     <div class="grid3" style="margin-top:14px;">
       <div><label>Aceite dos termos</label><div class="muted">${CONF.ack_terms?"Aceito":"Não aceito"}</div></div>
       <div><label>Veículo e bagagem</label><div class="muted">${CONF.ack_vehicle?"Aceito":"Não marcado"}</div></div>
-      <div><label>Assinatura / data</label>
-        <div class="muted">${esc(CONF.signature_name||"")}<br>${stamp(CONF.submitted_at,"pt")}</div></div>
+      <div><label>Confirmado por / data</label>
+        <div class="muted">${esc(CONF.lead_name||CONF.signature_name||"")}<br>${stamp(CONF.submitted_at,"pt")}</div></div>
     </div>
     ${CONF.remarks?`<div style="margin-top:14px;"><label>Observações</label><div class="muted">${nl2br(CONF.remarks)}</div></div>`:""}`;
 }
@@ -976,7 +1063,9 @@ function drawConfirmation(){
 /* ------------------------------------------------------ GRAVAR ------- */
 function cfgToJson(){
   const p = CFG.prefill, c = {
-    lead: CFG.lead, adults: CFG.adults, children: CFG.children,
+    lead: CFG.lead, travellers: CFG.travellers,
+    travellers_count: CFG.travellers_count,
+    passport_names: !!CFG.passport_names,
     ack_vehicle: CFG.ack_vehicle !== "off",
     remarks: CFG.remarks !== "off",
     prefill: {}
@@ -988,10 +1077,10 @@ function cfgToJson(){
     c.prefill.lead_email = (p.lead_email||"").trim();
     c.prefill.lead_phone = (p.lead_phone||"").trim();
   }
-  if(CFG.adults==="prefilled")
-    c.prefill.adults = (p.adults||[]).map(s=>(s||"").trim()).filter(Boolean);
-  if(CFG.children==="prefilled")
-    c.prefill.children = (p.children||[]).filter(x=>String(x.age||"").trim()!=="");
+  if(CFG.travellers==="prefilled")
+    c.prefill.travellers = (p.travellers||[])
+      .map(t=>({name:(t.name||"").trim(), dob:(t.dob||"").trim()}))
+      .filter(t=>t.name || t.dob);
   return c;
 }
 
@@ -1011,6 +1100,7 @@ async function saveOrder(){
     final_client: el("f-client").value.trim(), pax_summary: el("f-pax").value.trim(),
     travel_window: el("f-window").value.trim(), intro: el("f-intro").value,
     terms_url: el("f-terms").value.trim() || null,
+    payment_note: el("f-paynote").value.trim() || null,
     checkout_config: cfgToJson(),
     internal_notes: el("f-notes").value, updated_at: new Date().toISOString()
   };
@@ -1035,6 +1125,74 @@ async function saveOrder(){
   setTimeout(()=>btn.textContent="Salvar", 1600);
 }
 
+/* --------------------------------------------------------- DUPLICAR ---
+   Uma proposta que vira duas orders porque cada família paga a sua parte
+   é caso comum, e redigitar os mesmos vinte serviços é onde nasce a
+   divergência entre as duas — muda o valor numa e esquece na outra.
+
+   Copia o que descreve a venda: cabeçalho, serviços, parcelas,
+   observação de pagamento e a configuração inteira do checkout.
+   NÃO copia o que é único de cada order: o link, que nasce novo no
+   banco, e a confirmação já recebida, que pertence a quem assinou
+   aquela. O status volta para rascunho, porque a cópia ainda não foi
+   mandada a ninguém.
+   ---------------------------------------------------------------------- */
+function nextRef(ref){
+  // A referência da casa é "oportunidade.sequência": TL035-26.1 vira
+  // TL035-26.2. Só o sufixo depois do ponto sobe. Pegar o último número
+  // qualquer transformaria TL040-26 em TL040-27, mexendo no ano em vez
+  // de criar a segunda order.
+  const r = (ref||"").trim();
+  const m = /^(.*\.)(\d+)$/.exec(r);
+  return m ? m[1] + (parseInt(m[2],10)+1) : (r ? r + ".2" : "");
+}
+
+async function duplicateOrder(){
+  const btn = el("ed-dup");
+  if(!confirm("Duplicar esta order?\n\nVem junto: cabeçalho, serviços, parcelas e a configuração do checkout.\nNão vem: o link do cliente, que nasce novo, e a confirmação já recebida.")) return;
+  btn.disabled = true; btn.textContent = "Duplicando…";
+
+  const o = ORDER;
+  const {data:novo, error} = await sb.from("ops_orders").insert({
+    opportunity_code:o.opportunity_code, order_ref:nextRef(o.order_ref), lang:o.lang,
+    status:"draft", agency:o.agency, agency_contact:o.agency_contact,
+    final_client:o.final_client, pax_summary:o.pax_summary, travel_window:o.travel_window,
+    intro:o.intro, internal_notes:o.internal_notes, terms_url:o.terms_url,
+    payment_note:o.payment_note, checkout_config:o.checkout_config
+  }).select().single();
+  if(error){ btn.disabled=false; btn.textContent="Duplicar"; return alert(error.message); }
+
+  // Os filhos saem do que está gravado, não do que está na tela: se ela
+  // editou sem salvar, a cópia leva o gravado, e é isso que o link da
+  // order original também mostraria.
+  const [{data:it},{data:pg},{data:fl}] = await Promise.all([
+    sb.from("ops_order_items").select("*").eq("order_id",o.id).order("sort"),
+    sb.from("ops_order_payments").select("*").eq("order_id",o.id).order("sort"),
+    sb.from("ops_order_fields").select("*").eq("order_id",o.id).order("sort")
+  ]);
+  const erros = [];
+  if(it && it.length){
+    const {error:e} = await sb.from("ops_order_items").insert(it.map((r,i)=>({
+      order_id:novo.id, sort:i, service_date:r.service_date, title:r.title,
+      details:r.details, price:r.price}))); if(e) erros.push(e.message);
+  }
+  if(pg && pg.length){
+    const {error:e} = await sb.from("ops_order_payments").insert(pg.map((r,i)=>({
+      order_id:novo.id, sort:i, label:r.label, due_date:r.due_date,
+      amount:r.amount, status:r.status}))); if(e) erros.push(e.message);
+  }
+  if(fl && fl.length){
+    const {error:e} = await sb.from("ops_order_fields").insert(fl.map((r,i)=>({
+      order_id:novo.id, sort:i, group_key:r.group_key, field_key:r.field_key,
+      label_pt:r.label_pt, label_en:r.label_en, input_type:r.input_type,
+      options:r.options, required:r.required, mode:r.mode,
+      prefill_value:r.prefill_value}))); if(e) erros.push(e.message);
+  }
+  btn.disabled = false; btn.textContent = "Duplicar";
+  if(erros.length) alert("A cópia foi criada, mas parte do conteúdo não veio:\n"+erros.join("\n"));
+  openOrder(novo.id);
+}
+
 /* ==================================================================== */
 /*  RESUMO EM PDF — para encaminhar à agência                           */
 /*                                                                      */
@@ -1049,10 +1207,15 @@ function renderSummary(){
   const linha = (k,v) => `<tr><th>${k}</th><td>${v}</td></tr>`;
   const branco = `<span class="blank">${t.blank}</span>`;
 
-  const adultos = (c.adults||[]).length
-    ? (c.adults||[]).map(a=>esc(a)).join("<br>") : branco;
-  const criancas = (c.children||[]).length
-    ? (c.children||[]).map(x=>esc(x.age)+" "+t.years).join(" · ") : "—";
+  // Confirmação nova traz nome e nascimento juntos; a antiga, só nomes de
+  // adulto e idades de criança. As duas precisam continuar legíveis.
+  const trav = (c.travellers||[]);
+  const viajantes = trav.length
+    ? trav.map(x=>linha(esc(x.name||"—"), esc(x.dob||"—"))).join("")
+    : ((c.adults||[]).length
+        ? (c.adults||[]).map(a=>linha(esc(a), "—")).join("")
+          + ((c.children||[]).map(x=>linha("—", esc(x.age)+" "+t.years)).join(""))
+        : linha(t.travellers, branco));
   const campos = (c.fields||[]).map(f=>linha(
       esc((o.lang==="en" ? (f.label_en||f.label_pt) : f.label_pt) || f.key)
         + (f.mode==="prefilled" ? ` <span style="color:var(--copper);">· ${t.preShort}</span>` : ""),
@@ -1095,7 +1258,7 @@ function renderSummary(){
 
     <div class="blocktitle">${t.sumSign}</div>
     <table class="data">
-      ${linha(t.sumSignedBy, `<b>${esc(c.signature_name||c.lead_name||"—")}</b>`)}
+      ${linha(t.sumSignedBy, `<b>${esc(c.lead_name||c.signature_name||"—")}</b>`)}
       ${linha(t.sumSignedAt, esc(stamp(c.submitted_at, o.lang)))}
       ${linha(t.sumAckTerms, c.ack_terms ? t.accepted : `<span class="blank">${t.notAccepted}</span>`)}
       ${linha(t.sumAckVehicle, c.ack_vehicle ? t.accepted : t.notMarked)}
@@ -1106,15 +1269,12 @@ function renderSummary(){
     <div class="blocktitle">${t.sumLead}</div>
     <table class="data">
       ${linha(t.leadName,  esc(c.lead_name)||branco)}
-      ${linha(t.leadEmail, esc(c.lead_email)||branco)}
-      ${linha(t.leadPhone, esc(c.lead_phone)||"—")}
+      ${linha(t.leadPhone, esc(c.lead_phone)||branco)}
+      ${linha(t.leadEmail, esc(c.lead_email)||"—")}
     </table>
 
     <div class="blocktitle">${t.sumPax}</div>
-    <table class="data">
-      ${linha(t.adults, adultos)}
-      ${linha(t.children, criancas)}
-    </table>
+    <table class="data">${viajantes}</table>
 
     ${campos?`<div class="blocktitle">${t.sumFields}</div><table class="data">${campos}</table>`:""}
 
@@ -1130,13 +1290,15 @@ function renderSummary(){
         <td class="money">${eur(r.price)}</td></tr>`).join("")}</tbody>
     </table>
     <div class="total-row"><div class="total-box"><span class="lbl">${t.total}</span><span class="amt">${eur(total)}</span></div></div>
+    <div class="voucher-note">${t.voucherNote}</div>
 
-    ${PAYS.length?`<div class="blocktitle">${t.payTitle}</div>
-      <table class="pay"><thead><tr><th>${t.payLabel}</th><th>${t.payDue}</th>
+    ${(PAYS.length||o.payment_note)?`<div class="blocktitle">${t.payTitle}</div>
+      ${PAYS.length?`<table class="pay"><thead><tr><th>${t.payLabel}</th><th>${t.payDue}</th>
         <th style="text-align:right;">${t.payAmount}</th><th style="text-align:right;">${t.payStatus}</th></tr></thead>
       <tbody>${PAYS.map(p=>`<tr><td>${esc(p.label)}</td><td>${esc(p.due_date||"—")}</td>
         <td class="money">${eur(p.amount)}</td>
         <td class="money">${p.status==="paid"?t.paid:t.pending}</td></tr>`).join("")}</tbody></table>`:""}
+      ${o.payment_note?`<div class="pay-note">${nl2br(o.payment_note)}</div>`:""}`:""}
 
     <div class="foot">
       <div class="co">TUSCAN LANDS TRAVEL</div>
@@ -1151,7 +1313,7 @@ function renderSummary(){
 /* ==================================================================== */
 /*  VISTA PÚBLICA — o que o cliente/agência recebe                      */
 /* ==================================================================== */
-let PUB = null, PAX = {adults:[""], children:[]}, FLD = {};
+let PUB = null, PAX = [], FLD = {};
 
 async function renderPublic(token){
   app.innerHTML = `<div class="done"><div class="muted">…</div></div>`;
@@ -1161,13 +1323,14 @@ async function renderPublic(token){
   PUB = data; PUB.token = token;
   const o = PUB.order, p = prefill(o);
 
-  // Pré-preenchido é ponto de partida editável, não campo travado: se a
-  // agência vir um nome errado, ela precisa poder corrigir na hora.
-  PAX = {
-    adults:   blockMode(o,"adults")==="prefilled"   ? (p.adults||[]).slice()   : [""],
-    children: blockMode(o,"children")==="prefilled" ? (p.children||[]).map(c=>({age:c.age})) : []
-  };
-  if(!PAX.adults.length) PAX.adults = [""];
+  // Uma linha por viajante, na quantidade que ela definiu. Pré-preenchido
+  // é ponto de partida editável, não campo travado: se a agência vir um
+  // nome errado, ela precisa poder corrigir na hora.
+  const qtd = travCount(o);
+  PAX = blockMode(o,"travellers")==="prefilled"
+      ? (p.travellers||[]).map(t=>({name:t.name||"", dob:t.dob||""}))
+      : [];
+  while(PAX.length < qtd) PAX.push({name:"", dob:""});
   FLD = {};
   (PUB.fields||[]).forEach(f=>{
     FLD[f.field_key] = f.mode==="prefilled" ? (f.prefill_value||"") : (f.input_type==="checkbox"?"false":"");
@@ -1212,9 +1375,8 @@ function drawPublic(){
   const total = items.reduce((s,r)=>s+(Number(r.price)||0),0);
   const confirmed = o.status === "confirmed";
   const p = prefill(o);
-  const bLead = blockMode(o,"lead"), bAd = blockMode(o,"adults"),
-        bCh = blockMode(o,"children"), bVeh = blockMode(o,"ack_vehicle"),
-        bRem = blockMode(o,"remarks");
+  const bLead = blockMode(o,"lead"), bTrav = blockMode(o,"travellers"),
+        bVeh = blockMode(o,"ack_vehicle"), bRem = blockMode(o,"remarks");
 
   // Campos agrupados por tipo de serviço, na ordem em que ela montou.
   let campos = "", grpAtual = null;
@@ -1265,13 +1427,16 @@ function drawPublic(){
 
     <div class="total-row"><div class="total-box"><span class="lbl">${t.total}</span><span class="amt">${eur(total)}</span></div></div>
 
-    ${pays.length?`<div style="margin-top:24px;">
+    <div class="voucher-note">${t.voucherNote}</div>
+
+    ${(pays.length || o.payment_note)?`<div style="margin-top:24px;">
       <div class="blocktitle">${t.payTitle}</div>
-      <table class="pay"><thead><tr><th>${t.payLabel}</th><th>${t.payDue}</th>
+      ${pays.length?`<table class="pay"><thead><tr><th>${t.payLabel}</th><th>${t.payDue}</th>
         <th style="text-align:right;">${t.payAmount}</th><th style="text-align:right;">${t.payStatus}</th></tr></thead>
       <tbody>${pays.map(p=>`<tr><td>${esc(p.label)}</td><td>${esc(p.due_date||"—")}</td>
         <td class="money">${eur(p.amount)}</td>
-        <td class="money">${p.status==="paid"?t.paid:t.pending}</td></tr>`).join("")}</tbody></table>
+        <td class="money">${p.status==="paid"?t.paid:t.pending}</td></tr>`).join("")}</tbody></table>`:""}
+      ${o.payment_note?`<div class="pay-note">${nl2br(o.payment_note)}</div>`:""}
     </div>`:""}
 
     <div class="terms">${TERMS[o.lang||"pt"]}
@@ -1295,30 +1460,27 @@ function drawPublic(){
   <div class="confirm-block">
     <h2>${t.confirmTitle}</h2>
     <div class="rule"></div>
-    ${bAd!=="off"?`<div class="muted" style="margin-bottom:20px;">${t.confirmIntro}</div>`:""}
+    ${bTrav!=="off"?`<div class="muted" style="margin-bottom:20px;">${t.travIntro}${
+      passportNames(o)?` <b>${t.passportNote}</b>`:""}</div>`:""}
+
+    ${bTrav!=="off"?`
+    <div class="section-title">${t.travellers} <span class="req">· ${t.required}</span></div>
+    <div id="tv-host" style="margin-bottom:8px;"></div>
+    <button class="btn ghost sm" id="tv-add" style="margin-bottom:22px;">${t.addTraveller}</button>`:""}
 
     ${bLead!=="off"?`
     <div class="section-title">${t.lead}</div>
+    <div class="muted" style="margin-bottom:12px;">${t.leadIntro}</div>
     <div class="grid3" style="margin-bottom:20px;">
       <div><label>${t.leadName} <span class="req">· ${t.required}</span></label>
         <input id="c-name" value="${bLead==="prefilled"?esc(p.lead_name||""):""}"></div>
-      <div><label>${t.leadEmail} <span class="req">· ${t.required}</span></label>
-        <input id="c-mail" type="email" value="${bLead==="prefilled"?esc(p.lead_email||""):""}"></div>
-      <div><label>${t.leadPhone}</label>
+      <div><label>${t.leadPhone} <span class="req">· ${t.required}</span></label>
         <input id="c-phone" value="${bLead==="prefilled"?esc(p.lead_phone||""):""}"></div>
+      <div><label>${t.leadEmail}</label>
+        <input id="c-mail" type="email" value="${bLead==="prefilled"?esc(p.lead_email||""):""}"></div>
     </div>
     ${bLead==="prefilled"?`<div style="margin:-14px 0 20px;font-size:11.5px;color:var(--copper);
       line-height:1.5;">${t.prefilled}</div>`:""}`:""}
-
-    ${bAd!=="off"?`
-    <div class="section-title">${t.adults} <span class="req">· ${t.required}</span></div>
-    <div id="ad-host" style="margin-bottom:8px;"></div>
-    <button class="btn ghost sm" id="ad-add" style="margin-bottom:20px;">${t.addAdult}</button>`:""}
-
-    ${bCh!=="off"?`
-    <div class="section-title">${t.children}</div>
-    <div id="ch-host" style="margin-bottom:8px;"></div>
-    <button class="btn ghost sm" id="ch-add" style="margin-bottom:22px;">${t.addChild}</button>`:""}
 
     ${campos}
 
@@ -1329,7 +1491,6 @@ function drawPublic(){
       <label for="c-terms">${t.ackTerms}${o.terms_url?` <a href="${esc(o.terms_url)}" target="_blank" rel="noopener">${t.termsLinkLabel.replace(":","")}</a>`:""}</label></div>
 
     ${bRem!=="off"?`<div style="margin-top:16px;"><label>${t.remarks}</label><textarea id="c-rem" rows="3"></textarea></div>`:""}
-    <div style="margin-top:16px;"><label>${t.signature} <span class="req">· ${t.required}</span></label><input id="c-sign"></div>
 
     <div id="c-msg" style="margin-top:14px;"></div>
     <button class="btn close" id="c-go" style="margin-top:16px;">${t.submit}</button>
@@ -1339,22 +1500,18 @@ function drawPublic(){
 
   if(confirmed) return;
   drawPax();
-  if(el("ad-add")) el("ad-add").onclick = () => { PAX.adults.push(""); drawPax(); };
-  if(el("ch-add")) el("ch-add").onclick = () => { PAX.children.push({age:""}); drawPax(); };
+  if(el("tv-add")) el("tv-add").onclick = () => { PAX.push({name:"",dob:""}); drawPax(); };
   el("c-go").onclick = submitConfirmation;
 }
 
 function drawPax(){
-  const t = T[PUB.order.lang||"pt"];
-  if(el("ad-host")) el("ad-host").innerHTML = PAX.adults.map((a,i)=>`
-    <div class="pax-row">
-      <input value="${esc(a)}" placeholder="${t.leadName}" oninput="PAX.adults[${i}]=this.value">
-      <button class="iconbtn" onclick="PAX.adults.splice(${i},1);drawPax()">×</button>
-    </div>`).join("");
-  if(el("ch-host")) el("ch-host").innerHTML = PAX.children.map((c,i)=>`
-    <div class="pax-row">
-      <input type="number" min="0" max="17" value="${esc(c.age)}" placeholder="${t.age}" oninput="PAX.children[${i}].age=this.value">
-      <button class="iconbtn" onclick="PAX.children.splice(${i},1);drawPax()">×</button>
+  const t = T[PUB.order.lang||"pt"], host = el("tv-host");
+  if(!host) return;
+  host.innerHTML = `<div class="trav-head"><span>${t.travName}</span><span>${t.travDob}</span><span></span></div>` +
+    PAX.map((tv,i)=>`<div class="trav-row">
+      <input value="${esc(tv.name)}" placeholder="${t.travName}" oninput="PAX[${i}].name=this.value">
+      <input type="date" value="${esc(tv.dob)}" oninput="PAX[${i}].dob=this.value">
+      ${PAX.length>1?`<button class="iconbtn" onclick="PAX.splice(${i},1);drawPax()">×</button>`:`<span></span>`}
     </div>`).join("");
 }
 
@@ -1364,22 +1521,27 @@ async function submitConfirmation(){
   const chk = id => el(id) ? el(id).checked : false;
   const payload = {
     lead_name: val("c-name"), lead_email: val("c-mail"), lead_phone: val("c-phone"),
-    adults: PAX.adults.map(a=>a.trim()).filter(Boolean),
-    children: PAX.children.filter(c=>String(c.age).trim()!==""),
+    travellers: PAX.map(t=>({name:(t.name||"").trim(), dob:(t.dob||"").trim()}))
+                   .filter(t=>t.name || t.dob),
     ack_vehicle: chk("c-veh"), ack_terms: chk("c-terms"),
-    signature_name: val("c-sign"), remarks: val("c-rem"),
+    remarks: val("c-rem"),
     field_values: FLD
   };
   // A tela confere primeiro para dar resposta imediata; a palavra final é
   // do banco, que confere de novo e recusa o que estiver faltando.
   const falta = [];
   if(!payload.ack_terms) falta.push(t.miss.ack_terms);
-  if(!payload.signature_name) falta.push(t.miss.signature_name);
   if(blockMode(o,"lead")!=="off"){
     if(!payload.lead_name)  falta.push(t.miss.lead_name);
-    if(!payload.lead_email) falta.push(t.miss.lead_email);
+    if(!payload.lead_phone) falta.push(t.miss.lead_phone);
   }
-  if(blockMode(o,"adults")!=="off" && !payload.adults.length) falta.push(t.miss.adults);
+  if(blockMode(o,"travellers")!=="off"){
+    if(!payload.travellers.length) falta.push(t.miss.travellers);
+    PAX.forEach((tv,i)=>{
+      if(!(tv.name||"").trim()) falta.push(`${t.travName} ${i+1}`);
+      if(!(tv.dob ||"").trim()) falta.push(`${t.travDob} ${i+1}`);
+    });
+  }
   (PUB.fields||[]).forEach(f=>{
     if(!f.required) return;
     const v = String(FLD[f.field_key]||"").trim();
@@ -1396,7 +1558,11 @@ async function submitConfirmation(){
   if(error || !data || !data.ok){
     let txt = (error&&error.message) || (data&&data.error) || "erro";
     if(data && data.error==="missing_fields" && data.missing)
-      txt = t.errMissing+" "+data.missing.map(m=>t.miss[m]||m).join(" · ");
+      txt = t.errMissing+" "+data.missing.map(m=>{
+        const linha = /^traveller_(name|dob)_(\d+)$/.exec(m);
+        if(linha) return (linha[1]==="name"?t.travName:t.travDob)+" "+linha[2];
+        return t.miss[m]||m;
+      }).join(" · ");
     if(data && data.error==="already_confirmed") txt = t.alreadyText;
     if(data && data.error==="expired") txt = t.expired;
     el("c-msg").innerHTML = `<div class="msg">${esc(txt)}</div>`;

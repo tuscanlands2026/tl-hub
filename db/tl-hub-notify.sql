@@ -120,8 +120,7 @@ declare
   linhas   text := '';
   parcelas text := '';
   campos   text := '';
-  adultos  text := '';
-  criancas text := '';
+  viajantes text := '';
   total    numeric(12,2) := 0;
   assunto  text;
   corpo    text;
@@ -169,13 +168,22 @@ begin
     from ops_order_payments p where p.order_id = o.id;
 
   -- Nomes exatamente como a agência digitou: é isto que vai para a
-  -- reserva no fornecedor, e é aqui que o erro de grafia aparece.
-  select string_agg(tl_html(a.txt), '<br>') into adultos
-    from (select jsonb_array_elements_text(coalesce(new.adults,'[]'::jsonb)) as txt) a;
+  -- reserva no fornecedor e para o bilhete nominal do monumento, e é aqui
+  -- que o erro de grafia aparece enquanto ainda dá para corrigir.
+  select string_agg(
+           '<tr><td ' || h_lbl || '>' || tl_html(t.value->>'name') ||
+           '</td><td ' || h_val || '>' || tl_html(t.value->>'dob') || '</td></tr>', '')
+    into viajantes
+    from jsonb_array_elements(coalesce(new.travellers,'[]'::jsonb)) as t;
 
-  -- Idade de criança sim, nome de criança não.
-  select string_agg(tl_html(ch.value->>'age') || ' anos', ' · ') into criancas
-    from jsonb_array_elements(coalesce(new.children,'[]'::jsonb)) as ch;
+  -- Confirmação antiga, de antes do bloco único de viajantes.
+  if coalesce(viajantes,'') = '' then
+    select string_agg(
+             '<tr><td ' || h_lbl || '>' || tl_html(a.txt) ||
+             '</td><td ' || h_val || '>—</td></tr>', '')
+      into viajantes
+      from (select jsonb_array_elements_text(coalesce(new.adults,'[]'::jsonb)) as txt) a;
+  end if;
 
   -- Campos variáveis daquele checkout, na ordem em que foram mostrados.
   -- Pré-preenchido por você e confirmado pela agência vem marcado, para
@@ -208,10 +216,10 @@ begin
             then ' · ' || tl_html(o.agency_contact) else '' end || '<br>'
     || 'Período: ' || tl_html(coalesce(o.travel_window,'—')) || '</p>'
 
-    || '<p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#595e49;margin:22px 0 6px;">Assinatura</p>'
+    || '<p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#595e49;margin:22px 0 6px;">Aceite</p>'
     || '<table style="border-collapse:collapse;font-size:14px;">'
-    || '<tr><td ' || h_lbl || '>Assinado por</td><td ' || h_val || '><strong>'
-    || tl_html(coalesce(new.signature_name, new.lead_name, '—')) || '</strong></td></tr>'
+    || '<tr><td ' || h_lbl || '>Confirmado por</td><td ' || h_val || '><strong>'
+    || tl_html(coalesce(new.lead_name, new.signature_name, '—')) || '</strong></td></tr>'
     || '<tr><td ' || h_lbl || '>Data e hora</td><td ' || h_val || '>'
     || to_char(new.submitted_at at time zone 'Europe/Rome', 'DD/MM/YYYY HH24:MI')
     || ' (Itália)</td></tr>'
@@ -234,12 +242,9 @@ begin
     || '<tr><td ' || h_lbl || '>Telefone</td><td ' || h_val || '>' || tl_html(coalesce(new.lead_phone,'—')) || '</td></tr>'
     || '</table>'
 
-    || '<p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#595e49;margin:22px 0 6px;">Passageiros</p>'
+    || '<p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#595e49;margin:22px 0 6px;">Viajantes · nome e nascimento</p>'
     || '<table style="border-collapse:collapse;font-size:14px;">'
-    || '<tr><td ' || h_lbl || '>Adultos</td><td ' || h_val || '>'
-    || coalesce(adultos, '<span style="color:#a2564c;">— nenhum informado</span>') || '</td></tr>'
-    || '<tr><td ' || h_lbl || '>Crianças</td><td ' || h_val || '>'
-    || coalesce(criancas, '—') || '</td></tr>'
+    || coalesce(viajantes, '<tr><td>—</td></tr>')
     || '</table>'
 
     || case when coalesce(campos,'') <> ''
@@ -256,9 +261,15 @@ begin
     || '<table style="border-collapse:collapse;font-size:14px;width:100%;">' || coalesce(linhas,'') || '</table>'
     || '<p style="margin:10px 0 0;text-align:right;"><strong>Total ' || tl_eur(total) || '</strong></p>'
 
-    || case when coalesce(parcelas,'') <> ''
+    || case when coalesce(parcelas,'') <> '' or coalesce(o.payment_note,'') <> ''
             then '<p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#595e49;margin:22px 0 6px;">Pagamentos</p>'
-                 || '<table style="border-collapse:collapse;font-size:14px;width:100%;">' || parcelas || '</table>'
+                 || case when coalesce(parcelas,'') <> ''
+                         then '<table style="border-collapse:collapse;font-size:14px;width:100%;">' || parcelas || '</table>'
+                         else '' end
+                 || case when coalesce(o.payment_note,'') <> ''
+                         then '<p style="margin:8px 0 0;color:#6b6860;">'
+                              || replace(tl_html(o.payment_note), E'\n','<br>') || '</p>'
+                         else '' end
             else '' end
 
     || '<p style="font-size:11px;color:#6b6860;margin-top:26px;border-top:1px solid #eae4db;padding-top:12px;">'
