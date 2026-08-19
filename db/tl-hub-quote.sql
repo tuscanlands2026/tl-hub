@@ -415,3 +415,133 @@ drop trigger if exists ops_quote_notify on ops_proposal_selections;
 create trigger ops_quote_notify
   after insert on ops_proposal_selections
   for each row execute function tl_notify_quote();
+
+-- =====================================================================
+-- 9 · GRUPO DE ESCOLHA — "um destes dois"
+--
+-- Acrescentado depois de ler uma proposta real: hospedagem de 4 a 6 de
+-- maio era "Borghi dell'Eremo OU Relais Villa Monte Solare", e o modelo
+-- só sabia incluso e opcional. Marcadas as duas, o total sairia com o
+-- dobro das noites que existem.
+--
+-- Linhas com o mesmo choice_group formam uma escolha: exatamente uma.
+-- Nulo é o comportamento de antes.
+-- =====================================================================
+alter table ops_proposal_items add column if not exists choice_group text;
+
+comment on column ops_proposal_items.choice_group is
+  'Linhas com o mesmo valor formam uma escolha de uma só. Nulo = linha comum.';
+
+create or replace function tl_submit_quote(p_token text, p_payload jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pp     ops_proposals%rowtype;
+  it     ops_proposal_items%rowtype;
+  ex     jsonb;
+  linhas jsonb := '[]'::jsonb;
+  exsel  jsonb;
+  escol  boolean;
+  soma   numeric(12,2) := 0;
+  marcados jsonb;
+  exmarc   jsonb;
+  g        text;
+  faltando text[] := '{}';
+begin
+  select * into pp from ops_proposals where token = p_token;
+  if not found then return jsonb_build_object('ok', false, 'error', 'not_found'); end if;
+  if pp.responded_at is not null then
+    return jsonb_build_object('ok', false, 'error', 'already_answered');
+  end if;
+  if coalesce(btrim(p_payload->>'lead_name'),'') = '' then
+    return jsonb_build_object('ok', false, 'error', 'missing_fields', 'missing', to_jsonb(array['lead_name']));
+  end if;
+
+  marcados := coalesce(p_payload->'items','[]'::jsonb);
+  exmarc   := coalesce(p_payload->'extras','{}'::jsonb);
+
+  -- Grupo sem nenhuma escolhida é pergunta sem resposta, e recusar aqui
+  -- é melhor que gravar uma viagem sem onde dormir.
+  for g in select distinct choice_group from ops_proposal_items
+            where proposal_id = pp.id and choice_group is not null loop
+    if not exists (select 1 from ops_proposal_items i
+                    where i.proposal_id = pp.id and i.choice_group = g
+                      and marcados @> to_jsonb(i.id::text)) then
+      faltando := array_append(faltando, g);
+    end if;
+  end loop;
+  if array_length(faltando,1) > 0 then
+    return jsonb_build_object('ok', false, 'error', 'missing_choice',
+                              'missing', to_jsonb(faltando));
+  end if;
+
+  for it in select * from ops_proposal_items where proposal_id = pp.id order by sort loop
+    -- Inclusa entra sempre. Opcional e alternativa entram se marcadas.
+    escol := (not it.optional and it.choice_group is null)
+             or (marcados @> to_jsonb(it.id::text));
+    exsel := '[]'::jsonb;
+    if escol then
+      soma := soma + coalesce(it.price,0);
+      for ex in select * from jsonb_array_elements(coalesce(it.extras,'[]'::jsonb)) loop
+        if coalesce(exmarc->(it.id::text), '[]'::jsonb) @> to_jsonb(ex->>'key') then
+          soma  := soma + coalesce((ex->>'price')::numeric, 0);
+          exsel := exsel || jsonb_build_object(
+            'key', ex->>'key', 'label_pt', ex->>'label_pt',
+            'label_en', ex->>'label_en', 'price', ex->>'price');
+        end if;
+      end loop;
+    end if;
+    linhas := linhas || jsonb_build_object(
+      'item_id', it.id, 'service_date', it.service_date, 'title', it.title,
+      'details', it.details, 'price', it.price, 'optional', it.optional,
+      'choice_group', it.choice_group, 'chosen', escol, 'extras', exsel);
+  end loop;
+
+  insert into ops_proposal_selections
+    (proposal_id, lead_name, lead_email, lead_phone, remarks, lines, total)
+  values (pp.id, p_payload->>'lead_name', p_payload->>'lead_email',
+          p_payload->>'lead_phone', p_payload->>'remarks', linhas, soma);
+
+  update ops_proposals set responded_at = now(), updated_at = now() where id = pp.id;
+  return jsonb_build_object('ok', true);
+end $$;
+
+-- tl_get_quote precisa devolver o grupo para a tela desenhar o botão.
+create or replace function tl_get_quote(p_token text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare pp ops_proposals%rowtype; o ops_opportunities%rowtype; result jsonb;
+begin
+  select * into pp from ops_proposals where token = p_token;
+  if not found then return null; end if;
+  select * into o from ops_opportunities where id = pp.opportunity_id;
+
+  select jsonb_build_object(
+    'proposal', jsonb_build_object(
+      'id', pp.id, 'version', pp.version, 'title', pp.title, 'summary', pp.summary,
+      'lang', coalesce(pp.lang, o.lang, 'pt'),
+      'pax_summary', pp.pax_summary, 'travel_window', pp.travel_window,
+      'intro', pp.intro, 'payment_note', pp.payment_note, 'terms_url', pp.terms_url,
+      'show_prices', pp.show_prices,
+      'crm_code', o.crm_code, 'agency', o.agency, 'final_client', o.final_client,
+      'outcome', pp.outcome, 'responded_at', pp.responded_at),
+    'items', coalesce((select jsonb_agg(jsonb_build_object(
+        'id', i.id, 'service_date', i.service_date, 'title', i.title,
+        'details', i.details, 'price', i.price,
+        'optional', i.optional, 'choice_group', i.choice_group,
+        'extras', i.extras) order by i.sort)
+      from ops_proposal_items i where i.proposal_id = pp.id), '[]'::jsonb)
+  ) into result;
+  return result;
+end $$;
+
+revoke all on function tl_get_quote(text) from public;
+revoke all on function tl_submit_quote(text, jsonb) from public;
+grant execute on function tl_get_quote(text) to anon, authenticated;
+grant execute on function tl_submit_quote(text, jsonb) to anon, authenticated;

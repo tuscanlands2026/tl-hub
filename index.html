@@ -453,7 +453,9 @@ const T = {
     qDoneText:"Agradecemos. Vamos reconfirmar os serviços com os fornecedores e voltamos com a confirmação e o pagamento.",
     qAlready:"Esta proposta já foi respondida.",
     qNoPrices:"Os valores serão informados em seguida.",
-    qNeedName:"Informe o seu nome para enviar."
+    qNeedName:"Informe o seu nome para enviar.",
+    qPick:"Escolha uma opção", qPickOne:"Escolha uma",
+    qNeedPick:"Falta escolher em:"
   },
   en:{
     docTitle:"Service Confirmation",
@@ -519,7 +521,9 @@ const T = {
     qDoneText:"Thank you. We will reconfirm the services with the suppliers and come back with the confirmation and payment.",
     qAlready:"This proposal has already been answered.",
     qNoPrices:"Prices will follow shortly.",
-    qNeedName:"Please give your name to send."
+    qNeedName:"Please give your name to send.",
+    qPick:"Choose one option", qPickOne:"Choose one",
+    qNeedPick:"Still to choose:"
   }
 };
 
@@ -1260,7 +1264,9 @@ function renderProposal(){
 
   <div class="card">
     <div class="section-title">Serviços da proposta</div>
-    <div class="hint">Marque <b>opcional</b> no que o cliente decide. Os extras de cada linha
+    <div class="hint">Marque <b>opcional</b> no que o cliente decide. Linhas com o mesmo texto em
+      <b>escolha</b> viram alternativas — o cliente leva uma só, e o envio é recusado se ele não
+      escolher nenhuma. Os extras de cada linha
       aparecem como caixas à parte, com preço próprio — transporte, anfitrião, visita guiada,
       ou o que você escrever.</div>
     <div id="qi-host"></div>
@@ -1294,7 +1300,7 @@ const quoteLink = tok => (clientLink(tok)||"").replace("#/confirm/","#/quote/");
 function drawQuoteItems(){
   el("qi-host").innerHTML = `<table class="rows">
     <thead><tr><th style="width:100px;">Data</th><th>Serviço</th><th style="width:110px;">Valor €</th>
-      <th style="width:88px;">Opcional</th><th class="x"></th></tr></thead>
+      <th style="width:82px;">Opcional</th><th style="width:130px;">Escolha</th><th class="x"></th></tr></thead>
     <tbody>${PITEMS.map((r,i)=>`<tr>
       <td><input value="${esc(r.service_date||"")}" oninput="PITEMS[${i}].service_date=this.value"></td>
       <td>
@@ -1313,6 +1319,8 @@ function drawQuoteItems(){
       </td>
       <td><input type="number" step="0.01" value="${Number(r.price)||0}" style="text-align:right;" oninput="PITEMS[${i}].price=parseFloat(this.value)||0;sumQuote()"></td>
       <td style="text-align:center;padding-top:8px;"><input type="checkbox" style="width:auto;"${r.optional?" checked":""} onchange="PITEMS[${i}].optional=this.checked"></td>
+      <td><input value="${esc(r.choice_group||"")}" placeholder="ex.: hotel_umbria"
+        oninput="PITEMS[${i}].choice_group=this.value.trim()||null"></td>
       <td class="x"><button class="iconbtn" onclick="PITEMS.splice(${i},1);drawQuoteItems()">×</button></td>
     </tr>`).join("")}</tbody></table>`;
   sumQuote();
@@ -1331,9 +1339,19 @@ function addExtra(i){
   drawQuoteItems();
 }
 
+/* "Se levar tudo" nunca soma duas alternativas do mesmo grupo: pega a
+   mais cara, que é o teto real daquela escolha. Somar as duas daria um
+   número que nenhuma venda pode atingir. */
 function sumQuote(){
-  const t = PITEMS.reduce((s,r)=>s+(Number(r.price)||0)
-    + (r.extras||[]).reduce((x,e)=>x+(Number(e.price)||0),0), 0);
+  const vistos = {};
+  let t = 0;
+  PITEMS.forEach(r=>{
+    const v = (Number(r.price)||0) + (r.extras||[]).reduce((x,e)=>x+(Number(e.price)||0),0);
+    const g = (r.choice_group||"").trim();
+    if(!g){ t += v; return; }
+    vistos[g] = Math.max(vistos[g]||0, v);
+  });
+  Object.values(vistos).forEach(v=>t+=v);
   el("qi-total").textContent = eur(t);
 }
 
@@ -1352,6 +1370,7 @@ async function saveProposal(){
   const {error:e2} = PITEMS.length ? await sb.from("ops_proposal_items").insert(
     PITEMS.map((r,i)=>({proposal_id:PROP.id, sort:i, service_date:r.service_date,
       title:r.title, details:r.details, price:r.price, optional:!!r.optional,
+      choice_group:(r.choice_group||"").trim()||null,
       extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}))) : {};
   btn.disabled = false; btn.textContent = "Salvar";
   const err = e1||e2;
@@ -2218,7 +2237,7 @@ function quoteTotal(){
   const p = QT.proposal;
   let t = 0;
   (QT.items||[]).forEach(i=>{
-    const dentro = !i.optional || QSEL.items[i.id];
+    const dentro = (!i.optional && !i.choice_group) || QSEL.items[i.id];
     if(!dentro) return;
     t += Number(i.price)||0;
     (i.extras||[]).forEach(e=>{
@@ -2233,6 +2252,19 @@ function marcaItem(id, on){
   if(!on) delete QSEL.extras[id];
   drawQuote();
 }
+
+/* Escolher uma alternativa desmarca as irmãs, e leva junto os extras
+   delas: extra de hotel que ele não vai usar somando no total é a conta
+   errada que só aparece na fatura. */
+function marcaEscolha(grupo, id){
+  (QT.items||[]).forEach(i=>{
+    if(i.choice_group === grupo){
+      QSEL.items[i.id] = (i.id === id);
+      if(i.id !== id) delete QSEL.extras[i.id];
+    }
+  });
+  drawQuote();
+}
 function marcaExtra(id, chave, on){
   const atual = QSEL.extras[id] || [];
   QSEL.extras[id] = on ? atual.concat([chave]) : atual.filter(k=>k!==chave);
@@ -2244,17 +2276,23 @@ function drawQuote(){
   const respondida = !!p.responded_at;
 
   const linha = i => {
-    const dentro = !i.optional || !!QSEL.items[i.id];
+    const dentro = (!i.optional && !i.choice_group) || !!QSEL.items[i.id];
     return `<tr>
       <td class="date-cell">${esc(i.service_date||"")}</td>
       <td>
         <div class="svc-title">${esc(i.title)}
-          ${i.optional?`<span class="tag" style="margin-left:6px;">${t.qOptional}</span>`:""}</div>
+          ${i.choice_group?`<span class="tag" style="margin-left:6px;">${t.qPick}</span>`
+            :(i.optional?`<span class="tag" style="margin-left:6px;">${t.qOptional}</span>`:"")}</div>
         ${i.details?`<div class="svc-sub">${nl2br(i.details)}</div>`:""}
-        ${i.optional && !respondida ? `<div class="check" style="margin:8px 0 0;">
+        ${i.choice_group && !respondida ? `<div class="check" style="margin:8px 0 0;">
+          <input type="radio" name="cg-${esc(i.choice_group)}" id="qi-${esc(i.id)}"
+            ${QSEL.items[i.id]?" checked":""}
+            onchange="marcaEscolha('${esc(i.choice_group)}','${esc(i.id)}')">
+          <label for="qi-${esc(i.id)}">${t.qPickOne}</label></div>`
+        : (i.optional && !respondida ? `<div class="check" style="margin:8px 0 0;">
           <input type="checkbox" id="qi-${esc(i.id)}"${QSEL.items[i.id]?" checked":""}
             onchange="marcaItem('${esc(i.id)}',this.checked)">
-          <label for="qi-${esc(i.id)}">${t.qChoose}</label></div>`:""}
+          <label for="qi-${esc(i.id)}">${t.qChoose}</label></div>`:"")}
         ${(i.extras||[]).length && dentro && !respondida ? `<div class="extras-cli">
           <div class="k">${t.qExtras}</div>
           ${(i.extras||[]).map(e=>`<div class="check" style="margin:0 0 6px;">
@@ -2342,6 +2380,15 @@ async function submitQuote(){
   const p = QT.proposal, t = T[p.lang||"pt"];
   const nome = el("qc-name").value.trim();
   if(!nome){ el("qc-msg").innerHTML = `<div class="msg">${t.qNeedName}</div>`; return; }
+  // Mesma regra do banco, só que respondida na hora: grupo sem escolha
+  // é pergunta sem resposta.
+  const grupos = [...new Set((QT.items||[]).map(i=>i.choice_group).filter(Boolean))];
+  const semEscolha = grupos.filter(g =>
+    !(QT.items||[]).some(i=>i.choice_group===g && QSEL.items[i.id]));
+  if(semEscolha.length){
+    el("qc-msg").innerHTML = `<div class="msg">${t.qNeedPick} ${esc(semEscolha.join(" · "))}</div>`;
+    return;
+  }
   const btn = el("qc-go"); btn.disabled = true; btn.textContent = t.sending;
   const escolhidos = Object.keys(QSEL.items).filter(k=>QSEL.items[k]);
   const {data,error} = await sb.rpc("tl_submit_quote",{p_token:QT.token, p_payload:{
@@ -2352,6 +2399,7 @@ async function submitQuote(){
   if(error || !data || !data.ok){
     let txt = (error&&error.message)||(data&&data.error)||"erro";
     if(data && data.error==="already_answered") txt = t.qAlready;
+    if(data && data.error==="missing_choice") txt = t.qNeedPick+" "+(data.missing||[]).join(" · ");
     el("qc-msg").innerHTML = `<div class="msg">${esc(txt)}</div>`;
     btn.disabled = false; btn.textContent = t.qSend; return;
   }
