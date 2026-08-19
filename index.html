@@ -253,6 +253,27 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .doc.com .total-box .lbl,.doc.com .total-box .amt{color:var(--copper);}
 .doc.com table.svc tfoot td{border-top:1.5px solid var(--copper);font-weight:500;
   padding-top:9px;color:var(--ink);}
+.doc.com .proxpag{margin-top:10px;font-size:11.5px;color:var(--copper);
+  border-left:2px solid var(--copper);padding-left:10px;line-height:1.4;}
+/* O relatório de comissão é papel de trabalho, não peça de venda: cabe
+   apertar para o total fechar na mesma folha da tabela. Cada folga
+   cortada aqui é uma linha de serviço a mais que entra antes de virar
+   a página. */
+.doc.com h1.doctitle{margin:14px 0 3px;font-size:21px;}
+.doc.com .intro{margin:5px 0 12px;font-size:12.5px;}
+.doc.com .meta{margin:0 0 12px;}
+.doc.com .meta .cell{padding:8px 11px;}
+.doc.com .meta .v{font-size:12.5px;}
+.doc.com table.svc tbody td{padding:7px 11px;font-size:12px;}
+.doc.com table.svc thead th{padding:6px 11px;font-size:9.5px;}
+.doc.com .svc-title{line-height:1.42;font-size:12px;}
+.doc.com table.svc td.inclui{font-size:11px;line-height:1.42;}
+.doc.com table.svc tfoot td{padding-top:8px;font-size:12px;}
+.doc.com .total-row{margin-top:10px;}
+.doc.com .total-box{padding:11px 22px;}
+.doc.com .total-box .amt{font-size:21px;}
+/* Só existe enquanto a medida é tirada: reproduz na tela a largura que
+   o documento tem no papel. */
 .doc .dadosnf{break-inside:avoid;}
 /* Coluna que explica a alíquota: texto de apoio, não título de serviço. */
 .doc table.svc td.inclui{font-size:12px;color:var(--muted);line-height:1.5;}
@@ -361,6 +382,18 @@ table.rows tr.par td{border-top:none;padding-top:0;}
   .doc table.svc tbody tr:nth-child(even){background:var(--cream-light)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .doc .total-box{background:var(--cream)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .doc.com .total-box{background:#f3e9e4!important;}
+  /* "Não quebre antes do total" parecia proteger o total, mas o efeito
+     é o contrário: para obedecer, o navegador leva junto o que vem
+     antes: a linha de totais da tabela ia para a folha seguinte e a
+     página 1 terminava cortada. O que garante o total na mesma folha é
+     caber — por isso o relatório é apertado, não travado. */
+  /* Bloco que não é o último fecha a folha: assim o subtotal cai no pé
+     da página a que ele se refere. */
+  .doc.com table.svc.corta{break-after:page;}
+  /* As instruções vão para a folha seguinte. Com a tabela e o total
+     ocupando a primeira, elas não caberiam junto sem apertar a ponto de
+     ficar ilegível — e a primeira página é a que a agência confere. */
+  .doc.com .instr{break-before:page;}
   .doc.com table.svc thead th{background:var(--copper)!important;}
   .doc .head{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   /* RODAPÉ. Ele fica logo depois do conteúdo, e não colado no pé da
@@ -1384,6 +1417,36 @@ async function saveOpportunity(){
   setTimeout(()=>btn.textContent="Salvar", 1600);
 }
 
+/* Uma tabela por bloco, com subtotal no pé de cada uma. A última não
+   corta folha; as outras sim, para o subtotal cair no pé da página a
+   que ele se refere. */
+function montaTabelas(blocos, L){
+  return blocos.map((bl,n)=>{
+    const ultimo = n === blocos.length - 1;
+    const sBase = bl.reduce((x,r)=>x+(Number(r.price)||0),0);
+    const sCom  = bl.reduce((x,r)=>x+comissaoDe(r),0);
+    return `<table class="svc${ultimo?"":" corta"}">
+      <thead><tr><th style="width:90px;">${L.date}</th><th>${L.svc}</th>
+        <th style="width:150px;">${L.inc}</th>
+        <th class="money" style="width:104px;">${L.val}</th>
+        <th class="money" style="width:48px;">${L.pct}</th>
+        <th class="money" style="width:112px;">${L.com}</th></tr></thead>
+      <tbody>${bl.map(r=>`<tr>
+        <td class="date-cell">${esc(r.service_date||"")}</td>
+        <td><div class="svc-title">${esc(r.title)}</div></td>
+        <td class="inclui">${esc(r.commission_basis||"—")}</td>
+        <td class="money">${eur(r.price)}</td>
+        <td class="money">${Number(r.commission_pct)}%</td>
+        <td class="money">${eur(comissaoDe(r))}</td></tr>`).join("")}</tbody>
+      <tfoot><tr>
+        <td></td><td>${blocos.length>1 ? `${L.subt} ${n+1}/${blocos.length}` : L.sold}</td><td></td>
+        <td class="money">${eur(sBase)}</td>
+        <td></td>
+        <td class="money">${eur(sCom)}</td>
+      </tr></tfoot>
+    </table>`; }).join("");
+}
+
 /* -------------------------------------------------- COMISSÃO --------- */
 /* Documento interno: sai da order, vai para a agência. Só entra linha
    com percentual definido — linha sem comissão é linha que ela ainda
@@ -1403,15 +1466,17 @@ async function renderCommission(){
   const texto = d => (d && (d[idioma] || d.pt)) || "";
   const total = linhas.reduce((x,r)=>x+comissaoDe(r), 0);
   const base  = linhas.reduce((x,r)=>x+(Number(r.price)||0), 0);
+
+
   const L = idioma === "en"
     ? {tit:"Commission report", sub:"Covering the services confirmed for this booking.",
        para:"To", ref:"Reference", per:"Period", date:"Date", svc:"Service", val:"Amount €",
-       inc:"Included", sold:"Totals",
+       inc:"Included", sold:"Total services sold", subt:"Subtotal — page", next:"Invoicing instructions on the next page.",
        pct:"%", com:"Commission €", tot:"Total commission", basel:"Total services sold",
        bill:"Invoice to", how:"How to invoice"}
     : {tit:"Relatório de comissão", sub:"Referente aos serviços confirmados desta reserva.",
        para:"Para", ref:"Referência", per:"Período", date:"Data", svc:"Serviço", val:"Valor €",
-       inc:"Inclusos", sold:"Totais",
+       inc:"Inclusos", sold:"Total de serviços vendidos", subt:"Subtotal — folha", next:"Instruções para emissão da nota na próxima página.",
        pct:"%", com:"Comissão €", tot:"Total da comissão", basel:"Total de serviços vendidos",
        bill:"Dados para emissão da nota", how:"Como emitir a nota"};
 
@@ -1449,37 +1514,22 @@ async function renderCommission(){
       <div class="cell"><div class="k">${L.basel}</div><div class="v">${eur(base)}</div></div>
     </div>
 
-    <table class="svc">
-      <thead><tr><th style="width:90px;">${L.date}</th><th>${L.svc}</th>
-        <th style="width:150px;">${L.inc}</th>
-        <th class="money" style="width:104px;">${L.val}</th>
-        <th class="money" style="width:48px;">${L.pct}</th>
-        <th class="money" style="width:112px;">${L.com}</th></tr></thead>
-      <tbody>${linhas.map(r=>`<tr>
-        <td class="date-cell">${esc(r.service_date||"")}</td>
-        <td><div class="svc-title">${esc(r.title)}</div></td>
-        <td class="inclui">${esc(r.commission_basis||"—")}</td>
-        <td class="money">${eur(r.price)}</td>
-        <td class="money">${Number(r.commission_pct)}%</td>
-        <td class="money">${eur(comissaoDe(r))}</td></tr>`).join("")}</tbody>
-      <tfoot><tr>
-        <td></td><td>${L.sold}</td><td></td>
-        <td class="money">${eur(base)}</td>
-        <td></td>
-        <td class="money">${eur(total)}</td>
-      </tr></tfoot>
-    </table>
+    ${montaTabelas([linhas], L)}
 
     <div class="total-row"><div class="total-box">
       <span class="lbl">${L.tot}</span><span class="amt">${eur(total)}</span></div></div>
 
-    <div class="dadosnf">
-      <div class="blocktitle">${L.bill}</div>
-      <div class="condicoes">${fmtDoc(texto(bt))}</div>
-    </div>
+    <div class="proxpag">${L.next}</div>
 
-    <div class="blocktitle">${L.how}</div>
-    <div class="condicoes">${fmtDoc(texto(tm))}</div>
+    <div class="instr">
+      <div class="dadosnf">
+        <div class="blocktitle">${L.bill}</div>
+        <div class="condicoes">${fmtDoc(texto(bt))}</div>
+      </div>
+
+      <div class="blocktitle">${L.how}</div>
+      <div class="condicoes">${fmtDoc(texto(tm))}</div>
+    </div>
 
     <div class="foot">
       <div class="co">TUSCAN LANDS TRAVEL</div>
