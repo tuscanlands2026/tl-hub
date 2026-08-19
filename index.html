@@ -262,6 +262,8 @@ table.rows tr.par td{border-top:none;padding-top:0;}
    peso vai escrito, em 500, que é o peso de ênfase da casa. */
 .doc strong{font-weight:500;}
 .doc .condicoes p{font-size:13px;line-height:1.75;margin-bottom:10px;text-align:justify;}
+.doc .condicoes u{text-decoration:underline;text-underline-offset:3px;
+  text-decoration-thickness:.5px;}
 .doc .condicoes ul{margin:0 0 12px 18px;}
 .doc .condicoes li{font-size:13px;line-height:1.7;margin-bottom:7px;text-align:justify;}
 .doc .voucher-note{margin-top:18px;font-size:13px;color:var(--muted);line-height:1.7;
@@ -435,7 +437,11 @@ const nl2br = s => esc(s).replace(/\n/g,"<br>");
 function fmtDoc(txt){
   const linhas = String(txt||"").split("\n");
   let out = "", lista = false;
-  const forte = t => esc(t).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  // **negrito** e __sublinhado__. O sublinhado destaca sem pesar a
+  // mancha: parágrafo inteiro em negrito compete com os títulos.
+  const forte = t => esc(t)
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/__([^_]+)__/g, "<u>$1</u>");
   linhas.forEach(l=>{
     const li = /^\s*[-•]\s+(.*)$/.exec(l);
     if(li){

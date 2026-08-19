@@ -95,7 +95,8 @@ mora na proposta e sai junto das tabelas, na mesma folha se couber. A página se
 a de forma de pagamento e condições gerais.
 
 `ops_proposals.conditions` é a forma de pagamento e as condições gerais, em texto simples:
-linha começando com `-` vira item de lista, `**texto**` vira negrito. Sai em **página
+linha começando com `-` vira item de lista, `**texto**` vira negrito, `__texto__` vira
+sublinhado. Sai em **página
 separada depois das tabelas**. O negrito tem peso declarado em 500 no CSS: o `bolder` do
 navegador é relativo e, contra o peso 300 do documento, resolve para 400 e some.
 
