@@ -61,6 +61,31 @@ Linha sem seção cai numa tabela final sem título: transfer avulso não precis
 O preço aparece em **toda** linha, inclusive na que não foi escolhida — apagado, porque
 não está somando. Traço no lugar do valor escondia do cliente o preço do que ele não levou.
 
+**Toda linha tem caixinha.** Não existe serviço que entre sozinho: a proposta manda duas
+hospedagens na Umbria, duas em Florença e os serviços terrestres, e quem monta a viagem é o
+cliente. Envio sem nenhum serviço marcado é recusado na tela e no banco (`missing_items`) —
+viraria order vazia depois. `choice_group` continua existindo para o caso de "uma destas
+duas e só uma", mas não é mais o normal. O extra é subitem de uma linha — assistente em
+português, contratação fora do horário — e só conta se a linha dele foi escolhida.
+
+**A parte fixa depois das tabelas, em duas camadas.** É fixa no sentido de que toda proposta
+tem de ter, e variável no sentido de que o texto muda de uma para outra. `ops_text_defaults`
+guarda o padrão da casa, de onde toda proposta nova nasce preenchida; `ops_proposals`
+guarda a cópia daquela proposta, que ela edita sem mexer nas outras. Sem a primeira camada
+ela redigita tudo toda vez; sem a segunda, corrigir uma proposta mudaria o texto de
+propostas já enviadas. O padrão em português veio da TL-039-26 palavra por palavra — é
+texto comercial da casa, não se reescreve. O inglês nasce em branco de propósito: cláusula
+comercial não se traduz por conta própria.
+
+**Tudo bilíngue**: `conditions_pt`/`conditions_en`, `excluded_pt`/`excluded_en`, e
+`title`/`title_en` · `note`/`note_en` em cada seção. `tl_get_quote` resolve pelo idioma da
+proposta e cai no português quando a tradução não foi escrita.
+
+**"Não inclusos" não é da parte fixa.** Muda de opção para opção — na opção com transfer
+exclui aluguel de carro, na opção com carro alugado exclui combustível e pedágio. Por isso
+mora na proposta e sai junto das tabelas, na mesma folha se couber. A página separada é só
+a de forma de pagamento e condições gerais.
+
 `ops_proposals.conditions` é a forma de pagamento e as condições gerais, em texto simples:
 linha começando com `-` vira item de lista, `**texto**` vira negrito. Sai em **página
 separada depois das tabelas**. O negrito tem peso declarado em 500 no CSS: o `bolder` do
@@ -99,7 +124,7 @@ Separar depois, se justificar: `pg_dump` filtrando `ops_*`.
 
 ### Tabelas
 `ops_orders` · `ops_order_items` · `ops_order_payments` · `ops_order_confirmations` ·
-`ops_order_fields` · `ops_notify_config` · `ops_notifications`
+`ops_order_fields` · `ops_notify_config` · `ops_notifications` · `ops_text_defaults`
 
 `ops_order_fields` são os campos variáveis daquele checkout. Os três estados da
 especificação: **não aparece** é a linha não existir, **aparece vazio** é `mode='blank'`,
