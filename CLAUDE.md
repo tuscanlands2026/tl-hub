@@ -50,6 +50,31 @@ Arquivo único, sem build, sem framework. Vanilla JS + supabase-js via CDN.
 - `db/tl-hub-notify.sql` — aviso por e-mail quando a agência confirma.
 
 Ordem de aplicação no SQL Editor: orders → opportunities → checkout → notify → quote.
+`db/exemplo-quote-TL-039-26.sql` carrega a proposta real da Camila como dados de exemplo.
+
+**Quote simples.** É o modelo sem a proposta "bonita": serve para hospedagem mais
+serviços terrestres, e para orçamento avulso de transfer. As linhas se agrupam em
+**seções** (`ops_proposals.sections`, chave em `ops_proposal_items.section`), e cada seção
+vira uma tabela própria com título e instrução — "Selected Stays", "Ground Services".
+Linha sem seção cai numa tabela final sem título: transfer avulso não precisa de seção.
+
+O preço aparece em **toda** linha, inclusive na que não foi escolhida — apagado, porque
+não está somando. Traço no lugar do valor escondia do cliente o preço do que ele não levou.
+
+`ops_proposals.conditions` é a forma de pagamento e as condições gerais, em texto simples:
+linha começando com `-` vira item de lista, `**texto**` vira negrito. Sai em **página
+separada depois das tabelas**. O negrito tem peso declarado em 500 no CSS: o `bolder` do
+navegador é relativo e, contra o peso 300 do documento, resolve para 400 e some.
+
+O **aceite das condições comerciais** é obrigatório e conferido no banco, não só na tela —
+`tl_submit_quote` devolve `missing_ack` sem ele.
+
+**Dois campos que o cliente nunca vê.** `ops_proposals.internal_notes` (valor net, margem)
+e `ops_proposal_items.supplier` (qual fornecedor opera a linha). Nenhum dos dois sai em
+`tl_get_quote`, e `supplier` também não sai em `tl_get_order`: as duas funções montam o
+objeto **campo a campo**, justamente para que coluna nova não vaze sozinha por ter sido
+adicionada à tabela. O fornecedor desce para `ops_order_items.supplier` quando a proposta
+vira venda — é na operação, ao reconfirmar e pagar, que o dado serve.
 
 **Quote.** A proposta vira documento com token próprio. Linha `optional=false` é inclusa e não
 se desmarca; `true` o cliente escolhe. Cada linha carrega seus extras em jsonb — transporte,
