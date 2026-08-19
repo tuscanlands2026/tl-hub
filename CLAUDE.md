@@ -46,9 +46,22 @@ Arquivo único, sem build, sem framework. Vanilla JS + supabase-js via CDN.
 - `db/tl-hub-orders.sql` — schema, RLS e funções.
 - `db/tl-hub-opportunities.sql` — oportunidade, briefing e proposta.
 - `db/tl-hub-checkout.sql` — checkout configurável e link dos termos.
+- `db/tl-hub-quote.sql` — proposta que o cliente escolhe, e a order gerada dela.
 - `db/tl-hub-notify.sql` — aviso por e-mail quando a agência confirma.
 
-Ordem de aplicação no SQL Editor: orders → opportunities → checkout → notify.
+Ordem de aplicação no SQL Editor: orders → opportunities → checkout → notify → quote.
+
+**Quote.** A proposta vira documento com token próprio. Linha `optional=false` é inclusa e não
+se desmarca; `true` o cliente escolhe. Cada linha carrega seus extras em jsonb — transporte,
+anfitrião, visita guiada — cada um com preço próprio e caixa à parte. `show_prices=false`
+manda a proposta sem valor nenhum.
+
+Responder **não é aceitar**: `tl_submit_quote` grava o retrato da escolha, marca
+`responded_at`, manda e-mail e não cria order. Entre o pedido do cliente e o compromisso
+existe a reconfirmação dos serviços com os fornecedores. A order nasce quando ela chama
+`tl_order_from_quote`, que marca a proposta como aceita antes de inserir a order, na mesma
+transação — é o caminho que o gatilho `tl_guard_order` exige, e é por isso que a order
+finalmente se liga à oportunidade. Extra marcado vira linha própria na order.
 
 ### Decisão de infraestrutura (tomada, não reabrir sem motivo)
 As tabelas vivem **dentro do projeto Supabase do CRM**, não em projeto separado.

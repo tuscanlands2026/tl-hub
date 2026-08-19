@@ -251,6 +251,11 @@ table.rows td.x{width:30px;padding-right:0;}
    diferentes. */
 .fieldrow > div{display:flex;flex-direction:column;}
 .fieldrow > div > input,.fieldrow > div > select,.fieldrow > div > textarea{margin-top:auto;}
+.extras-cli{border-left:2px solid var(--copper);padding-left:11px;margin-top:10px;}
+.extras-cli .k{font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--copper);font-weight:500;margin-bottom:6px;}
+.extras-box{border-left:2px solid var(--copper);padding-left:10px;margin-top:8px;}
+.extra-row{display:grid;grid-template-columns:1fr 1fr 90px 30px;gap:6px;margin-bottom:5px;align-items:center;}
 .trav-row{display:grid;grid-template-columns:1fr 170px 30px;gap:7px;margin-bottom:7px;align-items:center;}
 .check{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.65;margin-bottom:12px;}
 .check input{width:auto;margin-top:3px;}
@@ -439,7 +444,16 @@ const T = {
     brWindow:"Período", brPax:"Passageiros", brSource:"Origem do pedido",
     brScope:"O pedido", brBudget:"Orçamento", brConstraints:"Restrições e datas fixas",
     brConfirm:"Confirme ou corrija este entendimento antes de seguirmos para a proposta.",
-    brOpp:"Oportunidade"
+    brOpp:"Oportunidade",
+    qTitle:"Proposta", qIntro:"Confira os serviços e escolha o que quer levar.",
+    qIncluded:"Incluso", qOptional:"Opcional", qExtras:"Adicionais",
+    qChoose:"Marque para incluir", qYourTotal:"Seu total",
+    qWho:"Quem está respondendo", qSend:"Enviar escolha",
+    qDone:"Escolha recebida",
+    qDoneText:"Agradecemos. Vamos reconfirmar os serviços com os fornecedores e voltamos com a confirmação e o pagamento.",
+    qAlready:"Esta proposta já foi respondida.",
+    qNoPrices:"Os valores serão informados em seguida.",
+    qNeedName:"Informe o seu nome para enviar."
   },
   en:{
     docTitle:"Service Confirmation",
@@ -496,7 +510,16 @@ const T = {
     brWindow:"Period", brPax:"Travellers", brSource:"Where the request came from",
     brScope:"The request", brBudget:"Budget", brConstraints:"Constraints and fixed dates",
     brConfirm:"Please confirm or correct this understanding before we move on to the proposal.",
-    brOpp:"Opportunity"
+    brOpp:"Opportunity",
+    qTitle:"Proposal", qIntro:"Review the services and choose what you would like to include.",
+    qIncluded:"Included", qOptional:"Optional", qExtras:"Add-ons",
+    qChoose:"Tick to include", qYourTotal:"Your total",
+    qWho:"Who is answering", qSend:"Send selection",
+    qDone:"Selection received",
+    qDoneText:"Thank you. We will reconfirm the services with the suppliers and come back with the confirmation and payment.",
+    qAlready:"This proposal has already been answered.",
+    qNoPrices:"Prices will follow shortly.",
+    qNeedName:"Please give your name to send."
   }
 };
 
@@ -697,9 +720,10 @@ function route(){ return (location.hash||"").replace(/^#\/?/,""); }
 
 async function boot(){
   const r = route();
-  const isPublic = r.startsWith("confirm/");
+  const isPublic = r.startsWith("confirm/") || r.startsWith("quote/");
   if(!makeClient()){ return renderSetup(isPublic ? r : null); }
-  if(isPublic) return renderPublic(r.split("/")[1]);
+  if(r.startsWith("confirm/")) return renderPublic(r.split("/")[1]);
+  if(r.startsWith("quote/"))   return renderQuote(r.split("/")[1]);
   const {data} = await sb.auth.getSession();
   if(!data.session) return renderLogin();
   renderPainel();
@@ -949,7 +973,7 @@ async function renderPainel(){
 /*  existiam no banco desde a sessão que escreveu tl-hub-opportunities  */
 /*  e nunca tinham ganhado tela — este é o pedaço que faltava.          */
 /* ==================================================================== */
-let OPP = null, BRIEF = null;
+let OPP = null, BRIEF = null, PROPS = [], PROP = null, PITEMS = [], PSEL = null;
 
 const ETAPA = {
   proposal:    "Proposta",
@@ -1012,12 +1036,13 @@ async function renderOpportunities(){
 }
 
 async function openOpportunity(id){
-  const [{data:o,error:e1},{data:b}] = await Promise.all([
+  const [{data:o,error:e1},{data:b},{data:pl}] = await Promise.all([
     sb.from("ops_opportunities").select("*").eq("id",id).single(),
-    sb.from("ops_briefings").select("*").eq("opportunity_id",id).maybeSingle()
+    sb.from("ops_briefings").select("*").eq("opportunity_id",id).maybeSingle(),
+    sb.from("ops_proposals").select("*").eq("opportunity_id",id).order("version")
   ]);
   if(e1) return alert(e1.message);
-  OPP = o; BRIEF = b || null;
+  OPP = o; BRIEF = b || null; PROPS = pl || [];
   renderOpportunity();
 }
 
@@ -1092,11 +1117,51 @@ function renderOpportunity(){
         </select>
       </div>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Propostas — etapa 2</div>
+    <div class="hint">A quote que o cliente recebe: ele marca os opcionais e os extras, e o que
+      ele escolher volta para você conferir. A order só nasce depois que você reconfirmar os
+      serviços e mandar gerar.</div>
+    <div id="pl-host"></div>
+    <button class="btn ghost sm" id="pl-new" style="margin-top:10px;">+ Nova proposta</button>
   </div>`, o.title);
 
+  drawProposals();
+  el("pl-new").onclick = newProposal;
   el("op-back").onclick = renderOpportunities;
   el("op-save").onclick = saveOpportunity;
   el("op-doc").onclick = renderBriefingDoc;
+}
+
+const SITU = {accepted:"Aceita", refused:"Recusada"};
+
+function drawProposals(){
+  const host = el("pl-host");
+  if(!PROPS.length){ host.innerHTML = `<div class="muted">Nenhuma proposta ainda.</div>`; return; }
+  host.innerHTML = `<table class="list"><thead><tr>
+      <th>Versão</th><th>Título</th><th>Preços</th><th>Situação</th><th>Resposta do cliente</th></tr></thead><tbody>
+    ${PROPS.map(p=>`<tr data-id="${p.id}">
+      <td>v${p.version}</td>
+      <td>${esc(p.title||"—")}</td>
+      <td>${p.show_prices===false?"sem preços":"com preços"}</td>
+      <td><span class="badge ${p.outcome==="accepted"?"confirmed":(p.outcome==="refused"?"draft":"sent")}">${esc(SITU[p.outcome]||"Aguardando")}</span></td>
+      <td>${p.responded_at?stamp(p.responded_at,"pt"):"—"}</td></tr>`).join("")}
+    </tbody></table>`;
+  host.querySelectorAll("tr[data-id]").forEach(tr=>tr.onclick=()=>openProposal(tr.dataset.id));
+}
+
+async function newProposal(){
+  const v = 1 + PROPS.reduce((m,p)=>Math.max(m,p.version||0),0);
+  const {data,error} = await sb.from("ops_proposals").insert({
+    opportunity_id:OPP.id, version:v, title:OPP.title, lang:OPP.lang,
+    pax_summary:(BRIEF&&BRIEF.pax_summary)||null,
+    travel_window:(BRIEF&&BRIEF.travel_window)||null,
+    terms_url: DEFAULT_TERMS_URL
+  }).select().single();
+  if(error) return alert(error.message);
+  openProposal(data.id);
 }
 
 async function saveOpportunity(){
@@ -1139,6 +1204,208 @@ async function saveOpportunity(){
   if(el("op-who")) el("op-who").textContent = quemE(OPP);
   btn.textContent = "Salvo";
   setTimeout(()=>btn.textContent="Salvar", 1600);
+}
+
+/* ==================================================================== */
+/*  PROPOSTA — o editor da quote                                        */
+/* ==================================================================== */
+async function openProposal(id){
+  const [{data:p,error:e1},{data:it},{data:sel}] = await Promise.all([
+    sb.from("ops_proposals").select("*").eq("id",id).single(),
+    sb.from("ops_proposal_items").select("*").eq("proposal_id",id).order("sort"),
+    sb.from("ops_proposal_selections").select("*").eq("proposal_id",id)
+      .order("submitted_at",{ascending:false})
+  ]);
+  if(e1) return alert(e1.message);
+  PROP = p; PITEMS = it||[]; PSEL = (sel&&sel[0])||null;
+  renderProposal();
+}
+
+function renderProposal(){
+  NAV = "opportunities";
+  const p = PROP;
+  shell(`
+  <div class="editor-head">
+    <div>
+      <div class="overline">Proposta v${p.version} · ${esc(OPP.title)}</div>
+      <h1>${esc(p.title||"Sem título")}</h1>
+      <div class="who">${esc(quemE(OPP))}</div>
+    </div>
+    <div class="editor-actions">
+      <button class="btn ghost sm" id="pp-back">Voltar</button>
+      <button class="btn sm" id="pp-save">Salvar</button>
+      <button class="btn ghost sm" id="pp-preview">Ver como o cliente vê</button>
+    </div>
+  </div>
+
+  <div class="card stack">
+    <div class="section-title">Cabeçalho</div>
+    <div class="grid3">
+      <div><label>Título</label><input id="q-title" value="${esc(p.title||"")}"></div>
+      <div><label>Passageiros</label><input id="q-pax" value="${esc(p.pax_summary||"")}"></div>
+      <div><label>Período</label><input id="q-window" value="${esc(p.travel_window||"")}"></div>
+    </div>
+    <div class="grid3">
+      <div><label>Idioma</label><select id="q-lang">
+        <option value="pt"${(p.lang||OPP.lang)==="pt"?" selected":""}>Português</option>
+        <option value="en"${(p.lang||OPP.lang)==="en"?" selected":""}>English</option></select></div>
+      <div><label>Mostrar preços ao cliente</label><select id="q-prices">
+        <option value="sim"${p.show_prices!==false?" selected":""}>Sim</option>
+        <option value="nao"${p.show_prices===false?" selected":""}>Não — só os serviços</option></select></div>
+      <div><label>Link dos termos</label><input id="q-terms" value="${esc(p.terms_url||"")}" placeholder="${DEFAULT_TERMS_URL}"></div>
+    </div>
+    <div><label>Texto de abertura</label><textarea id="q-intro" rows="3">${esc(p.intro||"")}</textarea></div>
+    <div><label>Observação de pagamento</label><textarea id="q-paynote" rows="2">${esc(p.payment_note||"")}</textarea></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Serviços da proposta</div>
+    <div class="hint">Marque <b>opcional</b> no que o cliente decide. Os extras de cada linha
+      aparecem como caixas à parte, com preço próprio — transporte, anfitrião, visita guiada,
+      ou o que você escrever.</div>
+    <div id="qi-host"></div>
+    <button class="btn ghost sm" id="qi-add" style="margin-top:6px;">+ Serviço</button>
+    <div class="totalline"><span class="lbl">Se levar tudo</span><span class="amt" id="qi-total">—</span></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Link da quote</div>
+    <div class="muted">Mesmo desenho do link da order: token aleatório, e quem tem o link vê só esta proposta.</div>
+    ${clientLink(p.token) ? `<div class="linkbox">
+      <input id="qlk" readonly value="${esc(quoteLink(p.token))}">
+      <button class="btn sm" id="qlk-copy">Copiar</button></div>`
+      : `<div class="msg" style="margin-top:10px;">Abra o hub pelo endereço do site para copiar o link.</div>`}
+    <div id="qsel-host" class="closing"></div>
+  </div>`, p.title||("v"+p.version));
+
+  el("pp-back").onclick = () => openOpportunity(OPP.id);
+  el("pp-save").onclick = saveProposal;
+  el("pp-preview").onclick = () => { location.hash = "#/quote/"+PROP.token; };
+  if(el("qlk-copy")) el("qlk-copy").onclick = () => {
+    el("qlk").select(); document.execCommand("copy"); el("qlk-copy").textContent="Copiado"; };
+  el("qi-add").onclick = () => {
+    PITEMS.push({service_date:"",title:"",details:"",price:0,optional:false,extras:[],sort:PITEMS.length});
+    drawQuoteItems(); };
+  drawQuoteItems(); drawSelection();
+}
+
+const quoteLink = tok => (clientLink(tok)||"").replace("#/confirm/","#/quote/");
+
+function drawQuoteItems(){
+  el("qi-host").innerHTML = `<table class="rows">
+    <thead><tr><th style="width:100px;">Data</th><th>Serviço</th><th style="width:110px;">Valor €</th>
+      <th style="width:88px;">Opcional</th><th class="x"></th></tr></thead>
+    <tbody>${PITEMS.map((r,i)=>`<tr>
+      <td><input value="${esc(r.service_date||"")}" oninput="PITEMS[${i}].service_date=this.value"></td>
+      <td>
+        <input value="${esc(r.title||"")}" placeholder="Título do serviço" oninput="PITEMS[${i}].title=this.value">
+        <textarea rows="2" placeholder="Detalhes" style="margin-top:5px;font-size:12.5px;" oninput="PITEMS[${i}].details=this.value">${esc(r.details||"")}</textarea>
+        <div class="extras-box">
+          <label style="margin-top:8px;">Extras desta linha</label>
+          ${(r.extras||[]).map((e,j)=>`<div class="extra-row">
+            <input value="${esc(e.label_pt||"")}" placeholder="Rótulo em português" oninput="PITEMS[${i}].extras[${j}].label_pt=this.value">
+            <input value="${esc(e.label_en||"")}" placeholder="Em inglês" oninput="PITEMS[${i}].extras[${j}].label_en=this.value">
+            <input type="number" step="0.01" value="${Number(e.price)||0}" style="text-align:right;" oninput="PITEMS[${i}].extras[${j}].price=parseFloat(this.value)||0">
+            <button class="iconbtn" onclick="PITEMS[${i}].extras.splice(${j},1);drawQuoteItems()">×</button>
+          </div>`).join("")}
+          <button class="btn ghost sm" style="margin-top:6px;" onclick="addExtra(${i})">+ Extra</button>
+        </div>
+      </td>
+      <td><input type="number" step="0.01" value="${Number(r.price)||0}" style="text-align:right;" oninput="PITEMS[${i}].price=parseFloat(this.value)||0;sumQuote()"></td>
+      <td style="text-align:center;padding-top:8px;"><input type="checkbox" style="width:auto;"${r.optional?" checked":""} onchange="PITEMS[${i}].optional=this.checked"></td>
+      <td class="x"><button class="iconbtn" onclick="PITEMS.splice(${i},1);drawQuoteItems()">×</button></td>
+    </tr>`).join("")}</tbody></table>`;
+  sumQuote();
+}
+
+/* Chave estável por linha: o cliente marca por chave, e renomear o
+   rótulo depois não faz a escolha dele apontar para outro extra. */
+function addExtra(i){
+  const usadas = (PITEMS[i].extras||[]).map(e=>e.key);
+  const base = ["transport","host","guide"].find(k=>!usadas.includes(k));
+  let k = base;
+  if(!k){ let n=1; while(usadas.includes("extra"+n)) n++; k = "extra"+n; }
+  const rot = {transport:["Transporte","Transport"],host:["Anfitrião TL","TL Host"],
+               guide:["Visita guiada","Guided visit"]}[k] || ["",""];
+  PITEMS[i].extras = (PITEMS[i].extras||[]).concat([{key:k,label_pt:rot[0],label_en:rot[1],price:0}]);
+  drawQuoteItems();
+}
+
+function sumQuote(){
+  const t = PITEMS.reduce((s,r)=>s+(Number(r.price)||0)
+    + (r.extras||[]).reduce((x,e)=>x+(Number(e.price)||0),0), 0);
+  el("qi-total").textContent = eur(t);
+}
+
+async function saveProposal(){
+  const btn = el("pp-save"); btn.disabled = true; btn.textContent = "Salvando…";
+  const patch = {
+    title: el("q-title").value.trim(), pax_summary: el("q-pax").value.trim(),
+    travel_window: el("q-window").value.trim(), lang: el("q-lang").value,
+    show_prices: el("q-prices").value === "sim",
+    terms_url: el("q-terms").value.trim() || null,
+    intro: el("q-intro").value, payment_note: el("q-paynote").value,
+    updated_at: new Date().toISOString()
+  };
+  const {error:e1} = await sb.from("ops_proposals").update(patch).eq("id", PROP.id);
+  await sb.from("ops_proposal_items").delete().eq("proposal_id", PROP.id);
+  const {error:e2} = PITEMS.length ? await sb.from("ops_proposal_items").insert(
+    PITEMS.map((r,i)=>({proposal_id:PROP.id, sort:i, service_date:r.service_date,
+      title:r.title, details:r.details, price:r.price, optional:!!r.optional,
+      extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}))) : {};
+  btn.disabled = false; btn.textContent = "Salvar";
+  const err = e1||e2;
+  if(err) return alert(err.message);
+  Object.assign(PROP, patch);
+  btn.textContent = "Salvo"; setTimeout(()=>btn.textContent="Salvar",1600);
+}
+
+/* ------------------------------ O QUE O CLIENTE ESCOLHEU ------------- */
+function drawSelection(){
+  const host = el("qsel-host");
+  if(!PSEL){
+    host.innerHTML = `<div class="section-title">Resposta do cliente</div>
+      <div class="muted">Ainda não respondida.</div>`;
+    return;
+  }
+  const linhas = (PSEL.lines||[]);
+  host.innerHTML = `<div class="section-title">Resposta do cliente</div>
+    <div class="grid3">
+      <div><label>Quem respondeu</label><div class="muted">${esc(PSEL.lead_name||"—")}<br>${esc(PSEL.lead_email||"")}<br>${esc(PSEL.lead_phone||"")}</div></div>
+      <div><label>Quando</label><div class="muted">${stamp(PSEL.submitted_at,"pt")}</div></div>
+      <div><label>Total escolhido</label><div class="muted">${PROP.show_prices===false?"proposta sem preços":eur(PSEL.total)}</div></div>
+    </div>
+    <table class="rows" style="margin-top:14px;"><tbody>
+      ${linhas.map(l=>`<tr>
+        <td style="width:26px;padding:3px 6px 3px 0;">${l.chosen?"✓":`<span class="req">✕</span>`}</td>
+        <td style="padding:3px 10px 3px 0;">${esc(l.title)}${l.optional?` <span class="muted">(opcional)</span>`:""}
+          ${(l.extras||[]).map(e=>`<br><span style="color:var(--copper);font-size:12px;">+ ${esc(e.label_pt||e.key)}</span>`).join("")}</td>
+        <td style="text-align:right;padding:3px 0;">${l.chosen && PROP.show_prices!==false ? eur(l.price) : ""}</td>
+      </tr>`).join("")}
+    </tbody></table>
+    ${PSEL.remarks?`<div style="margin-top:12px;"><label>Observações</label><div class="muted">${nl2br(PSEL.remarks)}</div></div>`:""}
+    <div style="margin-top:18px;">
+      ${PSEL.order_id
+        ? `<button class="btn sm" id="qs-open">Abrir a order gerada</button>`
+        : `<button class="btn sm" id="qs-gen">Reconfirmei — gerar order</button>`}
+    </div>
+    <div class="hint" style="margin-top:7px;">${PSEL.order_id
+      ? "A order já foi gerada a partir desta resposta."
+      : "Gera a order em rascunho com o que ele escolheu, e marca esta proposta como aceita. Faça depois de reconfirmar os serviços com os fornecedores."}</div>`;
+
+  if(el("qs-gen")) el("qs-gen").onclick = gerarOrder;
+  if(el("qs-open")) el("qs-open").onclick = () => openOrder(PSEL.order_id);
+}
+
+async function gerarOrder(){
+  if(!confirm(`Gerar a order a partir do que ${PSEL.lead_name||"o cliente"} escolheu?\n\nA proposta v${PROP.version} passa a constar como aceita, e a order nasce em rascunho para você conferir.`)) return;
+  const btn = el("qs-gen"); btn.disabled = true; btn.textContent = "Gerando…";
+  const {data,error} = await sb.rpc("tl_order_from_quote",{p_selection: PSEL.id});
+  if(error || !data || !data.ok){
+    btn.disabled = false; btn.textContent = "Reconfirmei — gerar order";
+    return alert((error&&error.message) || (data&&data.error) || "erro");
+  }
+  openOrder(data.order_id);
 }
 
 /* ---------------------------------------------- BRIEFING EM PDF ------
@@ -1294,6 +1561,13 @@ function renderEditor(){
       <div style="margin-top:6px;">
         <button class="btn ghost sm" id="pn-wait">Aguardando confirmação da agência</button>
         <button class="btn ghost sm" id="pn-clear">Limpar</button>
+      </div>
+      <div style="margin-top:14px;">
+        <label>Link de pagamento</label>
+        <input id="f-payurl" value="${esc(o.payment_url||"")}" placeholder="https://…">
+        <div class="hint" style="margin:5px 0 0;">Vai separado do link de confirmação, de propósito:
+          são dois atos, e um link só faria o cliente pagar antes de conferir os nomes.
+          Por enquanto você gera esse link fora do hub.</div>
       </div>
     </div>
   </div>
@@ -1684,6 +1958,7 @@ async function saveOrder(){
     travel_window: el("f-window").value.trim(), intro: el("f-intro").value,
     terms_url: el("f-terms").value.trim() || null,
     payment_note: el("f-paynote").value.trim() || null,
+    payment_url: el("f-payurl").value.trim() || null,
     checkout_config: cfgToJson(),
     internal_notes: el("f-notes").value, updated_at: new Date().toISOString()
   };
@@ -1918,6 +2193,173 @@ function renderSummary(){
 
   el("sm-back").onclick = renderEditor;
   el("sm-print").onclick = () => window.print();
+}
+
+/* ==================================================================== */
+/*  QUOTE — a tela onde o cliente escolhe                               */
+/*                                                                      */
+/*  Mesma cara do documento da order, porque é a mesma casa. O que      */
+/*  muda é que aqui ele decide: linha inclusa não tem caixa, opcional   */
+/*  tem, e cada extra é uma caixa à parte com preço próprio — a         */
+/*  mecânica do concierge. O total anda enquanto ele marca.             */
+/* ==================================================================== */
+let QT = null, QSEL = {items:{}, extras:{}};
+
+async function renderQuote(token){
+  app.innerHTML = `<div class="done"><div class="muted">…</div></div>`;
+  const {data,error} = await sb.rpc("tl_get_quote",{p_token:token});
+  if(error || !data) return app.innerHTML = message(T.pt.notFound);
+  QT = data; QT.token = token;
+  QSEL = {items:{}, extras:{}};
+  drawQuote();
+}
+
+function quoteTotal(){
+  const p = QT.proposal;
+  let t = 0;
+  (QT.items||[]).forEach(i=>{
+    const dentro = !i.optional || QSEL.items[i.id];
+    if(!dentro) return;
+    t += Number(i.price)||0;
+    (i.extras||[]).forEach(e=>{
+      if((QSEL.extras[i.id]||[]).includes(e.key)) t += Number(e.price)||0;
+    });
+  });
+  return t;
+}
+
+function marcaItem(id, on){
+  QSEL.items[id] = on;
+  if(!on) delete QSEL.extras[id];
+  drawQuote();
+}
+function marcaExtra(id, chave, on){
+  const atual = QSEL.extras[id] || [];
+  QSEL.extras[id] = on ? atual.concat([chave]) : atual.filter(k=>k!==chave);
+  drawQuote();
+}
+
+function drawQuote(){
+  const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
+  const respondida = !!p.responded_at;
+
+  const linha = i => {
+    const dentro = !i.optional || !!QSEL.items[i.id];
+    return `<tr>
+      <td class="date-cell">${esc(i.service_date||"")}</td>
+      <td>
+        <div class="svc-title">${esc(i.title)}
+          ${i.optional?`<span class="tag" style="margin-left:6px;">${t.qOptional}</span>`:""}</div>
+        ${i.details?`<div class="svc-sub">${nl2br(i.details)}</div>`:""}
+        ${i.optional && !respondida ? `<div class="check" style="margin:8px 0 0;">
+          <input type="checkbox" id="qi-${esc(i.id)}"${QSEL.items[i.id]?" checked":""}
+            onchange="marcaItem('${esc(i.id)}',this.checked)">
+          <label for="qi-${esc(i.id)}">${t.qChoose}</label></div>`:""}
+        ${(i.extras||[]).length && dentro && !respondida ? `<div class="extras-cli">
+          <div class="k">${t.qExtras}</div>
+          ${(i.extras||[]).map(e=>`<div class="check" style="margin:0 0 6px;">
+            <input type="checkbox" id="qe-${esc(i.id)}-${esc(e.key)}"
+              ${((QSEL.extras[i.id]||[]).includes(e.key))?" checked":""}
+              onchange="marcaExtra('${esc(i.id)}','${esc(e.key)}',this.checked)">
+            <label for="qe-${esc(i.id)}-${esc(e.key)}">${esc(p.lang==="en"?(e.label_en||e.label_pt):e.label_pt)}${
+              mostra?` <span style="color:var(--muted);">· ${eur(e.price)}</span>`:""}</label>
+          </div>`).join("")}
+        </div>`:""}
+      </td>
+      <td class="money">${mostra ? (dentro?eur(i.price):`<span class="muted">—</span>`) : ""}</td>
+    </tr>`;
+  };
+
+  app.innerHTML = `
+  <div class="docpad" style="padding:24px 12px;background:var(--cream);">
+  <div class="doc">
+    <div class="head">
+      <div class="brand">
+        <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
+        <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
+      </div>
+      <div class="to">
+        <div class="lbl">${t.to}</div>
+        <div class="val">${esc(p.final_client||p.agency||"")}</div>
+        ${p.crm_code?`<div class="lbl">${t.ref}</div><div class="val">${esc(p.crm_code)}</div>`:""}
+      </div>
+    </div>
+
+    <h1 class="doctitle">${t.qTitle}${p.title?` · ${esc(p.title)}`:""}</h1>
+    <div class="intro" style="text-align:left;">${respondida?t.qAlready:t.qIntro}</div>
+
+    <div class="meta">
+      <div class="cell"><div class="k">${t.to}</div><div class="v">${esc(p.final_client||p.agency||"—")}</div></div>
+      <div class="cell"><div class="k">${t.pax}</div><div class="v">${esc(p.pax_summary||"—")}</div></div>
+      <div class="cell"><div class="k">${t.period}</div><div class="v">${esc(p.travel_window||"—")}</div></div>
+      <div class="cell"><div class="k">${t.qTitle}</div><div class="v">v${p.version}</div></div>
+    </div>
+
+    ${p.intro?`<div class="intro">${nl2br(p.intro)}</div>`:""}
+
+    <table class="svc">
+      <thead><tr><th style="width:100px;">${t.date}</th><th>${t.service}</th>
+        <th class="money">${mostra?t.price:""}</th></tr></thead>
+      <tbody>${(QT.items||[]).map(linha).join("")}</tbody>
+    </table>
+
+    ${mostra?`<div class="total-row"><div class="total-box">
+      <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
+     :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
+
+    ${p.payment_note?`<div class="pay-note">${nl2br(p.payment_note)}</div>`:""}
+
+    ${termsHref(p)?`<div class="terms-link" style="margin-top:26px;">${t.termsLinkLabel}
+      <a href="${esc(termsHref(p))}" target="_blank" rel="noopener">${esc(termsHref(p))}</a></div>`:""}
+
+    <div class="foot">
+      <div class="co">TUSCAN LANDS TRAVEL</div>
+      ${COMPANY.legal} · ${COMPANY.vat.replace(" · Pontassieve (FI), Italy","")} · ${COMPANY.email}
+    </div>
+  </div>
+
+  ${respondida?"":`
+  <div class="confirm-block">
+    <h2>${t.qWho}</h2>
+    <div class="rule"></div>
+    <div class="grid3 fieldrow" style="margin-bottom:18px;">
+      <div><label>${t.leadName} <span class="req">· ${t.required}</span></label><input id="qc-name"></div>
+      <div><label>${t.leadPhone}</label><input id="qc-phone"></div>
+      <div><label>${t.leadEmail}</label><input id="qc-mail" type="email"></div>
+    </div>
+    <div><label>${t.remarks}</label><textarea id="qc-rem" rows="3"></textarea></div>
+    <div id="qc-msg" style="margin-top:14px;"></div>
+    <button class="btn" id="qc-go" style="margin-top:16px;">${t.qSend}</button>
+  </div>`}
+  </div>`;
+
+  if(!respondida) el("qc-go").onclick = submitQuote;
+}
+
+async function submitQuote(){
+  const p = QT.proposal, t = T[p.lang||"pt"];
+  const nome = el("qc-name").value.trim();
+  if(!nome){ el("qc-msg").innerHTML = `<div class="msg">${t.qNeedName}</div>`; return; }
+  const btn = el("qc-go"); btn.disabled = true; btn.textContent = t.sending;
+  const escolhidos = Object.keys(QSEL.items).filter(k=>QSEL.items[k]);
+  const {data,error} = await sb.rpc("tl_submit_quote",{p_token:QT.token, p_payload:{
+    lead_name:nome, lead_email:el("qc-mail").value.trim(),
+    lead_phone:el("qc-phone").value.trim(), remarks:el("qc-rem").value.trim(),
+    items: escolhidos, extras: QSEL.extras
+  }});
+  if(error || !data || !data.ok){
+    let txt = (error&&error.message)||(data&&data.error)||"erro";
+    if(data && data.error==="already_answered") txt = t.qAlready;
+    el("qc-msg").innerHTML = `<div class="msg">${esc(txt)}</div>`;
+    btn.disabled = false; btn.textContent = t.qSend; return;
+  }
+  app.innerHTML = `<div class="done">
+    <h2>${t.qDone}</h2><div class="rule" style="margin:0 auto 18px;"></div>
+    <div class="muted" style="font-size:14px;">${t.qDoneText}</div>
+    <div class="muted" style="margin-top:14px;">${t.doneHelp}
+      <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div></div>`;
 }
 
 /* ==================================================================== */
