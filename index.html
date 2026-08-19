@@ -199,6 +199,14 @@ table.rows td.x{width:30px;padding-right:0;}
 .doc table.svc thead th.money{text-align:right;width:130px;}
 .doc table.svc tbody td{padding:11px 12px;border-bottom:1px solid var(--cream);vertical-align:top;font-size:13.5px;}
 .doc table.svc tbody td.money{text-align:right;font-variant-numeric:tabular-nums;}
+/* Valor de linha não escolhida: aparece sempre, porque ela pediu que o
+   cliente veja o preço de tudo, e apagado, porque não está somando. */
+.doc table.svc tbody td.money .fora{color:var(--muted);opacity:.55;}
+/* Caixa e bolinha na cor da casa, não no azul do navegador. */
+.doc input[type=checkbox],.doc input[type=radio]{accent-color:var(--sage);}
+/* Campo interno na tabela de serviços: marcado para não se confundir
+   com o que o cliente lê. */
+input.interno{border-left:2px solid var(--brown);}
 .doc table.svc tbody tr:nth-child(even){background:var(--cream-light);}
 .doc .date-cell{font-weight:500;color:var(--sage);white-space:nowrap;}
 .doc .svc-title{font-weight:400;}
@@ -212,6 +220,16 @@ table.rows td.x{width:30px;padding-right:0;}
   font-weight:500;text-align:left;padding:7px 9px;border-bottom:1px solid var(--cream);}
 .doc table.pay td{padding:8px 9px;border-bottom:1px solid var(--cream);font-size:13px;}
 .doc table.pay td.money{text-align:right;font-variant-numeric:tabular-nums;}
+/* Condições numa página só delas, como na proposta. Na tela vira um
+   bloco separado por régua; no papel, começa folha nova. */
+.doc .pagina-nova{margin-top:34px;border-top:1px solid var(--cream);padding-top:24px;}
+/* O documento é peso 300. O "bolder" que o navegador dá ao <strong>
+   é relativo: contra 300 ele cai em 400, e o negrito some. Por isso o
+   peso vai escrito, em 500, que é o peso de ênfase da casa. */
+.doc strong{font-weight:500;}
+.doc .condicoes p{font-size:13px;line-height:1.75;margin-bottom:10px;text-align:justify;}
+.doc .condicoes ul{margin:0 0 12px 18px;}
+.doc .condicoes li{font-size:13px;line-height:1.7;margin-bottom:7px;text-align:justify;}
 .doc .voucher-note{margin-top:18px;font-size:13px;color:var(--muted);line-height:1.7;
   border-left:2px solid var(--copper);padding-left:12px;}
 .doc .pay-note{margin-top:10px;font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-wrap;}
@@ -317,6 +335,11 @@ table.rows td.x{width:30px;padding-right:0;}
      lendo como rodapé em vez de parecer conteúdo interrompido. */
   .doc .foot{break-inside:avoid;border-top:1px solid var(--cream);
     margin-top:26px;padding-top:14px;}
+  .doc .pagina-nova{break-before:page;border-top:none;padding-top:0;}
+  /* Título de seção não fica órfão no pé da folha: ele e a linha de
+     instrução grudam na tabela que explicam. */
+  .doc .blocktitle,.doc .blocktitle + .muted{break-after:avoid;}
+  .doc table.svc tbody tr{break-inside:avoid;}
   .doc .terms h3,.doc .blocktitle{break-after:avoid;}
   .doc .terms li,.doc table.data tr{break-inside:avoid;}
   .doc table.svc thead{display:table-header-group;}
@@ -364,6 +387,29 @@ const el = id => document.getElementById(id);
 const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const eur = n => "€ " + (Number(n)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
 const nl2br = s => esc(s).replace(/\n/g,"<br>");
+
+/* Texto de documento com dois recursos e só dois: **negrito** e linhas
+   começando por "- " viram lista. Não é markdown — é o mínimo para os
+   textos comerciais da casa ficarem legíveis sem editor de texto rico,
+   que traria biblioteca, upload e um formato a mais para manter. */
+function fmtDoc(txt){
+  const linhas = String(txt||"").split("\n");
+  let out = "", lista = false;
+  const forte = t => esc(t).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  linhas.forEach(l=>{
+    const li = /^\s*[-•]\s+(.*)$/.exec(l);
+    if(li){
+      if(!lista){ out += "<ul>"; lista = true; }
+      out += "<li>"+forte(li[1])+"</li>";
+    } else {
+      if(lista){ out += "</ul>"; lista = false; }
+      if(l.trim()==="") out += "";
+      else out += "<p>"+forte(l)+"</p>";
+    }
+  });
+  if(lista) out += "</ul>";
+  return out;
+}
 /* O endereço dos termos é o mesmo para todas as vendas e serve as duas
    línguas. O campo da order existe para a exceção; quando está vazio,
    vale o padrão. Assim nenhuma order antiga fica com as palavras
@@ -455,7 +501,13 @@ const T = {
     qNoPrices:"Os valores serão informados em seguida.",
     qNeedName:"Informe o seu nome para enviar.",
     qPick:"Escolha uma opção", qPickOne:"Escolha uma",
-    qNeedPick:"Falta escolher em:"
+    qNeedPick:"Falta escolher em:",
+    qLead:"Selecione abaixo todos os serviços aprovados. O cálculo final é feito automaticamente.",
+    qApproved:"Serviços aprovados",
+    qApprovedSub:"A confirmação depende de checagem prévia de disponibilidade.",
+    qAck:"Li e estou ciente das condições comerciais desta proposta.",
+    qNeedAck:"Marque o aceite das condições para enviar.",
+    qCondTitle:"Forma de pagamento e condições gerais"
   },
   en:{
     docTitle:"Service Confirmation",
@@ -523,7 +575,13 @@ const T = {
     qNoPrices:"Prices will follow shortly.",
     qNeedName:"Please give your name to send.",
     qPick:"Choose one option", qPickOne:"Choose one",
-    qNeedPick:"Still to choose:"
+    qNeedPick:"Still to choose:",
+    qLead:"Select below all approved services. The final total is calculated automatically.",
+    qApproved:"Approved services",
+    qApprovedSub:"Confirmation is subject to a prior availability check.",
+    qAck:"I have read and understood the commercial conditions of this proposal.",
+    qNeedAck:"Please accept the conditions to send.",
+    qCondTitle:"Payment and general conditions"
   }
 };
 
@@ -977,7 +1035,7 @@ async function renderPainel(){
 /*  existiam no banco desde a sessão que escreveu tl-hub-opportunities  */
 /*  e nunca tinham ganhado tela — este é o pedaço que faltava.          */
 /* ==================================================================== */
-let OPP = null, BRIEF = null, PROPS = [], PROP = null, PITEMS = [], PSEL = null;
+let OPP = null, BRIEF = null, PROPS = [], PROP = null, PITEMS = [], PSEL = null, PSECS = [];
 
 const ETAPA = {
   proposal:    "Proposta",
@@ -1222,6 +1280,7 @@ async function openProposal(id){
   ]);
   if(e1) return alert(e1.message);
   PROP = p; PITEMS = it||[]; PSEL = (sel&&sel[0])||null;
+  PSECS = Array.isArray(p.sections) ? p.sections.map(x=>Object.assign({},x)) : [];
   renderProposal();
 }
 
@@ -1258,8 +1317,30 @@ function renderProposal(){
         <option value="nao"${p.show_prices===false?" selected":""}>Não — só os serviços</option></select></div>
       <div><label>Link dos termos</label><input id="q-terms" value="${esc(p.terms_url||"")}" placeholder="${DEFAULT_TERMS_URL}"></div>
     </div>
-    <div><label>Texto de abertura</label><textarea id="q-intro" rows="3">${esc(p.intro||"")}</textarea></div>
-    <div><label>Observação de pagamento</label><textarea id="q-paynote" rows="2">${esc(p.payment_note||"")}</textarea></div>
+    <div><label>Texto de abertura (opcional)</label>
+      <textarea id="q-intro" rows="2" placeholder="A instrução de selecionar os serviços já sai sozinha. Isto é acréscimo.">${esc(p.intro||"")}</textarea></div>
+    <div><label>Observação de pagamento — logo abaixo do total</label>
+      <textarea id="q-paynote" rows="2">${esc(p.payment_note||"")}</textarea></div>
+    <div>
+      <label>Forma de pagamento e condições gerais — sai em página separada</label>
+      <textarea id="q-cond" rows="8" placeholder="Comece a linha com - para virar item de lista. Use **texto** para negrito.">${esc(p.conditions||"")}</textarea>
+      <div class="hint" style="margin:5px 0 0;">Linha começando com <b>-</b> vira item de lista.
+        <b>**texto entre dois asteriscos**</b> sai em negrito.</div>
+    </div>
+    <div style="border-left:2px solid var(--brown);padding-left:12px;">
+      <label style="color:var(--brown);">Anotação interna — o cliente nunca vê</label>
+      <textarea id="q-internal" rows="2" placeholder="Valor net, margem, com quem falar no fornecedor…">${esc(p.internal_notes||"")}</textarea>
+      <div class="hint" style="margin:5px 0 0;">Fica de fora da resposta que o link do cliente recebe,
+        e não só escondido na tela.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Seções de serviço</div>
+    <div class="hint">Cada seção vira uma tabela própria na quote, com título e instrução.
+      Linha sem seção cai numa tabela final sem título — orçamento de transfer avulso não precisa de seção nenhuma.</div>
+    <div id="qs-host"></div>
+    <button class="btn ghost sm" id="qs-add" style="margin-top:6px;">+ Seção</button>
   </div>
 
   <div class="card">
@@ -1268,7 +1349,8 @@ function renderProposal(){
       <b>escolha</b> viram alternativas — o cliente leva uma só, e o envio é recusado se ele não
       escolher nenhuma. Os extras de cada linha
       aparecem como caixas à parte, com preço próprio — transporte, anfitrião, visita guiada,
-      ou o que você escrever.</div>
+      ou o que você escrever.<br><b>Fornecedor</b> é só seu: não sai na quote nem no documento
+      do cliente, e desce para a order quando a proposta virar venda.</div>
     <div id="qi-host"></div>
     <button class="btn ghost sm" id="qi-add" style="margin-top:6px;">+ Serviço</button>
     <div class="totalline"><span class="lbl">Se levar tudo</span><span class="amt" id="qi-total">—</span></div>
@@ -1292,7 +1374,32 @@ function renderProposal(){
   el("qi-add").onclick = () => {
     PITEMS.push({service_date:"",title:"",details:"",price:0,optional:false,extras:[],sort:PITEMS.length});
     drawQuoteItems(); };
-  drawQuoteItems(); drawSelection();
+  el("qs-add").onclick = () => {
+    let n = 1; while(PSECS.some(x=>x.key==="sec"+n)) n++;
+    PSECS.push({key:"sec"+n, title:"", note:""}); drawSections(); drawQuoteItems();
+  };
+  drawSections(); drawQuoteItems(); drawSelection();
+}
+
+function drawSections(){
+  const host = el("qs-host");
+  if(!PSECS.length){ host.innerHTML = `<div class="muted">Nenhuma seção. Todas as linhas saem numa tabela só.</div>`; return; }
+  host.innerHTML = `<table class="rows">
+    <thead><tr><th style="width:230px;">Título</th><th>Instrução ao cliente</th><th class="x"></th></tr></thead>
+    <tbody>${PSECS.map((sec,i)=>`<tr>
+      <td><input value="${esc(sec.title||"")}" placeholder="Selected Stays" oninput="PSECS[${i}].title=this.value"></td>
+      <td><input value="${esc(sec.note||"")}" placeholder="Selecione sua hospedagem para esta viagem" oninput="PSECS[${i}].note=this.value"></td>
+      <td class="x"><button class="iconbtn" onclick="removeSection(${i})">×</button></td>
+    </tr>`).join("")}</tbody></table>`;
+}
+
+/* Apagar seção não pode deixar linha apontando para chave que sumiu: ela
+   cairia na tabela sem título sem ninguém entender por quê. */
+function removeSection(i){
+  const chave = PSECS[i].key;
+  PSECS.splice(i,1);
+  PITEMS.forEach(r=>{ if(r.section===chave) r.section = null; });
+  drawSections(); drawQuoteItems();
 }
 
 const quoteLink = tok => (clientLink(tok)||"").replace("#/confirm/","#/quote/");
@@ -1300,7 +1407,9 @@ const quoteLink = tok => (clientLink(tok)||"").replace("#/confirm/","#/quote/");
 function drawQuoteItems(){
   el("qi-host").innerHTML = `<table class="rows">
     <thead><tr><th style="width:100px;">Data</th><th>Serviço</th><th style="width:110px;">Valor €</th>
-      <th style="width:82px;">Opcional</th><th style="width:130px;">Escolha</th><th class="x"></th></tr></thead>
+      <th style="width:82px;">Opcional</th><th style="width:120px;">Escolha</th>
+      <th style="width:130px;">Seção</th><th style="width:140px;">Fornecedor</th>
+      <th class="x"></th></tr></thead>
     <tbody>${PITEMS.map((r,i)=>`<tr>
       <td><input value="${esc(r.service_date||"")}" oninput="PITEMS[${i}].service_date=this.value"></td>
       <td>
@@ -1321,6 +1430,12 @@ function drawQuoteItems(){
       <td style="text-align:center;padding-top:8px;"><input type="checkbox" style="width:auto;"${r.optional?" checked":""} onchange="PITEMS[${i}].optional=this.checked"></td>
       <td><input value="${esc(r.choice_group||"")}" placeholder="ex.: hotel_umbria"
         oninput="PITEMS[${i}].choice_group=this.value.trim()||null"></td>
+      <td><select onchange="PITEMS[${i}].section=this.value||null">
+        <option value="">— fora de seção</option>
+        ${PSECS.map(sec=>`<option value="${esc(sec.key)}"${r.section===sec.key?" selected":""}>${esc(sec.title||sec.key)}</option>`).join("")}
+      </select></td>
+      <td><input class="interno" value="${esc(r.supplier||"")}" placeholder="quem opera"
+        oninput="PITEMS[${i}].supplier=this.value.trim()||null"></td>
       <td class="x"><button class="iconbtn" onclick="PITEMS.splice(${i},1);drawQuoteItems()">×</button></td>
     </tr>`).join("")}</tbody></table>`;
   sumQuote();
@@ -1363,6 +1478,8 @@ async function saveProposal(){
     show_prices: el("q-prices").value === "sim",
     terms_url: el("q-terms").value.trim() || null,
     intro: el("q-intro").value, payment_note: el("q-paynote").value,
+    conditions: el("q-cond").value, internal_notes: el("q-internal").value,
+    sections: PSECS.filter(x=>(x.title||"").trim()),
     updated_at: new Date().toISOString()
   };
   const {error:e1} = await sb.from("ops_proposals").update(patch).eq("id", PROP.id);
@@ -1370,7 +1487,8 @@ async function saveProposal(){
   const {error:e2} = PITEMS.length ? await sb.from("ops_proposal_items").insert(
     PITEMS.map((r,i)=>({proposal_id:PROP.id, sort:i, service_date:r.service_date,
       title:r.title, details:r.details, price:r.price, optional:!!r.optional,
-      choice_group:(r.choice_group||"").trim()||null,
+      choice_group:(r.choice_group||"").trim()||null, section:r.section||null,
+      supplier:(r.supplier||"").trim()||null,
       extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}))) : {};
   btn.disabled = false; btn.textContent = "Salvar";
   const err = e1||e2;
@@ -1398,6 +1516,7 @@ function drawSelection(){
       ${linhas.map(l=>`<tr>
         <td style="width:26px;padding:3px 6px 3px 0;">${l.chosen?"✓":`<span class="req">✕</span>`}</td>
         <td style="padding:3px 10px 3px 0;">${esc(l.title)}${l.optional?` <span class="muted">(opcional)</span>`:""}
+          ${l.chosen && l.supplier?`<br><span style="color:var(--brown);font-size:12px;">${esc(l.supplier)}</span>`:""}
           ${(l.extras||[]).map(e=>`<br><span style="color:var(--copper);font-size:12px;">+ ${esc(e.label_pt||e.key)}</span>`).join("")}</td>
         <td style="text-align:right;padding:3px 0;">${l.chosen && PROP.show_prices!==false ? eur(l.price) : ""}</td>
       </tr>`).join("")}
@@ -1410,7 +1529,7 @@ function drawSelection(){
     </div>
     <div class="hint" style="margin-top:7px;">${PSEL.order_id
       ? "A order já foi gerada a partir desta resposta."
-      : "Gera a order em rascunho com o que ele escolheu, e marca esta proposta como aceita. Faça depois de reconfirmar os serviços com os fornecedores."}</div>`;
+      : "Gera a order em rascunho com o que ele escolheu, e marca esta proposta como aceita. Faça depois de reconfirmar os serviços com os fornecedores — o fornecedor de cada linha vai escrito abaixo dela."}</div>`;
 
   if(el("qs-gen")) el("qs-gen").onclick = gerarOrder;
   if(el("qs-open")) el("qs-open").onclick = () => openOrder(PSEL.order_id);
@@ -1645,7 +1764,8 @@ function renderEditor(){
 
 function drawItems(){
   el("items-host").innerHTML = `<table class="rows">
-    <thead><tr><th style="width:110px;">Data</th><th>Serviço</th><th style="width:120px;">Valor €</th><th class="x"></th></tr></thead>
+    <thead><tr><th style="width:110px;">Data</th><th>Serviço</th><th style="width:120px;">Valor €</th>
+      <th style="width:140px;">Fornecedor</th><th class="x"></th></tr></thead>
     <tbody>${ITEMS.map((r,i)=>`<tr>
       <td><input value="${esc(r.service_date||"")}" oninput="ITEMS[${i}].service_date=this.value"></td>
       <td>
@@ -1653,6 +1773,8 @@ function drawItems(){
         <textarea rows="2" placeholder="Detalhes, um por linha" style="margin-top:5px;font-size:12.5px;" oninput="ITEMS[${i}].details=this.value">${esc(r.details||"")}</textarea>
       </td>
       <td><input type="number" step="0.01" value="${Number(r.price)||0}" style="text-align:right;" oninput="ITEMS[${i}].price=parseFloat(this.value)||0;sumItems()"></td>
+      <td><input class="interno" value="${esc(r.supplier||"")}" placeholder="quem opera"
+        oninput="ITEMS[${i}].supplier=this.value.trim()||null"></td>
       <td class="x"><button class="iconbtn" onclick="ITEMS.splice(${i},1);drawItems()">×</button></td>
     </tr>`).join("")}</tbody></table>`;
   sumItems();
@@ -1986,7 +2108,8 @@ async function saveOrder(){
   await sb.from("ops_order_payments").delete().eq("order_id",ORDER.id);
   await sb.from("ops_order_fields").delete().eq("order_id",ORDER.id);
   const {error:e2} = ITEMS.length ? await sb.from("ops_order_items").insert(
-    ITEMS.map((r,i)=>({order_id:ORDER.id,sort:i,service_date:r.service_date,title:r.title,details:r.details,price:r.price}))) : {};
+    ITEMS.map((r,i)=>({order_id:ORDER.id,sort:i,service_date:r.service_date,title:r.title,
+      details:r.details,price:r.price,supplier:(r.supplier||"").trim()||null}))) : {};
   const {error:e3} = PAYS.length ? await sb.from("ops_order_payments").insert(
     PAYS.map((p,i)=>({order_id:ORDER.id,sort:i,label:p.label,due_date:p.due_date,amount:p.amount,status:p.status}))) : {};
   const {error:e4} = FIELDS.length ? await sb.from("ops_order_fields").insert(
@@ -2078,7 +2201,7 @@ async function duplicateOrder(){
   if(it && it.length){
     const {error:e} = await sb.from("ops_order_items").insert(it.map((r,i)=>({
       order_id:novo.id, sort:i, service_date:r.service_date, title:r.title,
-      details:r.details, price:r.price}))); if(e) erros.push(e.message);
+      details:r.details, price:r.price, supplier:r.supplier}))); if(e) erros.push(e.message);
   }
   if(pg && pg.length){
     const {error:e} = await sb.from("ops_order_payments").insert(pg.map((r,i)=>({
@@ -2271,6 +2394,30 @@ function marcaExtra(id, chave, on){
   drawQuote();
 }
 
+/* Uma tabela por seção, com o título e a instrução em cima. Linha sem
+   seção cai numa tabela final sem título — assim uma quote de transfer
+   avulso não precisa de seção nenhuma para funcionar. */
+function tabelasPorSecao(t, mostra, linha){
+  const p = QT.proposal, itens = QT.items||[];
+  const secs = (p.sections||[]);
+  const cab = `<thead><tr><th style="width:100px;">${t.date}</th><th>${t.service}</th>
+      <th class="money">${mostra?t.price:""}</th></tr></thead>`;
+  const tabela = lista => `<table class="svc">${cab}<tbody>${lista.map(linha).join("")}</tbody></table>`;
+
+  let out = "";
+  secs.forEach(sec=>{
+    const lista = itens.filter(i=>i.section===sec.key);
+    if(!lista.length) return;
+    out += `<div class="blocktitle" style="margin-top:28px;">${esc(sec.title||"")}</div>`;
+    if(sec.note) out += `<div class="muted" style="margin:-6px 0 10px;">${esc(sec.note)}</div>`;
+    out += tabela(lista);
+  });
+  const chaves = secs.map(x=>x.key);
+  const soltas = itens.filter(i=>!i.section || !chaves.includes(i.section));
+  if(soltas.length) out += tabela(soltas);
+  return out;
+}
+
 function drawQuote(){
   const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
   const respondida = !!p.responded_at;
@@ -2304,7 +2451,8 @@ function drawQuote(){
           </div>`).join("")}
         </div>`:""}
       </td>
-      <td class="money">${mostra ? (dentro?eur(i.price):`<span class="muted">—</span>`) : ""}</td>
+      <td class="money">${mostra ? (dentro?eur(i.price)
+        :`<span class="fora">${eur(i.price)}</span>`) : ""}</td>
     </tr>`;
   };
 
@@ -2326,7 +2474,7 @@ function drawQuote(){
     </div>
 
     <h1 class="doctitle">${t.qTitle}${p.title?` · ${esc(p.title)}`:""}</h1>
-    <div class="intro" style="text-align:left;">${respondida?t.qAlready:t.qIntro}</div>
+    <div class="intro" style="text-align:left;">${respondida?t.qAlready:t.qLead}</div>
 
     <div class="meta">
       <div class="cell"><div class="k">${t.to}</div><div class="v">${esc(p.final_client||p.agency||"—")}</div></div>
@@ -2337,17 +2485,18 @@ function drawQuote(){
 
     ${p.intro?`<div class="intro">${nl2br(p.intro)}</div>`:""}
 
-    <table class="svc">
-      <thead><tr><th style="width:100px;">${t.date}</th><th>${t.service}</th>
-        <th class="money">${mostra?t.price:""}</th></tr></thead>
-      <tbody>${(QT.items||[]).map(linha).join("")}</tbody>
-    </table>
+    ${tabelasPorSecao(t, mostra, linha)}
 
     ${mostra?`<div class="total-row"><div class="total-box">
       <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
      :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
 
     ${p.payment_note?`<div class="pay-note">${nl2br(p.payment_note)}</div>`:""}
+
+    ${p.conditions?`<div class="pagina-nova">
+      <div class="blocktitle" style="margin-top:0;">${t.qCondTitle}</div>
+      <div class="condicoes">${fmtDoc(p.conditions)}</div>
+    </div>`:""}
 
     ${termsHref(p)?`<div class="terms-link" style="margin-top:26px;">${t.termsLinkLabel}
       <a href="${esc(termsHref(p))}" target="_blank" rel="noopener">${esc(termsHref(p))}</a></div>`:""}
@@ -2360,14 +2509,17 @@ function drawQuote(){
 
   ${respondida?"":`
   <div class="confirm-block">
-    <h2>${t.qWho}</h2>
+    <h2>${t.qApproved}</h2>
     <div class="rule"></div>
+    <div class="muted" style="margin-bottom:20px;">${t.qApprovedSub}</div>
     <div class="grid3 fieldrow" style="margin-bottom:18px;">
       <div><label>${t.leadName} <span class="req">· ${t.required}</span></label><input id="qc-name"></div>
       <div><label>${t.leadPhone}</label><input id="qc-phone"></div>
       <div><label>${t.leadEmail}</label><input id="qc-mail" type="email"></div>
     </div>
     <div><label>${t.remarks}</label><textarea id="qc-rem" rows="3"></textarea></div>
+    <div class="check" style="margin-top:18px;"><input type="checkbox" id="qc-ack">
+      <label for="qc-ack">${t.qAck} <span class="req">· ${t.required}</span></label></div>
     <div id="qc-msg" style="margin-top:14px;"></div>
     <button class="btn" id="qc-go" style="margin-top:16px;">${t.qSend}</button>
   </div>`}
@@ -2389,17 +2541,21 @@ async function submitQuote(){
     el("qc-msg").innerHTML = `<div class="msg">${t.qNeedPick} ${esc(semEscolha.join(" · "))}</div>`;
     return;
   }
+  if(!el("qc-ack").checked){
+    el("qc-msg").innerHTML = `<div class="msg">${t.qNeedAck}</div>`; return;
+  }
   const btn = el("qc-go"); btn.disabled = true; btn.textContent = t.sending;
   const escolhidos = Object.keys(QSEL.items).filter(k=>QSEL.items[k]);
   const {data,error} = await sb.rpc("tl_submit_quote",{p_token:QT.token, p_payload:{
     lead_name:nome, lead_email:el("qc-mail").value.trim(),
     lead_phone:el("qc-phone").value.trim(), remarks:el("qc-rem").value.trim(),
-    items: escolhidos, extras: QSEL.extras
+    items: escolhidos, extras: QSEL.extras, ack_conditions: true
   }});
   if(error || !data || !data.ok){
     let txt = (error&&error.message)||(data&&data.error)||"erro";
     if(data && data.error==="already_answered") txt = t.qAlready;
     if(data && data.error==="missing_choice") txt = t.qNeedPick+" "+(data.missing||[]).join(" · ");
+    if(data && data.error==="missing_ack") txt = t.qNeedAck;
     el("qc-msg").innerHTML = `<div class="msg">${esc(txt)}</div>`;
     btn.disabled = false; btn.textContent = t.qSend; return;
   }

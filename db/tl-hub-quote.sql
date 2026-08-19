@@ -545,3 +545,326 @@ revoke all on function tl_get_quote(text) from public;
 revoke all on function tl_submit_quote(text, jsonb) from public;
 grant execute on function tl_get_quote(text) to anon, authenticated;
 grant execute on function tl_submit_quote(text, jsonb) to anon, authenticated;
+
+-- =====================================================================
+-- 10 · QUOTE SIMPLES — seções, condições e o aceite
+--
+-- Este é o modelo de quote sem a proposta "bonita": serve para o caso
+-- de hospedagem mais serviços terrestres, e para orçamento avulso de
+-- transfer. A parte de apresentação fica para outro documento.
+-- =====================================================================
+
+-- Seções de serviço. Vivem na proposta, e não na linha, porque título e
+-- instrução são um por seção: repetidos em cada linha, bastaria alguém
+-- corrigir uma para a mesma seção passar a ter dois nomes.
+alter table ops_proposals add column if not exists sections jsonb not null default '[]'::jsonb;
+comment on column ops_proposals.sections is
+  'Seções da quote, na ordem: [{"key","title","note"}]. Linha sem seção cai numa tabela final sem título.';
+
+alter table ops_proposal_items add column if not exists section text;
+comment on column ops_proposal_items.section is
+  'Chave da seção em ops_proposals.sections. Nulo = fora de seção.';
+
+-- O que só ela vê. Fica fora do tl_get_quote de propósito: campo que o
+-- cliente nunca deve ler não pode depender de a tela lembrar de escondê-lo.
+alter table ops_proposals add column if not exists internal_notes text;
+comment on column ops_proposals.internal_notes is
+  'Anotação interna — valor net, margem, o que for. NUNCA sai em tl_get_quote.';
+
+-- Forma de pagamento e condições gerais, copiadas da proposta. Saem numa
+-- página separada, depois das tabelas.
+alter table ops_proposals add column if not exists conditions text;
+
+alter table ops_proposal_selections add column if not exists ack_conditions boolean not null default false;
+
+-- ---------------------------------------------------------------------
+-- tl_get_quote devolve seção e condições. internal_notes fica de fora.
+-- ---------------------------------------------------------------------
+create or replace function tl_get_quote(p_token text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare pp ops_proposals%rowtype; o ops_opportunities%rowtype; result jsonb;
+begin
+  select * into pp from ops_proposals where token = p_token;
+  if not found then return null; end if;
+  select * into o from ops_opportunities where id = pp.opportunity_id;
+
+  select jsonb_build_object(
+    'proposal', jsonb_build_object(
+      'id', pp.id, 'version', pp.version, 'title', pp.title, 'summary', pp.summary,
+      'lang', coalesce(pp.lang, o.lang, 'pt'),
+      'pax_summary', pp.pax_summary, 'travel_window', pp.travel_window,
+      'intro', pp.intro, 'payment_note', pp.payment_note, 'terms_url', pp.terms_url,
+      'conditions', pp.conditions, 'sections', pp.sections,
+      'show_prices', pp.show_prices,
+      'crm_code', o.crm_code, 'agency', o.agency, 'final_client', o.final_client,
+      'outcome', pp.outcome, 'responded_at', pp.responded_at),
+    'items', coalesce((select jsonb_agg(jsonb_build_object(
+        'id', i.id, 'service_date', i.service_date, 'title', i.title,
+        'details', i.details, 'price', i.price, 'section', i.section,
+        'optional', i.optional, 'choice_group', i.choice_group,
+        'extras', i.extras) order by i.sort)
+      from ops_proposal_items i where i.proposal_id = pp.id), '[]'::jsonb)
+  ) into result;
+  return result;
+end $$;
+
+-- ---------------------------------------------------------------------
+-- O aceite das condições passa a ser exigido, como nos termos da order:
+-- sem ele o envio é escolha de serviços, não concordância comercial.
+-- ---------------------------------------------------------------------
+create or replace function tl_submit_quote(p_token text, p_payload jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pp     ops_proposals%rowtype;
+  it     ops_proposal_items%rowtype;
+  ex     jsonb;
+  linhas jsonb := '[]'::jsonb;
+  exsel  jsonb;
+  escol  boolean;
+  soma   numeric(12,2) := 0;
+  marcados jsonb;
+  exmarc   jsonb;
+  g        text;
+  faltando text[] := '{}';
+begin
+  select * into pp from ops_proposals where token = p_token;
+  if not found then return jsonb_build_object('ok', false, 'error', 'not_found'); end if;
+  if pp.responded_at is not null then
+    return jsonb_build_object('ok', false, 'error', 'already_answered');
+  end if;
+  if coalesce(btrim(p_payload->>'lead_name'),'') = '' then
+    return jsonb_build_object('ok', false, 'error', 'missing_fields', 'missing', to_jsonb(array['lead_name']));
+  end if;
+  if coalesce((p_payload->>'ack_conditions')::boolean, false) is not true then
+    return jsonb_build_object('ok', false, 'error', 'missing_ack');
+  end if;
+
+  marcados := coalesce(p_payload->'items','[]'::jsonb);
+  exmarc   := coalesce(p_payload->'extras','{}'::jsonb);
+
+  for g in select distinct choice_group from ops_proposal_items
+            where proposal_id = pp.id and choice_group is not null loop
+    if not exists (select 1 from ops_proposal_items i
+                    where i.proposal_id = pp.id and i.choice_group = g
+                      and marcados @> to_jsonb(i.id::text)) then
+      faltando := array_append(faltando, g);
+    end if;
+  end loop;
+  if array_length(faltando,1) > 0 then
+    return jsonb_build_object('ok', false, 'error', 'missing_choice', 'missing', to_jsonb(faltando));
+  end if;
+
+  for it in select * from ops_proposal_items where proposal_id = pp.id order by sort loop
+    escol := (not it.optional and it.choice_group is null)
+             or (marcados @> to_jsonb(it.id::text));
+    exsel := '[]'::jsonb;
+    if escol then
+      soma := soma + coalesce(it.price,0);
+      for ex in select * from jsonb_array_elements(coalesce(it.extras,'[]'::jsonb)) loop
+        if coalesce(exmarc->(it.id::text), '[]'::jsonb) @> to_jsonb(ex->>'key') then
+          soma  := soma + coalesce((ex->>'price')::numeric, 0);
+          exsel := exsel || jsonb_build_object('key', ex->>'key', 'label_pt', ex->>'label_pt',
+            'label_en', ex->>'label_en', 'price', ex->>'price');
+        end if;
+      end loop;
+    end if;
+    linhas := linhas || jsonb_build_object(
+      'item_id', it.id, 'service_date', it.service_date, 'title', it.title,
+      'details', it.details, 'price', it.price, 'optional', it.optional,
+      'section', it.section, 'choice_group', it.choice_group,
+      'chosen', escol, 'extras', exsel);
+  end loop;
+
+  insert into ops_proposal_selections
+    (proposal_id, lead_name, lead_email, lead_phone, remarks, lines, total, ack_conditions)
+  values (pp.id, p_payload->>'lead_name', p_payload->>'lead_email',
+          p_payload->>'lead_phone', p_payload->>'remarks', linhas, soma, true);
+
+  update ops_proposals set responded_at = now(), updated_at = now() where id = pp.id;
+  return jsonb_build_object('ok', true);
+end $$;
+
+revoke all on function tl_get_quote(text) from public;
+revoke all on function tl_submit_quote(text, jsonb) from public;
+grant execute on function tl_get_quote(text) to anon, authenticated;
+grant execute on function tl_submit_quote(text, jsonb) to anon, authenticated;
+
+-- =====================================================================
+-- 11 · FORNECEDOR POR LINHA — só para controle interno
+--
+-- Qual fornecedor está por trás de cada serviço. Nunca sai para o
+-- cliente: nem tl_get_quote nem tl_get_order montam essa chave, e as
+-- duas montam o objeto campo a campo justamente para que uma coluna
+-- nova não vaze sozinha por ter sido adicionada à tabela.
+--
+-- Vai junto para a order quando a proposta virar venda. Sem isso o dado
+-- morreria na proposta, e é na operação — reconfirmar, pagar, cobrar —
+-- que saber o fornecedor serve para alguma coisa.
+-- =====================================================================
+
+alter table ops_proposal_items add column if not exists supplier text;
+comment on column ops_proposal_items.supplier is
+  'Fornecedor considerado para esta linha. Uso interno: nunca sai em tl_get_quote.';
+
+alter table ops_order_items add column if not exists supplier text;
+comment on column ops_order_items.supplier is
+  'Fornecedor da linha, herdado da proposta. Uso interno: nunca sai em tl_get_order.';
+
+-- tl_submit_quote: o retrato da escolha passa a guardar o fornecedor.
+-- O retrato é interno — mora em ops_proposal_selections, que o cliente
+-- não lê — e é dele que a order é gerada depois.
+create or replace function tl_submit_quote(p_token text, p_payload jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pp       ops_proposals%rowtype;
+  it       ops_proposal_items%rowtype;
+  ex       jsonb;
+  g        text;
+  faltando text[] := '{}';
+  marcados jsonb;
+  exmarc   jsonb;
+  escol    boolean;
+  exsel    jsonb;
+  linhas   jsonb := '[]'::jsonb;
+  soma     numeric := 0;
+begin
+  select * into pp from ops_proposals where token = p_token;
+  if not found then return jsonb_build_object('ok', false, 'error', 'not_found'); end if;
+  if pp.responded_at is not null then
+    return jsonb_build_object('ok', false, 'error', 'already_answered');
+  end if;
+  if coalesce(btrim(p_payload->>'lead_name'),'') = '' then
+    return jsonb_build_object('ok', false, 'error', 'missing_fields', 'missing', to_jsonb(array['lead_name']));
+  end if;
+  if coalesce((p_payload->>'ack_conditions')::boolean, false) is not true then
+    return jsonb_build_object('ok', false, 'error', 'missing_ack');
+  end if;
+
+  marcados := coalesce(p_payload->'items','[]'::jsonb);
+  exmarc   := coalesce(p_payload->'extras','{}'::jsonb);
+
+  for g in select distinct choice_group from ops_proposal_items
+            where proposal_id = pp.id and choice_group is not null loop
+    if not exists (select 1 from ops_proposal_items i
+                    where i.proposal_id = pp.id and i.choice_group = g
+                      and marcados @> to_jsonb(i.id::text)) then
+      faltando := array_append(faltando, g);
+    end if;
+  end loop;
+  if array_length(faltando,1) > 0 then
+    return jsonb_build_object('ok', false, 'error', 'missing_choice', 'missing', to_jsonb(faltando));
+  end if;
+
+  for it in select * from ops_proposal_items where proposal_id = pp.id order by sort loop
+    escol := (not it.optional and it.choice_group is null)
+             or (marcados @> to_jsonb(it.id::text));
+    exsel := '[]'::jsonb;
+    if escol then
+      soma := soma + coalesce(it.price,0);
+      for ex in select * from jsonb_array_elements(coalesce(it.extras,'[]'::jsonb)) loop
+        if coalesce(exmarc->(it.id::text), '[]'::jsonb) @> to_jsonb(ex->>'key') then
+          soma  := soma + coalesce((ex->>'price')::numeric, 0);
+          exsel := exsel || jsonb_build_object('key', ex->>'key', 'label_pt', ex->>'label_pt',
+            'label_en', ex->>'label_en', 'price', ex->>'price');
+        end if;
+      end loop;
+    end if;
+    linhas := linhas || jsonb_build_object(
+      'item_id', it.id, 'service_date', it.service_date, 'title', it.title,
+      'details', it.details, 'price', it.price, 'optional', it.optional,
+      'section', it.section, 'choice_group', it.choice_group,
+      'supplier', it.supplier,
+      'chosen', escol, 'extras', exsel);
+  end loop;
+
+  insert into ops_proposal_selections
+    (proposal_id, lead_name, lead_email, lead_phone, remarks, lines, total, ack_conditions)
+  values (pp.id, p_payload->>'lead_name', p_payload->>'lead_email',
+          p_payload->>'lead_phone', p_payload->>'remarks', linhas, soma, true);
+
+  update ops_proposals set responded_at = now(), updated_at = now() where id = pp.id;
+  return jsonb_build_object('ok', true);
+end $$;
+
+-- tl_order_from_quote: o fornecedor desce para a linha da order. O extra
+-- marcado vira linha própria e herda o fornecedor da linha que o gerou —
+-- o upgrade para van é do mesmo transportista do trecho.
+create or replace function tl_order_from_quote(p_selection uuid)
+returns jsonb
+language plpgsql
+set search_path = public
+as $$
+declare
+  sel    ops_proposal_selections%rowtype;
+  pp     ops_proposals%rowtype;
+  o      ops_opportunities%rowtype;
+  ln     jsonb;
+  ex     jsonb;
+  novo   uuid;
+  ref    text;
+  n      int := 0;
+  idioma text;
+begin
+  select * into sel from ops_proposal_selections where id = p_selection;
+  if not found then return jsonb_build_object('ok', false, 'error', 'selection_not_found'); end if;
+  if sel.order_id is not null then
+    return jsonb_build_object('ok', false, 'error', 'already_generated', 'order_id', sel.order_id);
+  end if;
+
+  select * into pp from ops_proposals    where id = sel.proposal_id;
+  select * into o  from ops_opportunities where id = pp.opportunity_id;
+  idioma := coalesce(pp.lang, o.lang, 'pt');
+
+  update ops_proposals
+     set outcome = 'accepted', acceptance_mode = 'written',
+         decided_at = coalesce(decided_at, now()), updated_at = now()
+   where id = pp.id;
+
+  select coalesce(o.crm_code, pp.title, 'TL') || '.' ||
+         (1 + (select count(*) from ops_orders r where r.opportunity_id = o.id))
+    into ref;
+
+  insert into ops_orders
+    (opportunity_id, opportunity_code, order_ref, lang, status, agency, agency_contact,
+     final_client, pax_summary, travel_window, intro, terms_url, payment_note)
+  values (o.id, coalesce(o.crm_code,''), ref, idioma, 'draft', o.agency, o.agency_contact,
+     coalesce(o.final_client, sel.lead_name), pp.pax_summary, pp.travel_window,
+     pp.intro, pp.terms_url, pp.payment_note)
+  returning id into novo;
+
+  for ln in select * from jsonb_array_elements(sel.lines) loop
+    if (ln->>'chosen')::boolean then
+      insert into ops_order_items (order_id, sort, service_date, title, details, price, supplier)
+      values (novo, n, ln->>'service_date', ln->>'title', ln->>'details',
+              coalesce((ln->>'price')::numeric, 0), ln->>'supplier');
+      n := n + 1;
+      for ex in select * from jsonb_array_elements(coalesce(ln->'extras','[]'::jsonb)) loop
+        insert into ops_order_items (order_id, sort, service_date, title, details, price, supplier)
+        values (novo, n, ln->>'service_date',
+                coalesce(ex->>'label_pt', ex->>'label_en', ex->>'key'),
+                (ln->>'title'), coalesce((ex->>'price')::numeric, 0), ln->>'supplier');
+        n := n + 1;
+      end loop;
+    end if;
+  end loop;
+
+  update ops_proposal_selections set order_id = novo where id = sel.id;
+  return jsonb_build_object('ok', true, 'order_id', novo, 'order_ref', ref);
+end $$;
+
+revoke all on function tl_submit_quote(text, jsonb) from public;
+grant execute on function tl_submit_quote(text, jsonb) to anon, authenticated;
+revoke all on function tl_order_from_quote(uuid) from public, anon;
+grant execute on function tl_order_from_quote(uuid) to authenticated;
