@@ -50,6 +50,14 @@ Arquivo único, sem build, sem framework. Vanilla JS + supabase-js via CDN.
 - `db/tl-hub-notify.sql` — aviso por e-mail quando a agência confirma.
 
 Ordem de aplicação no SQL Editor: orders → opportunities → checkout → notify → quote.
+
+**Daqui em diante, arquivo entregue não se reescreve.** Toda alteração de banco vira um
+arquivo novo e numerado em `db/migrations/`, que se registra em `ops_migrations` ao rodar.
+Foi instrução dela, em agosto/26, e o motivo é o histórico: reescrevendo o mesmo arquivo
+não dá para saber o que já foi aplicado, e a única saída vira "roda tudo de novo" a cada
+mudança. O hub lê `ops_migrations`, compara com a lista `MIGRACOES` do `index.html` e
+avisa no Painel qual arquivo falta, com link — em vez de quebrar com nome de coluna na
+tela de quem não programa. Errou numa migração, corrige na próxima; não edita a anterior.
 `db/exemplo-quote-TL-039-26.sql` carrega a proposta real da Camila como dados de exemplo.
 
 **Quote simples.** É o modelo sem a proposta "bonita": serve para hospedagem mais
@@ -124,7 +132,8 @@ Separar depois, se justificar: `pg_dump` filtrando `ops_*`.
 
 ### Tabelas
 `ops_orders` · `ops_order_items` · `ops_order_payments` · `ops_order_confirmations` ·
-`ops_order_fields` · `ops_notify_config` · `ops_notifications` · `ops_text_defaults`
+`ops_order_fields` · `ops_notify_config` · `ops_notifications` · `ops_text_defaults` ·
+`ops_migrations`
 
 `ops_order_fields` são os campos variáveis daquele checkout. Os três estados da
 especificação: **não aparece** é a linha não existir, **aparece vazio** é `mode='blank'`,
@@ -243,6 +252,18 @@ das confirmações antigas continuam onde estão e continuam sendo exibidas.
   agência e data; serviços dia por dia; o que está pendente de pagamento e de link;
   conferência dos nomes contra o passaporte; bilhete comprado ou não; e caixas para marcar
   agendado e reconfirmado. Falta ver a referência que ela quer mostrar.
+**Comissão de agência.** Relatório interno que sai da order: por serviço, o percentual e
+o valor da comissão, mais os dados para a agência emitir a nota e os dados da remessa.
+A alíquota fica na **linha** (`ops_order_items.commission_pct`), não na order: na TL-034-26
+o transfer é 10% e os demais 12%, e existe linha chamada "transfer" que leva visita a
+vinícola dentro. Uma alíquota por order obrigaria a errar em alguma linha. O botão
+"Comissão padrão" chuta 10% para transfer e motorista e 12% para o resto — é sugestão para
+ela conferir, nunca decisão. Linha sem percentual não entra no relatório: em branco
+significa "ainda não decidi", e sair com zero afirmaria que não há comissão.
+Os dois blocos de texto do relatório — dados fiscais e como emitir a nota — moram em
+`ops_text_defaults`, editáveis sem mexer em código. `commission_pct` não sai em
+`tl_get_order`.
+
 - Busca, histórico e filtro por data, cliente e tipo de serviço.
 - Exportação para alimentar o faturamento no CRM, com o hub como fonte de verdade.
 

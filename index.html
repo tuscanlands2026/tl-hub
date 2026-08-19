@@ -94,6 +94,8 @@ label{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase
 .faltasql{background:var(--cream-light);border-left:3px solid var(--brown);color:var(--ink);
   padding:12px 14px;margin-bottom:18px;font-size:13px;line-height:1.6;}
 .faltasql a{color:var(--brown);}
+.faltasql ol{margin:8px 0 0 18px;}
+.faltasql li{margin-bottom:4px;}
 .painel .titulo{color:#fff;font-size:11px;letter-spacing:.24em;text-transform:uppercase;font-weight:500;}
 .painel .sub{color:rgba(255,255,255,.72);font-size:13.5px;margin-top:8px;line-height:1.6;}
 .painel .risca{width:30px;height:1px;background:var(--copper);margin:14px 0 28px;}
@@ -234,6 +236,10 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 /* Não inclusos sai colado nas tabelas, na mesma folha se couber: é
    resposta ao que aquela opção contém, e não condição geral da casa. */
 .doc .naoinc{margin-top:26px;}
+/* Bloco fiscal é endereço, não texto corrido: linhas juntas e sem
+   partir de uma folha para a outra. */
+.doc .dadosnf{break-inside:avoid;}
+.doc .dadosnf .condicoes p{margin-bottom:1px;line-height:1.55;text-align:left;}
 /* O documento é peso 300. O "bolder" que o navegador dá ao <strong>
    é relativo: contra 300 ele cai em 400, e o negrito some. Por isso o
    peso vai escrito, em 500, que é o peso de ênfase da casa. */
@@ -816,18 +822,33 @@ async function boot(){
    aparece é de rede ou de coluna, e não diz o que fazer. Aqui a
    conferência é feita uma vez, na entrada, e o recado é em português
    com o link do arquivo que falta rodar. */
-let FALTA_SQL = null;
+/* Cada alteração de banco é um arquivo novo em db/migrations, e cada
+   arquivo se registra em ops_migrations ao rodar. Aqui fica a lista do
+   que esta versão do hub espera encontrar. Faltando alguma, o painel
+   diz qual é e dá o link — em vez de o erro aparecer só na hora de
+   gravar, com nome de coluna na cara de quem não programa. */
+const MIGRACOES = [
+  {id:"0001-controle-de-migracoes", arq:"0001-controle-de-migracoes.sql",
+   oque:"controle das próprias migrações"},
+  {id:"0002-comissao-de-agencia",   arq:"0002-comissao-de-agencia.sql",
+   oque:"comissão por linha e relatório para a agência"}
+];
+const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
+let FALTAM = [];
 async function conferirBanco(){
-  const {error} = await sb.from("ops_text_defaults").select("key").limit(1);
-  FALTA_SQL = error ? "db/tl-hub-quote.sql" : null;
+  const {data, error} = await sb.from("ops_migrations").select("id");
+  if(error){ FALTAM = MIGRACOES; return; }          // nem a tabela existe: falta tudo
+  const feitas = (data||[]).map(r=>r.id);
+  FALTAM = MIGRACOES.filter(m=>!feitas.includes(m.id));
 }
 function avisoSQL(){
-  if(!FALTA_SQL) return "";
+  if(!FALTAM.length) return "";
   return `<div class="faltasql">
-    O banco está uma atualização atrás do hub. Enquanto isso, criar e salvar proposta
-    vai dar erro. Rode <b>${FALTA_SQL}</b> no SQL Editor do Supabase:<br>
-    <a href="https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/${FALTA_SQL}"
-       target="_blank" rel="noopener">abrir o arquivo para copiar</a>
+    <b>Falta rodar ${FALTAM.length===1?"uma atualização":FALTAM.length+" atualizações"} no banco.</b>
+    Enquanto isso, as telas que dependem dela dão erro ao gravar.
+    Abra cada arquivo, copie e cole no SQL Editor do Supabase, na ordem:
+    <ol>${FALTAM.map(m=>`<li><a href="${RAW}${m.arq}" target="_blank" rel="noopener">${m.arq}</a>
+      — ${m.oque}</li>`).join("")}</ol>
   </div>`;
 }
 
@@ -837,9 +858,9 @@ function avisoSQL(){
 function explicar(err){
   const m = (err && err.message) || String(err||"");
   if(/does not exist|schema cache|Could not find/i.test(m))
-    return "O banco ainda não tem os campos que esta tela grava. Rode a última SQL "
-         + "(db/tl-hub-quote.sql) no SQL Editor do Supabase e recarregue com Ctrl+Shift+R.\n\n"
-         + "Detalhe técnico: " + m;
+    return "O banco ainda não tem os campos que esta tela grava. Volte ao Painel: o aviso "
+         + "lá em cima diz qual arquivo de db/migrations falta rodar no SQL Editor. "
+         + "Depois recarregue com Ctrl+Shift+R.\n\nDetalhe técnico: " + m;
   if(/Failed to fetch|NetworkError|fetch/i.test(m))
     return "O hub não conseguiu falar com o Supabase agora. Confira a conexão e tente de novo. "
          + "Se persistir, pode ser que falte rodar a última SQL.\n\nDetalhe técnico: " + m;
@@ -1272,7 +1293,7 @@ function drawProposals(){
 
 async function newProposal(){
   const v = 1 + PROPS.reduce((m,p)=>Math.max(m,p.version||0),0);
-  if(FALTA_SQL) return alert(explicar({message:"ops_text_defaults does not exist"}));
+  if(FALTAM.length) return alert(explicar({message:"migração pendente: does not exist"}));
   // Nasce já com as condições da casa e com as duas seções de sempre —
   // hospedagem e serviços terrestres. Proposta em branco obrigaria a
   // redigitar a mesma coisa toda vez, que é o que ela pediu para acabar.
@@ -1334,6 +1355,101 @@ async function saveOpportunity(){
   if(el("op-who")) el("op-who").textContent = quemE(OPP);
   btn.textContent = "Salvo";
   setTimeout(()=>btn.textContent="Salvar", 1600);
+}
+
+/* -------------------------------------------------- COMISSÃO --------- */
+/* Documento interno: sai da order, vai para a agência. Só entra linha
+   com percentual definido — linha sem comissão é linha que ela ainda
+   não decidiu, e listar com zero afirmaria que não há comissão. */
+async function renderCommission(){
+  const o = ORDER;
+  const linhas = ITEMS.filter(r => r.commission_pct != null && r.commission_pct !== "");
+  if(!linhas.length) return alert(
+    "Nenhum serviço tem percentual de comissão. Preencha a coluna Comissão na tabela de "
+    + "serviços, ou use o botão \"Comissão padrão\", e salve antes de gerar o relatório.");
+
+  const [{data:bt},{data:tm}] = await Promise.all([
+    sb.from("ops_text_defaults").select("*").eq("key","commission_billto").maybeSingle(),
+    sb.from("ops_text_defaults").select("*").eq("key","commission_terms").maybeSingle()
+  ]);
+  const idioma = o.lang === "en" ? "en" : "pt";
+  const texto = d => (d && (d[idioma] || d.pt)) || "";
+  const total = linhas.reduce((x,r)=>x+comissaoDe(r), 0);
+  const base  = linhas.reduce((x,r)=>x+(Number(r.price)||0), 0);
+  const L = idioma === "en"
+    ? {tit:"Commission report", sub:"Commission due on the services confirmed for this booking.",
+       para:"To", ref:"Reference", per:"Period", date:"Date", svc:"Service", val:"Amount €",
+       pct:"%", com:"Commission €", tot:"Total commission", basel:"Services considered",
+       bill:"Invoice to", how:"How to invoice"}
+    : {tit:"Relatório de comissão", sub:"Comissão devida sobre os serviços confirmados desta reserva.",
+       para:"Para", ref:"Referência", per:"Período", date:"Data", svc:"Serviço", val:"Valor €",
+       pct:"%", com:"Comissão €", tot:"Total da comissão", basel:"Serviços considerados",
+       bill:"Dados para emissão da nota", how:"Como emitir a nota"};
+
+  app.innerHTML = `
+  <div class="topbar noprint">
+    <span class="mark">TUSCAN LANDS</span>
+    <span class="sep">·</span><span class="ctx">${L.tit} · ${esc(o.order_ref||"")}</span>
+    <div class="right">
+      <button id="cm-back">Voltar</button>
+      <button id="cm-print">Imprimir / PDF</button>
+    </div>
+  </div>
+  <div class="docpad"><div class="doc">
+    <div class="head">
+      <div class="brand">
+        <div class="logo-text">TUSCAN LANDS</div>
+        <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
+      </div>
+      <div class="to">
+        <div class="lbl">${L.para}</div>
+        <div class="val">${esc(o.agency||o.final_client||"—")}</div>
+        <div class="lbl">${L.ref}</div><div class="val">${esc(o.order_ref||"")}</div>
+      </div>
+    </div>
+
+    <h1 class="doctitle">${L.tit}</h1>
+    <div class="intro" style="text-align:left;">${L.sub}</div>
+
+    <div class="meta">
+      <div class="cell"><div class="k">${L.para}</div><div class="v">${esc(o.agency||"—")}</div></div>
+      <div class="cell"><div class="k">${L.ref}</div><div class="v">${esc(o.order_ref||"—")}</div></div>
+      <div class="cell"><div class="k">${L.per}</div><div class="v">${esc(o.travel_window||"—")}</div></div>
+      <div class="cell"><div class="k">${L.basel}</div><div class="v">${eur(base)}</div></div>
+    </div>
+
+    <table class="svc">
+      <thead><tr><th style="width:96px;">${L.date}</th><th>${L.svc}</th>
+        <th class="money" style="width:110px;">${L.val}</th>
+        <th class="money" style="width:52px;">${L.pct}</th>
+        <th class="money" style="width:120px;">${L.com}</th></tr></thead>
+      <tbody>${linhas.map(r=>`<tr>
+        <td class="date-cell">${esc(r.service_date||"")}</td>
+        <td><div class="svc-title">${esc(r.title)}</div></td>
+        <td class="money">${eur(r.price)}</td>
+        <td class="money">${Number(r.commission_pct)}%</td>
+        <td class="money">${eur(comissaoDe(r))}</td></tr>`).join("")}</tbody>
+    </table>
+
+    <div class="total-row"><div class="total-box">
+      <span class="lbl">${L.tot}</span><span class="amt">${eur(total)}</span></div></div>
+
+    <div class="dadosnf">
+      <div class="blocktitle">${L.bill}</div>
+      <div class="condicoes">${fmtDoc(texto(bt))}</div>
+    </div>
+
+    <div class="blocktitle">${L.how}</div>
+    <div class="condicoes">${fmtDoc(texto(tm))}</div>
+
+    <div class="foot">
+      <div class="co">TUSCAN LANDS TRAVEL</div>
+      ${COMPANY.legal} · ${COMPANY.vat.replace(" · Pontassieve (FI), Italy","")} · ${COMPANY.email}
+    </div>
+  </div></div>`;
+
+  el("cm-back").onclick = renderEditor;
+  el("cm-print").onclick = () => window.print();
 }
 
 /* ==================================================================== */
@@ -1782,6 +1898,7 @@ function renderEditor(){
       <button class="btn ghost sm" id="ed-del" style="border-color:var(--brown);color:var(--brown);">Excluir</button>
       <button class="btn ghost sm" id="ed-preview">Ver como o cliente vê</button>
       ${CONF?`<button class="btn sm" id="ed-sum">Resumo (PDF)</button>`:""}
+      <button class="btn ghost sm" id="ed-com">Comissão (PDF)</button>
     </div>
   </div>
 
@@ -1824,7 +1941,10 @@ function renderEditor(){
     <div class="section-title">Serviços confirmados</div>
     <div id="items-host"></div>
     <button class="btn ghost sm" id="it-add" style="margin-top:5px;">+ Serviço</button>
+    <button class="btn ghost sm" id="it-com" style="margin-top:5px;">Comissão padrão</button>
     <div class="totalline"><span class="lbl">Total</span><span class="amt" id="it-total">—</span></div>
+    <div class="totalline"><span class="lbl">Comissão da agência</span>
+      <span class="amt" id="it-comis" style="color:var(--brown);">—</span></div>
   </div>
 
   <div class="card">
@@ -1886,6 +2006,8 @@ function renderEditor(){
   el("ed-dup").onclick = duplicateOrder;
   el("ed-del").onclick = deleteOrder;
   if(el("ed-sum")) el("ed-sum").onclick = renderSummary;
+  el("ed-com").onclick = renderCommission;
+  el("it-com").onclick = comissaoPadrao;
   if(el("lk-copy")) el("lk-copy").onclick = () => {
     el("lk").select(); document.execCommand("copy"); el("lk-copy").textContent="Copiado"; };
   el("it-add").onclick = () => { ITEMS.push({service_date:"",title:"",details:"",price:0,sort:ITEMS.length}); drawItems(); };
@@ -1904,7 +2026,8 @@ function renderEditor(){
 function drawItems(){
   el("items-host").innerHTML = `<table class="rows">
     <thead><tr><th style="width:110px;">Data</th><th>Serviço</th><th style="width:120px;">Valor €</th>
-      <th style="width:140px;">Fornecedor</th><th class="x"></th></tr></thead>
+      <th style="width:140px;">Fornecedor</th><th style="width:78px;">Comissão</th>
+      <th class="x"></th></tr></thead>
     <tbody>${ITEMS.map((r,i)=>`<tr>
       <td><input value="${esc(r.service_date||"")}" oninput="ITEMS[${i}].service_date=this.value"></td>
       <td>
@@ -1914,11 +2037,41 @@ function drawItems(){
       <td><input type="number" step="0.01" value="${Number(r.price)||0}" style="text-align:right;" oninput="ITEMS[${i}].price=parseFloat(this.value)||0;sumItems()"></td>
       <td><input class="interno" value="${esc(r.supplier||"")}" placeholder="quem opera"
         oninput="ITEMS[${i}].supplier=this.value.trim()||null"></td>
+      <td><input class="interno" type="number" step="0.5" style="text-align:right;"
+        value="${r.commission_pct==null?"":Number(r.commission_pct)}" placeholder="%"
+        oninput="ITEMS[${i}].commission_pct=this.value===''?null:parseFloat(this.value);sumItems()"></td>
       <td class="x"><button class="iconbtn" onclick="ITEMS.splice(${i},1);drawItems()">×</button></td>
     </tr>`).join("")}</tbody></table>`;
   sumItems();
 }
-function sumItems(){ el("it-total").textContent = eur(ITEMS.reduce((s,r)=>s+(Number(r.price)||0),0)); }
+function sumItems(){
+  el("it-total").textContent = eur(ITEMS.reduce((s,r)=>s+(Number(r.price)||0),0));
+  const c = el("it-comis");
+  if(c){
+    const soma = ITEMS.reduce((s,r)=>s+comissaoDe(r), 0);
+    c.textContent = soma ? eur(soma) : "—";
+  }
+}
+/* Comissão da linha. Sem percentual não é zero: é "ainda não definido",
+   e some do relatório em vez de entrar valendo nada. */
+function comissaoDe(r){
+  if(r.commission_pct == null || r.commission_pct === "") return 0;
+  return (Number(r.price)||0) * (Number(r.commission_pct)||0) / 100;
+}
+
+/* Sugestão, não regra: transfer e motorista a 10%, o resto a 12%. Na
+   TL-034-26 há linha chamada "transfer" que leva visita a vinícola
+   dentro, então o palpite entra para ela conferir, nunca sozinho. */
+const COM_TRANSFER = 10, COM_PADRAO = 12;
+function comissaoPadrao(){
+  if(!confirm("Preencher a comissão de todas as linhas? Transfer e motorista a "
+    + COM_TRANSFER + "%, os demais a " + COM_PADRAO + "%. Você ajusta linha a linha depois.")) return;
+  ITEMS.forEach(r=>{
+    const t = (r.title||"").toLowerCase();
+    r.commission_pct = /transfer|motorista|traslado/.test(t) ? COM_TRANSFER : COM_PADRAO;
+  });
+  drawItems();
+}
 
 function drawPays(){
   el("pays-host").innerHTML = `<table class="rows">
@@ -2248,7 +2401,8 @@ async function saveOrder(){
   await sb.from("ops_order_fields").delete().eq("order_id",ORDER.id);
   const {error:e2} = ITEMS.length ? await sb.from("ops_order_items").insert(
     ITEMS.map((r,i)=>({order_id:ORDER.id,sort:i,service_date:r.service_date,title:r.title,
-      details:r.details,price:r.price,supplier:(r.supplier||"").trim()||null}))) : {};
+      details:r.details,price:r.price,supplier:(r.supplier||"").trim()||null,
+      commission_pct:(r.commission_pct===""||r.commission_pct==null)?null:r.commission_pct}))) : {};
   const {error:e3} = PAYS.length ? await sb.from("ops_order_payments").insert(
     PAYS.map((p,i)=>({order_id:ORDER.id,sort:i,label:p.label,due_date:p.due_date,amount:p.amount,status:p.status}))) : {};
   const {error:e4} = FIELDS.length ? await sb.from("ops_order_fields").insert(
@@ -2340,7 +2494,8 @@ async function duplicateOrder(){
   if(it && it.length){
     const {error:e} = await sb.from("ops_order_items").insert(it.map((r,i)=>({
       order_id:novo.id, sort:i, service_date:r.service_date, title:r.title,
-      details:r.details, price:r.price, supplier:r.supplier}))); if(e) erros.push(e.message);
+      details:r.details, price:r.price, supplier:r.supplier,
+      commission_pct:r.commission_pct}))); if(e) erros.push(e.message);
   }
   if(pg && pg.length){
     const {error:e} = await sb.from("ops_order_payments").insert(pg.map((r,i)=>({
