@@ -187,6 +187,12 @@ vale mais: **terracota é do Booking, que é outro módulo.** Aqui não entra. A
 Copper `#a56850` é o acento quente que sobrou: réguas, overlines de documento, marcação
 de campo pré-preenchido.
 
+**Uma exceção, pedida por ela em agosto/26: o relatório de comissão sai em copper**, não
+em sage — título, cabeçalho da tabela, réguas e caixa do total. O motivo é que ele tinha
+a mesma cara do pedido de serviços e os dois se confundiam: são documentos diferentes,
+para pessoas diferentes. Continua dentro da paleta, e **terracota segue sem uso** — é do
+Booking. Nenhum outro documento muda de cor sem instrução dela.
+
 Paleta de apoio: cream-light `#f6f3f0` · cream `#eae4db` · brown `#a2564c` ·
 copper `#a56850` · ink `#2a2a28` · muted `#6b6860`.
 **border-radius: 0 em tudo, sempre.** Sem exceção.

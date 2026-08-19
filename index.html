@@ -238,6 +238,23 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .doc .naoinc{margin-top:26px;}
 /* Bloco fiscal é endereço, não texto corrido: linhas juntas e sem
    partir de uma folha para a outra. */
+/* O relatório de comissão sai em copper, não em sage. É outro documento
+   e vai para outra pessoa — a agência, não o cliente — e com a mesma
+   cara do pedido de serviços os dois se confundem na caixa de entrada
+   dela. Copper já é o acento quente da paleta; terracota continua sendo
+   do Booking e não entra aqui. */
+.doc.com h1.doctitle{color:var(--copper);}
+.doc.com .over{font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--copper);font-weight:500;margin-bottom:6px;}
+.doc.com .head{border-bottom-color:var(--copper);}
+.doc.com .brand .logo-text{color:var(--copper);}
+.doc.com .to .lbl,.doc.com .meta .k,.doc.com .blocktitle{color:var(--copper);}
+.doc.com table.svc thead th{background:var(--copper);}
+.doc.com .date-cell{color:var(--copper);}
+.doc.com .total-box{background:#f3e9e4;}
+.doc.com .total-box .lbl,.doc.com .total-box .amt{color:var(--copper);}
+.doc.com table.svc tfoot td{border-top:1.5px solid var(--copper);font-weight:500;
+  padding-top:9px;color:var(--ink);}
 .doc .dadosnf{break-inside:avoid;}
 /* Coluna que explica a alíquota: texto de apoio, não título de serviço. */
 .doc table.svc td.inclui{font-size:12px;color:var(--muted);line-height:1.5;}
@@ -343,6 +360,8 @@ table.rows tr.par td{border-top:none;padding-top:0;}
   .doc table.svc thead th{background:var(--sage)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .doc table.svc tbody tr:nth-child(even){background:var(--cream-light)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .doc .total-box{background:var(--cream)!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .doc.com .total-box{background:#f3e9e4!important;}
+  .doc.com table.svc thead th{background:var(--copper)!important;}
   .doc .head{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   /* RODAPÉ. Ele fica logo depois do conteúdo, e não colado no pé da
      última página. Não é escolha: o motor de impressão do navegador não
@@ -1383,13 +1402,13 @@ async function renderCommission(){
   const L = idioma === "en"
     ? {tit:"Commission report", sub:"Commission due on the services confirmed for this booking.",
        para:"To", ref:"Reference", per:"Period", date:"Date", svc:"Service", val:"Amount €",
-       inc:"Included",
-       pct:"%", com:"Commission €", tot:"Total commission", basel:"Services considered",
+       inc:"Included", over:"Agency commission", sold:"Totals",
+       pct:"%", com:"Commission €", tot:"Total commission", basel:"Total services sold",
        bill:"Invoice to", how:"How to invoice"}
     : {tit:"Relatório de comissão", sub:"Comissão devida sobre os serviços confirmados desta reserva.",
        para:"Para", ref:"Referência", per:"Período", date:"Data", svc:"Serviço", val:"Valor €",
-       inc:"Inclusos",
-       pct:"%", com:"Comissão €", tot:"Total da comissão", basel:"Serviços considerados",
+       inc:"Inclusos", over:"Comissão de agência", sold:"Totais",
+       pct:"%", com:"Comissão €", tot:"Total da comissão", basel:"Total de serviços vendidos",
        bill:"Dados para emissão da nota", how:"Como emitir a nota"};
 
   app.innerHTML = `
@@ -1401,7 +1420,7 @@ async function renderCommission(){
       <button id="cm-print">Imprimir / PDF</button>
     </div>
   </div>
-  <div class="docpad"><div class="doc">
+  <div class="docpad"><div class="doc com">
     <div class="head">
       <div class="brand">
         <div class="logo-text">TUSCAN LANDS</div>
@@ -1414,6 +1433,7 @@ async function renderCommission(){
       </div>
     </div>
 
+    <div class="over">${L.over}</div>
     <h1 class="doctitle">${L.tit}</h1>
     <div class="intro" style="text-align:left;">${L.sub}</div>
 
@@ -1437,6 +1457,12 @@ async function renderCommission(){
         <td class="money">${eur(r.price)}</td>
         <td class="money">${Number(r.commission_pct)}%</td>
         <td class="money">${eur(comissaoDe(r))}</td></tr>`).join("")}</tbody>
+      <tfoot><tr>
+        <td></td><td>${L.sold}</td><td></td>
+        <td class="money">${eur(base)}</td>
+        <td></td>
+        <td class="money">${eur(total)}</td>
+      </tr></tfoot>
     </table>
 
     <div class="total-row"><div class="total-box">
