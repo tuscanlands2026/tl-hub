@@ -254,12 +254,25 @@ das confirmações antigas continuam onde estão e continuam sendo exibidas.
   agendado e reconfirmado. Falta ver a referência que ela quer mostrar.
 **Comissão de agência.** Relatório interno que sai da order: por serviço, o percentual e
 o valor da comissão, mais os dados para a agência emitir a nota e os dados da remessa.
-A alíquota fica na **linha** (`ops_order_items.commission_pct`), não na order: na TL-034-26
-o transfer é 10% e os demais 12%, e existe linha chamada "transfer" que leva visita a
-vinícola dentro. Uma alíquota por order obrigaria a errar em alguma linha. O botão
-"Comissão padrão" chuta 10% para transfer e motorista e 12% para o resto — é sugestão para
-ela conferir, nunca decisão. Linha sem percentual não entra no relatório: em branco
-significa "ainda não decidi", e sair com zero afirmaria que não há comissão.
+A alíquota fica na **linha** (`ops_order_items.commission_pct`), não na order, e é número
+livre: transfer puro costuma ser 10%, transfer com serviço dentro 12%, e **há fornecedor
+que comissiona 15%** — ela vai lançando conforme o caso. Uma alíquota por order obrigaria
+a errar em alguma linha.
+
+`ops_order_items.commission_basis` é o texto curto do que a linha inclui. Sai como coluna
+no relatório, ao lado da alíquota: é o que explica à agência por que uma linha é 10 e a
+outra 12 sem ela ter de perguntar.
+
+O que separa 10 de 12 não é o nome da linha, é o que ela leva dentro. Na TL-034-26 as cinco
+começam com "transfer" ou "motorista": a de Orvieto tem só parada (10%), a do Chianti leva
+vinícola com degustação (12%), a da Val d'Orcia leva almoço típico incluso (12%), e a do
+outlet tem só parada (10%). **Parar em algum lugar não é serviço contratado**; por isso a
+palavra "visita" sozinha não decide nada — as duas pontas têm "visita" no texto.
+
+O botão "Comissão padrão" lê o campo Inclusos, e na falta dele o título com os detalhes.
+**Só preenche linha em branco**, nunca sobrescreve o que ela já lançou, e é sugestão para
+conferir. Linha sem percentual não entra no relatório: em branco significa "ainda não
+decidi", e sair com zero afirmaria que não há comissão.
 Os dois blocos de texto do relatório — dados fiscais e como emitir a nota — moram em
 `ops_text_defaults`, editáveis sem mexer em código. `commission_pct` não sai em
 `tl_get_order`.

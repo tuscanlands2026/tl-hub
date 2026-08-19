@@ -239,6 +239,8 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 /* Bloco fiscal é endereço, não texto corrido: linhas juntas e sem
    partir de uma folha para a outra. */
 .doc .dadosnf{break-inside:avoid;}
+/* Coluna que explica a alíquota: texto de apoio, não título de serviço. */
+.doc table.svc td.inclui{font-size:12px;color:var(--muted);line-height:1.5;}
 .doc .dadosnf .condicoes p{margin-bottom:1px;line-height:1.55;text-align:left;}
 /* O documento é peso 300. O "bolder" que o navegador dá ao <strong>
    é relativo: contra 300 ele cai em 400, e o negrito some. Por isso o
@@ -831,7 +833,9 @@ const MIGRACOES = [
   {id:"0001-controle-de-migracoes", arq:"0001-controle-de-migracoes.sql",
    oque:"controle das próprias migrações"},
   {id:"0002-comissao-de-agencia",   arq:"0002-comissao-de-agencia.sql",
-   oque:"comissão por linha e relatório para a agência"}
+   oque:"comissão por linha e relatório para a agência"},
+  {id:"0003-inclusos-na-comissao",  arq:"0003-inclusos-na-comissao.sql",
+   oque:"o que a linha inclui, que justifica a alíquota"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -1379,10 +1383,12 @@ async function renderCommission(){
   const L = idioma === "en"
     ? {tit:"Commission report", sub:"Commission due on the services confirmed for this booking.",
        para:"To", ref:"Reference", per:"Period", date:"Date", svc:"Service", val:"Amount €",
+       inc:"Included",
        pct:"%", com:"Commission €", tot:"Total commission", basel:"Services considered",
        bill:"Invoice to", how:"How to invoice"}
     : {tit:"Relatório de comissão", sub:"Comissão devida sobre os serviços confirmados desta reserva.",
        para:"Para", ref:"Referência", per:"Período", date:"Data", svc:"Serviço", val:"Valor €",
+       inc:"Inclusos",
        pct:"%", com:"Comissão €", tot:"Total da comissão", basel:"Serviços considerados",
        bill:"Dados para emissão da nota", how:"Como emitir a nota"};
 
@@ -1419,13 +1425,15 @@ async function renderCommission(){
     </div>
 
     <table class="svc">
-      <thead><tr><th style="width:96px;">${L.date}</th><th>${L.svc}</th>
-        <th class="money" style="width:110px;">${L.val}</th>
-        <th class="money" style="width:52px;">${L.pct}</th>
-        <th class="money" style="width:120px;">${L.com}</th></tr></thead>
+      <thead><tr><th style="width:90px;">${L.date}</th><th>${L.svc}</th>
+        <th style="width:150px;">${L.inc}</th>
+        <th class="money" style="width:104px;">${L.val}</th>
+        <th class="money" style="width:48px;">${L.pct}</th>
+        <th class="money" style="width:112px;">${L.com}</th></tr></thead>
       <tbody>${linhas.map(r=>`<tr>
         <td class="date-cell">${esc(r.service_date||"")}</td>
         <td><div class="svc-title">${esc(r.title)}</div></td>
+        <td class="inclui">${esc(r.commission_basis||"—")}</td>
         <td class="money">${eur(r.price)}</td>
         <td class="money">${Number(r.commission_pct)}%</td>
         <td class="money">${eur(comissaoDe(r))}</td></tr>`).join("")}</tbody>
@@ -2026,8 +2034,8 @@ function renderEditor(){
 function drawItems(){
   el("items-host").innerHTML = `<table class="rows">
     <thead><tr><th style="width:110px;">Data</th><th>Serviço</th><th style="width:120px;">Valor €</th>
-      <th style="width:140px;">Fornecedor</th><th style="width:78px;">Comissão</th>
-      <th class="x"></th></tr></thead>
+      <th style="width:140px;">Fornecedor</th><th style="width:150px;">Inclusos</th>
+      <th style="width:78px;">Comissão</th><th class="x"></th></tr></thead>
     <tbody>${ITEMS.map((r,i)=>`<tr>
       <td><input value="${esc(r.service_date||"")}" oninput="ITEMS[${i}].service_date=this.value"></td>
       <td>
@@ -2037,6 +2045,8 @@ function drawItems(){
       <td><input type="number" step="0.01" value="${Number(r.price)||0}" style="text-align:right;" oninput="ITEMS[${i}].price=parseFloat(this.value)||0;sumItems()"></td>
       <td><input class="interno" value="${esc(r.supplier||"")}" placeholder="quem opera"
         oninput="ITEMS[${i}].supplier=this.value.trim()||null"></td>
+      <td><input class="interno" value="${esc(r.commission_basis||"")}" placeholder="só transfer"
+        oninput="ITEMS[${i}].commission_basis=this.value.trim()||null"></td>
       <td><input class="interno" type="number" step="0.5" style="text-align:right;"
         value="${r.commission_pct==null?"":Number(r.commission_pct)}" placeholder="%"
         oninput="ITEMS[${i}].commission_pct=this.value===''?null:parseFloat(this.value);sumItems()"></td>
@@ -2059,16 +2069,39 @@ function comissaoDe(r){
   return (Number(r.price)||0) * (Number(r.commission_pct)||0) / 100;
 }
 
-/* Sugestão, não regra: transfer e motorista a 10%, o resto a 12%. Na
-   TL-034-26 há linha chamada "transfer" que leva visita a vinícola
-   dentro, então o palpite entra para ela conferir, nunca sozinho. */
-const COM_TRANSFER = 10, COM_PADRAO = 12;
+/* A alíquota segue o que a linha leva dentro, não o nome dela: transfer
+   puro é 10%, transfer com serviço dentro é 12%. Na TL-034-26 as cinco
+   linhas se chamam transfer ou motorista, mas uma tem só parada em
+   Orvieto, outra leva vinícola com degustação, outra almoço típico
+   incluso. Parar em algum lugar não é serviço contratado; visita,
+   degustação e refeição inclusa são.
+
+   Isto é palpite para ela conferir, nunca decisão: lê o campo Inclusos
+   e, na falta dele, o título com os detalhes. */
+const COM_SO_TRANSFER = 10, COM_COM_SERVICO = 12;
+
+/* Parar em algum lugar não é serviço contratado; vinícola, degustação e
+   refeição inclusa são. A distinção importa: na TL-034-26 a linha que
+   passa no outlet é 10% e a que leva visita a vinícola é 12%, e as duas
+   têm a palavra "visita" no texto. Por isso "visita" sozinha não conta:
+   contam vinícola, degustação, wine e almoço quando dito incluso. */
+const TEM_SERVICO = /vin[íi]cola|winery|wine|degusta|almo[çc]o incluso|almo[çc]o t[íi]pico|almo[çc]o harmoniz|refei[çc][õo]es inclu|guia|jantar/i;
+
 function comissaoPadrao(){
-  if(!confirm("Preencher a comissão de todas as linhas? Transfer e motorista a "
-    + COM_TRANSFER + "%, os demais a " + COM_PADRAO + "%. Você ajusta linha a linha depois.")) return;
-  ITEMS.forEach(r=>{
-    const t = (r.title||"").toLowerCase();
-    r.commission_pct = /transfer|motorista|traslado/.test(t) ? COM_TRANSFER : COM_PADRAO;
+  const vazias = ITEMS.filter(r => r.commission_pct == null || r.commission_pct === "");
+  if(!vazias.length) return alert(
+    "Todas as linhas já têm percentual. O botão só preenche o que está em branco — "
+    + "para trocar um valor, edite a linha direto.");
+  if(!confirm("Preencher " + vazias.length + " linha(s) sem percentual?\n\n"
+    + "Transfer puro: " + COM_SO_TRANSFER + "%. Transfer com serviço dentro "
+    + "(vinícola, degustação, almoço incluso): " + COM_COM_SERVICO + "%.\n\n"
+    + "O que você já lançou não é tocado. E é palpite: confira linha a linha, "
+    + "porque há fornecedor que comissiona 15%.")) return;
+  vazias.forEach(r=>{
+    const base = (r.commission_basis || "").trim();
+    const temServico = TEM_SERVICO.test(base || ((r.title||"") + " " + (r.details||"")));
+    r.commission_pct = temServico ? COM_COM_SERVICO : COM_SO_TRANSFER;
+    if(!base && !temServico) r.commission_basis = "Só transfer";
   });
   drawItems();
 }
@@ -2402,6 +2435,7 @@ async function saveOrder(){
   const {error:e2} = ITEMS.length ? await sb.from("ops_order_items").insert(
     ITEMS.map((r,i)=>({order_id:ORDER.id,sort:i,service_date:r.service_date,title:r.title,
       details:r.details,price:r.price,supplier:(r.supplier||"").trim()||null,
+      commission_basis:(r.commission_basis||"").trim()||null,
       commission_pct:(r.commission_pct===""||r.commission_pct==null)?null:r.commission_pct}))) : {};
   const {error:e3} = PAYS.length ? await sb.from("ops_order_payments").insert(
     PAYS.map((p,i)=>({order_id:ORDER.id,sort:i,label:p.label,due_date:p.due_date,amount:p.amount,status:p.status}))) : {};
@@ -2495,6 +2529,7 @@ async function duplicateOrder(){
     const {error:e} = await sb.from("ops_order_items").insert(it.map((r,i)=>({
       order_id:novo.id, sort:i, service_date:r.service_date, title:r.title,
       details:r.details, price:r.price, supplier:r.supplier,
+      commission_basis:r.commission_basis,
       commission_pct:r.commission_pct}))); if(e) erros.push(e.message);
   }
   if(pg && pg.length){
