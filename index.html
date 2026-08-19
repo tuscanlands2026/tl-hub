@@ -207,6 +207,11 @@ table.rows td.x{width:30px;padding-right:0;}
 /* Campo interno na tabela de serviços: marcado para não se confundir
    com o que o cliente lê. */
 input.interno{border-left:2px solid var(--brown);}
+/* Par de linhas PT/EN na tabela de seções: a segunda não repete a
+   borda, para as duas lerem como um bloco só. */
+table.rows td.idio{font-size:9px;letter-spacing:.18em;color:var(--sage);font-weight:500;
+  vertical-align:middle;padding-right:6px;}
+table.rows tr.par td{border-top:none;padding-top:0;}
 .doc table.svc tbody tr:nth-child(even){background:var(--cream-light);}
 .doc .date-cell{font-weight:500;color:var(--sage);white-space:nowrap;}
 .doc .svc-title{font-weight:400;}
@@ -223,6 +228,9 @@ input.interno{border-left:2px solid var(--brown);}
 /* Condições numa página só delas, como na proposta. Na tela vira um
    bloco separado por régua; no papel, começa folha nova. */
 .doc .pagina-nova{margin-top:34px;border-top:1px solid var(--cream);padding-top:24px;}
+/* Não inclusos sai colado nas tabelas, na mesma folha se couber: é
+   resposta ao que aquela opção contém, e não condição geral da casa. */
+.doc .naoinc{margin-top:26px;}
 /* O documento é peso 300. O "bolder" que o navegador dá ao <strong>
    é relativo: contra 300 ele cai em 400, e o negrito some. Por isso o
    peso vai escrito, em 500, que é o peso de ênfase da casa. */
@@ -339,6 +347,10 @@ input.interno{border-left:2px solid var(--brown);}
   /* Título de seção não fica órfão no pé da folha: ele e a linha de
      instrução grudam na tabela que explicam. */
   .doc .blocktitle,.doc .blocktitle + .muted{break-after:avoid;}
+  /* Não inclusos acompanha as tabelas na mesma folha se couber. Segurar
+     o bloco inteiro contra quebra o jogava sozinho para uma página em
+     branco, que é pior do que deixá-lo partir. */
+  .doc .naoinc li{break-inside:avoid;}
   .doc table.svc tbody tr{break-inside:avoid;}
   .doc .terms h3,.doc .blocktitle{break-after:avoid;}
   .doc .terms li,.doc table.data tr{break-inside:avoid;}
@@ -493,7 +505,8 @@ const T = {
     brOpp:"Oportunidade",
     qTitle:"Proposta", qIntro:"Confira os serviços e escolha o que quer levar.",
     qIncluded:"Incluso", qOptional:"Opcional", qExtras:"Adicionais",
-    qChoose:"Marque para incluir", qYourTotal:"Seu total",
+    qChoose:"Selecionar", qYourTotal:"Seu total",
+    qNeedItems:"Selecione ao menos um serviço para enviar.",
     qWho:"Quem está respondendo", qSend:"Enviar escolha",
     qDone:"Escolha recebida",
     qDoneText:"Agradecemos. Vamos reconfirmar os serviços com os fornecedores e voltamos com a confirmação e o pagamento.",
@@ -507,7 +520,8 @@ const T = {
     qApprovedSub:"A confirmação depende de checagem prévia de disponibilidade.",
     qAck:"Li e estou ciente das condições comerciais desta proposta.",
     qNeedAck:"Marque o aceite das condições para enviar.",
-    qCondTitle:"Forma de pagamento e condições gerais"
+    qCondTitle:"Forma de pagamento e condições gerais",
+    qExcluded:"Não inclusos"
   },
   en:{
     docTitle:"Service Confirmation",
@@ -567,7 +581,8 @@ const T = {
     brOpp:"Opportunity",
     qTitle:"Proposal", qIntro:"Review the services and choose what you would like to include.",
     qIncluded:"Included", qOptional:"Optional", qExtras:"Add-ons",
-    qChoose:"Tick to include", qYourTotal:"Your total",
+    qChoose:"Select", qYourTotal:"Your total",
+    qNeedItems:"Please select at least one service before sending.",
     qWho:"Who is answering", qSend:"Send selection",
     qDone:"Selection received",
     qDoneText:"Thank you. We will reconfirm the services with the suppliers and come back with the confirmation and payment.",
@@ -581,7 +596,8 @@ const T = {
     qApprovedSub:"Confirmation is subject to a prior availability check.",
     qAck:"I have read and understood the commercial conditions of this proposal.",
     qNeedAck:"Please accept the conditions to send.",
-    qCondTitle:"Payment and general conditions"
+    qCondTitle:"Payment and general conditions",
+    qExcluded:"Not included"
   }
 };
 
@@ -1216,11 +1232,17 @@ function drawProposals(){
 
 async function newProposal(){
   const v = 1 + PROPS.reduce((m,p)=>Math.max(m,p.version||0),0);
+  // Nasce já com as condições da casa e com as duas seções de sempre —
+  // hospedagem e serviços terrestres. Proposta em branco obrigaria a
+  // redigitar a mesma coisa toda vez, que é o que ela pediu para acabar.
+  const pad = await lerPadrao();
   const {data,error} = await sb.from("ops_proposals").insert({
     opportunity_id:OPP.id, version:v, title:OPP.title, lang:OPP.lang,
     pax_summary:(BRIEF&&BRIEF.pax_summary)||null,
     travel_window:(BRIEF&&BRIEF.travel_window)||null,
-    terms_url: DEFAULT_TERMS_URL
+    terms_url: DEFAULT_TERMS_URL,
+    conditions_pt: pad.pt || null, conditions_en: pad.en || null,
+    sections: SECOES_PADRAO
   }).select().single();
   if(error) return alert(error.message);
   openProposal(data.id);
@@ -1322,10 +1344,35 @@ function renderProposal(){
     <div><label>Observação de pagamento — logo abaixo do total</label>
       <textarea id="q-paynote" rows="2">${esc(p.payment_note||"")}</textarea></div>
     <div>
-      <label>Forma de pagamento e condições gerais — sai em página separada</label>
-      <textarea id="q-cond" rows="8" placeholder="Comece a linha com - para virar item de lista. Use **texto** para negrito.">${esc(p.conditions||"")}</textarea>
-      <div class="hint" style="margin:5px 0 0;">Linha começando com <b>-</b> vira item de lista.
+      <label>Não inclusos — sai logo depois do total, junto das tabelas</label>
+      <div class="hint" style="margin:0 0 7px;">Muda de uma opção para outra: na opção com transfer
+        entra aluguel de carro, na opção com carro alugado entram combustível, pedágio e
+        estacionamento. Por isso é desta proposta, e não do texto padrão.</div>
+      <div class="grid2">
+        <div><label>Português</label>
+          <textarea id="q-exc" rows="6" placeholder="- Reservas de restaurantes">${esc(p.excluded_pt||"")}</textarea></div>
+        <div><label>English</label>
+          <textarea id="q-exc-en" rows="6" placeholder="- Restaurant reservations">${esc(p.excluded_en||"")}</textarea></div>
+      </div>
+    </div>
+
+    <div>
+      <label>Forma de pagamento e condições gerais — sai no fim, depois das tabelas</label>
+      <div class="hint" style="margin:0 0 7px;">Toda proposta leva esta parte. Ela já vem preenchida
+        com o texto padrão da casa, e o que você mudar aqui vale só para esta proposta.
+        O documento sai no idioma da proposta.<br>
+        Linha começando com <b>-</b> vira item de lista.
         <b>**texto entre dois asteriscos**</b> sai em negrito.</div>
+      <div class="grid2">
+        <div><label>Português</label>
+          <textarea id="q-cond" rows="12">${esc(p.conditions_pt||p.conditions||"")}</textarea></div>
+        <div><label>English</label>
+          <textarea id="q-cond-en" rows="12">${esc(p.conditions_en||"")}</textarea></div>
+      </div>
+      <div style="margin-top:7px;">
+        <button class="btn ghost sm" id="q-cond-std">Trazer o texto padrão</button>
+        <button class="btn ghost sm" id="q-cond-save">Salvar este texto como padrão</button>
+      </div>
     </div>
     <div style="border-left:2px solid var(--brown);padding-left:12px;">
       <label style="color:var(--brown);">Anotação interna — o cliente nunca vê</label>
@@ -1374,6 +1421,8 @@ function renderProposal(){
   el("qi-add").onclick = () => {
     PITEMS.push({service_date:"",title:"",details:"",price:0,optional:false,extras:[],sort:PITEMS.length});
     drawQuoteItems(); };
+  el("q-cond-std").onclick = trazerPadrao;
+  el("q-cond-save").onclick = salvarPadrao;
   el("qs-add").onclick = () => {
     let n = 1; while(PSECS.some(x=>x.key==="sec"+n)) n++;
     PSECS.push({key:"sec"+n, title:"", note:""}); drawSections(); drawQuoteItems();
@@ -1381,15 +1430,57 @@ function renderProposal(){
   drawSections(); drawQuoteItems(); drawSelection();
 }
 
+/* O texto padrão mora em ops_text_defaults e é dele que toda proposta
+   nova nasce preenchida. Ela edita a cópia da proposta sem afetar o
+   padrão; e quando quiser que a mudança valha para as próximas, grava
+   por cima do padrão de propósito, por este botão. */
+/* As duas tabelas que toda proposta tem. Ela renomeia ou apaga na
+   proposta em que não servirem — mas o caso comum já vem montado. */
+const SECOES_PADRAO = [
+  {key:"stays",  title:"Selected Stays",  title_en:"Selected Stays",
+   note:"Selecione sua hospedagem para esta viagem",
+   note_en:"Select your stay for this trip"},
+  {key:"ground", title:"Ground Services", title_en:"Ground Services",
+   note:"Selecione os serviços terrestres para esta viagem",
+   note_en:"Select the ground services for this trip"}
+];
+
+async function lerPadrao(){
+  const {data} = await sb.from("ops_text_defaults").select("*").eq("key","conditions").maybeSingle();
+  return data || {pt:"", en:""};
+}
+async function trazerPadrao(){
+  const d = await lerPadrao();
+  if(!(d.pt||"").trim() && !(d.en||"").trim())
+    return alert("Ainda não há texto padrão gravado. Escreva as condições aqui e clique em "
+      + "\"Salvar este texto como padrão\" — as próximas propostas já nascem com ele.");
+  if(!confirm("Substituir o que está escrito nos dois campos pelo texto padrão?")) return;
+  el("q-cond").value = d.pt||""; el("q-cond-en").value = d.en||"";
+}
+async function salvarPadrao(){
+  if(!confirm("Guardar este texto como padrão da casa? Toda proposta nova passa a nascer com ele. "
+    + "As propostas que já existem não mudam.")) return;
+  const {error} = await sb.from("ops_text_defaults").upsert({key:"conditions",
+    pt: el("q-cond").value, en: el("q-cond-en").value, updated_at: new Date().toISOString()});
+  alert(error ? error.message : "Guardado. As próximas propostas já nascem com este texto.");
+}
+
 function drawSections(){
   const host = el("qs-host");
   if(!PSECS.length){ host.innerHTML = `<div class="muted">Nenhuma seção. Todas as linhas saem numa tabela só.</div>`; return; }
   host.innerHTML = `<table class="rows">
-    <thead><tr><th style="width:230px;">Título</th><th>Instrução ao cliente</th><th class="x"></th></tr></thead>
+    <thead><tr><th style="width:60px;"></th><th style="width:230px;">Título</th>
+      <th>Instrução ao cliente</th><th class="x"></th></tr></thead>
     <tbody>${PSECS.map((sec,i)=>`<tr>
+      <td class="idio">PT</td>
       <td><input value="${esc(sec.title||"")}" placeholder="Selected Stays" oninput="PSECS[${i}].title=this.value"></td>
       <td><input value="${esc(sec.note||"")}" placeholder="Selecione sua hospedagem para esta viagem" oninput="PSECS[${i}].note=this.value"></td>
-      <td class="x"><button class="iconbtn" onclick="removeSection(${i})">×</button></td>
+      <td class="x" rowspan="2"><button class="iconbtn" onclick="removeSection(${i})">×</button></td>
+    </tr>
+    <tr class="par">
+      <td class="idio">EN</td>
+      <td><input value="${esc(sec.title_en||"")}" placeholder="Selected Stays" oninput="PSECS[${i}].title_en=this.value"></td>
+      <td><input value="${esc(sec.note_en||"")}" placeholder="Select your stay for this trip" oninput="PSECS[${i}].note_en=this.value"></td>
     </tr>`).join("")}</tbody></table>`;
 }
 
@@ -1478,8 +1569,10 @@ async function saveProposal(){
     show_prices: el("q-prices").value === "sim",
     terms_url: el("q-terms").value.trim() || null,
     intro: el("q-intro").value, payment_note: el("q-paynote").value,
-    conditions: el("q-cond").value, internal_notes: el("q-internal").value,
-    sections: PSECS.filter(x=>(x.title||"").trim()),
+    conditions_pt: el("q-cond").value, conditions_en: el("q-cond-en").value,
+    excluded_pt: el("q-exc").value, excluded_en: el("q-exc-en").value,
+    internal_notes: el("q-internal").value,
+    sections: PSECS.filter(x=>(x.title||"").trim() || (x.title_en||"").trim()),
     updated_at: new Date().toISOString()
   };
   const {error:e1} = await sb.from("ops_proposals").update(patch).eq("id", PROP.id);
@@ -2360,8 +2453,7 @@ function quoteTotal(){
   const p = QT.proposal;
   let t = 0;
   (QT.items||[]).forEach(i=>{
-    const dentro = (!i.optional && !i.choice_group) || QSEL.items[i.id];
-    if(!dentro) return;
+    if(!QSEL.items[i.id]) return;
     t += Number(i.price)||0;
     (i.extras||[]).forEach(e=>{
       if((QSEL.extras[i.id]||[]).includes(e.key)) t += Number(e.price)||0;
@@ -2423,7 +2515,8 @@ function drawQuote(){
   const respondida = !!p.responded_at;
 
   const linha = i => {
-    const dentro = (!i.optional && !i.choice_group) || !!QSEL.items[i.id];
+    // Toda linha vale só se marcada: é o cliente que monta a viagem dele.
+    const dentro = !!QSEL.items[i.id];
     return `<tr>
       <td class="date-cell">${esc(i.service_date||"")}</td>
       <td>
@@ -2431,15 +2524,15 @@ function drawQuote(){
           ${i.choice_group?`<span class="tag" style="margin-left:6px;">${t.qPick}</span>`
             :(i.optional?`<span class="tag" style="margin-left:6px;">${t.qOptional}</span>`:"")}</div>
         ${i.details?`<div class="svc-sub">${nl2br(i.details)}</div>`:""}
-        ${i.choice_group && !respondida ? `<div class="check" style="margin:8px 0 0;">
+        ${respondida ? "" : (i.choice_group ? `<div class="check" style="margin:8px 0 0;">
           <input type="radio" name="cg-${esc(i.choice_group)}" id="qi-${esc(i.id)}"
             ${QSEL.items[i.id]?" checked":""}
             onchange="marcaEscolha('${esc(i.choice_group)}','${esc(i.id)}')">
           <label for="qi-${esc(i.id)}">${t.qPickOne}</label></div>`
-        : (i.optional && !respondida ? `<div class="check" style="margin:8px 0 0;">
+        : `<div class="check" style="margin:8px 0 0;">
           <input type="checkbox" id="qi-${esc(i.id)}"${QSEL.items[i.id]?" checked":""}
             onchange="marcaItem('${esc(i.id)}',this.checked)">
-          <label for="qi-${esc(i.id)}">${t.qChoose}</label></div>`:"")}
+          <label for="qi-${esc(i.id)}">${t.qChoose}</label></div>`)}
         ${(i.extras||[]).length && dentro && !respondida ? `<div class="extras-cli">
           <div class="k">${t.qExtras}</div>
           ${(i.extras||[]).map(e=>`<div class="check" style="margin:0 0 6px;">
@@ -2493,6 +2586,11 @@ function drawQuote(){
 
     ${p.payment_note?`<div class="pay-note">${nl2br(p.payment_note)}</div>`:""}
 
+    ${p.excluded?`<div class="naoinc">
+      <div class="blocktitle">${t.qExcluded}</div>
+      <div class="condicoes">${fmtDoc(p.excluded)}</div>
+    </div>`:""}
+
     ${p.conditions?`<div class="pagina-nova">
       <div class="blocktitle" style="margin-top:0;">${t.qCondTitle}</div>
       <div class="condicoes">${fmtDoc(p.conditions)}</div>
@@ -2544,6 +2642,9 @@ async function submitQuote(){
   if(!el("qc-ack").checked){
     el("qc-msg").innerHTML = `<div class="msg">${t.qNeedAck}</div>`; return;
   }
+  if(!Object.keys(QSEL.items).filter(k=>QSEL.items[k]).length){
+    el("qc-msg").innerHTML = `<div class="msg">${t.qNeedItems}</div>`; return;
+  }
   const btn = el("qc-go"); btn.disabled = true; btn.textContent = t.sending;
   const escolhidos = Object.keys(QSEL.items).filter(k=>QSEL.items[k]);
   const {data,error} = await sb.rpc("tl_submit_quote",{p_token:QT.token, p_payload:{
@@ -2556,6 +2657,7 @@ async function submitQuote(){
     if(data && data.error==="already_answered") txt = t.qAlready;
     if(data && data.error==="missing_choice") txt = t.qNeedPick+" "+(data.missing||[]).join(" · ");
     if(data && data.error==="missing_ack") txt = t.qNeedAck;
+    if(data && data.error==="missing_items") txt = t.qNeedItems;
     el("qc-msg").innerHTML = `<div class="msg">${esc(txt)}</div>`;
     btn.disabled = false; btn.textContent = t.qSend; return;
   }

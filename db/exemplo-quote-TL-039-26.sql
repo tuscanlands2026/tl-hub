@@ -45,11 +45,15 @@ on conflict (opportunity_id) do nothing;
 -- ------------------------------------------------- OPÇÃO 1 · v1
 insert into ops_proposals
   (id, opportunity_id, version, title, lang, pax_summary, travel_window, show_prices,
-   intro, payment_note, sections, conditions, internal_notes)
+   intro, payment_note, sections, conditions_pt, excluded_pt, internal_notes)
 values ('39262600-0000-0000-0000-0000000000a1','39262600-0000-0000-0000-000000000001', 1,
   'Opção 1 · serviço privativo em todos os trechos', 'pt', '2 adultos', '4 – 9 mai 2027', true,
-  null, null, '[{"key":"stays","title":"Selected Stays","note":"Selecione sua hospedagem para esta viagem"},
-    {"key":"ground","title":"Ground Services","note":"Selecione os serviços terrestres para esta viagem"}]', E'**PAGAMENTO**\nO pagamento será feito em EUROS, com câmbio da data de cada pagamento, e pode ser processado por cartão de débito multimoeda, crédito internacional ou transferência bancária internacional. Por se tratar de uma transação internacional, eventuais taxas como o IOF são de responsabilidade do cliente. Nossa equipe fornecerá um link de pagamento com as instruções necessárias.\n\n**Formas de pagamento — parte terrestre**\nMediante disponibilidade. Válido para contratação do pacote completo.\n- Transferência bancária ou cartão de crédito à vista: 30% de sinal e o restante em até 2 parcelas iguais, sendo a última até 01/12/2026. Transação bancária internacional, com parcelamento manual.\n- Pix à vista, com repasse de taxas (1% da plataforma + IOF) e juros da operadora. Transação convertida em reais, com pagamento integral no ato.\n- Para contratação de serviços pontuais: sinal de 30% e saldo 35 dias antes da viagem.\n\n**CONDIÇÕES GERAIS**\n- Ao aceitar as condições desta proposta, a contratação dos serviços será formalizada mediante assinatura de contrato e aceite dos termos e condições dos serviços de transfer. Somente após esta etapa as reservas serão realizadas e confirmadas.\n- **Serviços de locação de veículo estão disponíveis somente para contratação da parte terrestre, com hotelaria. Não oferecemos este serviço individualmente.**\n- Validade das condições comerciais previstas nesta proposta: 01 de setembro, ou enquanto houver disponibilidade das tarifas e opções das hospedagens. Após esta data, os valores poderão ser revistos.\n- Esta proposta não contempla pré-bloqueios ou reservas, salvo se expresso no descritivo.\n- A Tuscan Lands não efetua estes serviços na modalidade last minute, após a chegada do cliente ao destino, no período de junho a setembro e durante as festas de fim de ano, salvo exceções.\n- A Tuscan Lands e seus parceiros não se responsabilizam por perda, roubo ou furto de bens e objetos pessoais durante a execução do roteiro, cabendo ao viajante zelar por seus pertences.\n\n**NÃO INCLUSOS**\n- Reservas de restaurantes\n- Aluguel de carros\n- Seguro viagem\n- Passeios e experiências\n- Refeições não mencionadas\n- Impostos hoteleiros e city tax, pagos no momento do check-in',
+  null, null, '[{"key":"stays","title":"Selected Stays","title_en":"Selected Stays",
+      "note":"Selecione sua hospedagem para esta viagem",
+      "note_en":"Select your stay for this trip"},
+    {"key":"ground","title":"Ground Services","title_en":"Ground Services",
+      "note":"Selecione os serviços terrestres para esta viagem",
+      "note_en":"Select the ground services for this trip"}]', (select pt from ops_text_defaults where key='conditions'), E'- Reservas de restaurantes\n- Aluguel de carros\n- Seguro viagem\n- Passeios e experiências\n- Despesas com refeições não mencionadas e impostos hoteleiros/city tax a serem pagos no momento do check-in',
   'Valores NET. Conferir margem antes de mandar.')
 on conflict (id) do nothing;
 
@@ -58,16 +62,16 @@ insert into ops_proposal_items
 values
  ('39262600-0000-0000-0000-0000000000a1',0,'4 – 6 mai','Borghi dell''Eremo · Umbria',
   E'Quarto superior, 35 m², café da manhã, tarifa flexível.\nPropriedade rural adults only entre a Umbria e a Toscana, a poucos minutos de Cibottola.',
-  706, false, 'Hospedagem na Umbria', 'stays', '[]'),
+  706, false, null, 'stays', '[]'),
  ('39262600-0000-0000-0000-0000000000a1',1,'4 – 6 mai','Relais Villa Monte Solare · Umbria',
   E'Quarto prestige, 30 m², café da manhã, tarifa flexível.\nResidência nobre do fim do século XV em Panicale, entre oliveiras e vinhedos.',
-  697, false, 'Hospedagem na Umbria', 'stays', '[]'),
+  697, false, null, 'stays', '[]'),
  ('39262600-0000-0000-0000-0000000000a1',2,'6 – 9 mai','Hotel Calimala · Florença',
   E'Deluxe room, 23 m², café da manhã, tarifa flexível.\nPalazzo do século XIX sobre o Mercato Nuovo, a poucos minutos da Ponte Vecchio.',
-  2344, false, 'Hospedagem em Florença', 'stays', '[]'),
+  2344, false, null, 'stays', '[]'),
  ('39262600-0000-0000-0000-0000000000a1',3,'6 – 9 mai','Tivoli Palazzo Gaddi · Florença',
   E'Premium Grand Room, 30 m², café da manhã, tarifa flexível.\nPalazzo do fim do século XVI a cem metros do mercato de San Lorenzo.',
-  2791, false, 'Hospedagem em Florença', 'stays', '[]'),
+  2791, false, null, 'stays', '[]'),
  ('39262600-0000-0000-0000-0000000000a1',4,'4 mai','Transfer Roma FCO – hotel na Umbria',
   E'Mercedes Sedan, até 2 bagagens grandes e 1 pequena, conforme legislação local.\nHorário do voo a confirmar.',
   990, false, null, 'ground',
@@ -90,11 +94,15 @@ values
 -- ------------------------------------------------- OPÇÃO 2 · v2
 insert into ops_proposals
   (id, opportunity_id, version, title, lang, pax_summary, travel_window, show_prices,
-   intro, payment_note, sections, conditions, internal_notes)
+   intro, payment_note, sections, conditions_pt, excluded_pt, internal_notes)
 values ('39262600-0000-0000-0000-0000000000a2','39262600-0000-0000-0000-000000000001', 2,
   'Opção 2 · serviço privativo e aluguel de carro', 'pt', '2 adultos', '4 – 9 mai 2027', true,
-  null, null, '[{"key":"stays","title":"Selected Stays","note":"Selecione sua hospedagem para esta viagem"},
-    {"key":"ground","title":"Ground Services","note":"Selecione os serviços terrestres para esta viagem"}]', E'**PAGAMENTO**\nO pagamento será feito em EUROS, com câmbio da data de cada pagamento, e pode ser processado por cartão de débito multimoeda, crédito internacional ou transferência bancária internacional. Por se tratar de uma transação internacional, eventuais taxas como o IOF são de responsabilidade do cliente. Nossa equipe fornecerá um link de pagamento com as instruções necessárias.\n\n**Formas de pagamento — parte terrestre**\nMediante disponibilidade. Válido para contratação do pacote completo.\n- Transferência bancária ou cartão de crédito à vista: 30% de sinal e o restante em até 2 parcelas iguais, sendo a última até 01/12/2026. Transação bancária internacional, com parcelamento manual.\n- Pix à vista, com repasse de taxas (1% da plataforma + IOF) e juros da operadora. Transação convertida em reais, com pagamento integral no ato.\n- Para contratação de serviços pontuais: sinal de 30% e saldo 35 dias antes da viagem.\n\n**CONDIÇÕES GERAIS**\n- Ao aceitar as condições desta proposta, a contratação dos serviços será formalizada mediante assinatura de contrato e aceite dos termos e condições dos serviços de transfer. Somente após esta etapa as reservas serão realizadas e confirmadas.\n- **Serviços de locação de veículo estão disponíveis somente para contratação da parte terrestre, com hotelaria. Não oferecemos este serviço individualmente.**\n- Validade das condições comerciais previstas nesta proposta: 01 de setembro, ou enquanto houver disponibilidade das tarifas e opções das hospedagens. Após esta data, os valores poderão ser revistos.\n- Esta proposta não contempla pré-bloqueios ou reservas, salvo se expresso no descritivo.\n- A Tuscan Lands não efetua estes serviços na modalidade last minute, após a chegada do cliente ao destino, no período de junho a setembro e durante as festas de fim de ano, salvo exceções.\n- A Tuscan Lands e seus parceiros não se responsabilizam por perda, roubo ou furto de bens e objetos pessoais durante a execução do roteiro, cabendo ao viajante zelar por seus pertences.\n\n**NÃO INCLUSOS**\n- Reservas de restaurantes\n- Combustível, pedágios e estacionamentos\n- Seguro viagem\n- Passeios e experiências\n- Refeições não mencionadas\n- Impostos hoteleiros e city tax, pagos no momento do check-in',
+  null, null, '[{"key":"stays","title":"Selected Stays","title_en":"Selected Stays",
+      "note":"Selecione sua hospedagem para esta viagem",
+      "note_en":"Select your stay for this trip"},
+    {"key":"ground","title":"Ground Services","title_en":"Ground Services",
+      "note":"Selecione os serviços terrestres para esta viagem",
+      "note_en":"Select the ground services for this trip"}]', (select pt from ops_text_defaults where key='conditions'), E'- Reservas de restaurantes\n- Combustível, pedágios e estacionamentos\n- Seguro viagem\n- Passeios e experiências\n- Despesas com refeições não mencionadas e impostos hoteleiros/city tax a serem pagos no momento do check-in',
   'Valores NET. FALTA o preço do aluguel do carro — a linha está com zero.')
 on conflict (id) do nothing;
 
@@ -102,13 +110,13 @@ insert into ops_proposal_items
   (proposal_id, sort, service_date, title, details, price, optional, choice_group, section, extras)
 values
  ('39262600-0000-0000-0000-0000000000a2',0,'4 – 6 mai','Borghi dell''Eremo · Umbria',
-  'Quarto superior, 35 m², café da manhã, tarifa flexível.', 706, false, 'Hospedagem na Umbria', 'stays', '[]'),
+  'Quarto superior, 35 m², café da manhã, tarifa flexível.', 706, false, null, 'stays', '[]'),
  ('39262600-0000-0000-0000-0000000000a2',1,'4 – 6 mai','Relais Villa Monte Solare · Umbria',
-  'Quarto prestige, 30 m², café da manhã, tarifa flexível.', 697, false, 'Hospedagem na Umbria', 'stays', '[]'),
+  'Quarto prestige, 30 m², café da manhã, tarifa flexível.', 697, false, null, 'stays', '[]'),
  ('39262600-0000-0000-0000-0000000000a2',2,'6 – 9 mai','Hotel Calimala · Florença',
-  'Deluxe room, 23 m², café da manhã, tarifa flexível.', 2344, false, 'Hospedagem em Florença', 'stays', '[]'),
+  'Deluxe room, 23 m², café da manhã, tarifa flexível.', 2344, false, null, 'stays', '[]'),
  ('39262600-0000-0000-0000-0000000000a2',3,'6 – 9 mai','Tivoli Palazzo Gaddi · Florença',
-  'Premium Grand Room, 30 m², café da manhã, tarifa flexível.', 2791, false, 'Hospedagem em Florença', 'stays', '[]'),
+  'Premium Grand Room, 30 m², café da manhã, tarifa flexível.', 2791, false, null, 'stays', '[]'),
  ('39262600-0000-0000-0000-0000000000a2',4,'4 mai','Recepção em Fiumicino e entrega do veículo alugado',
   E'Entrega do carro no aeroporto, no desembarque. Horário do voo a confirmar.\nPREÇO A PREENCHER.',
   0, false, null, 'ground', '[]'),

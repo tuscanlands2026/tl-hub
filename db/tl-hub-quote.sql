@@ -868,3 +868,310 @@ revoke all on function tl_submit_quote(text, jsonb) from public;
 grant execute on function tl_submit_quote(text, jsonb) to anon, authenticated;
 revoke all on function tl_order_from_quote(uuid) from public, anon;
 grant execute on function tl_order_from_quote(uuid) to authenticated;
+
+-- =====================================================================
+-- 12 · CONDIÇÕES BILÍNGUES E TEXTO PADRÃO
+--
+-- A parte final da proposta — forma de pagamento, condições gerais, o
+-- que não está incluso — é fixa no sentido de que toda proposta tem de
+-- ter, e variável no sentido de que o texto muda de uma para outra.
+-- As duas coisas ao mesmo tempo pedem duas camadas:
+--
+--   ops_text_defaults  — o texto padrão, um por idioma. É daqui que
+--                        toda proposta nova nasce preenchida.
+--   ops_proposals      — a cópia daquela proposta, que ela edita à
+--                        vontade sem mexer no padrão das outras.
+--
+-- Sem a primeira camada ela redigita tudo a cada proposta. Sem a
+-- segunda, corrigir uma proposta mudaria o texto de propostas já
+-- enviadas, que é pior ainda.
+-- =====================================================================
+
+create table if not exists ops_text_defaults (
+  key        text primary key,
+  pt         text,
+  en         text,
+  updated_at timestamptz not null default now()
+);
+comment on table ops_text_defaults is
+  'Textos padrão da casa, por idioma. Proposta nova nasce com uma cópia destes.';
+
+alter table ops_text_defaults enable row level security;
+drop policy if exists "auth_all" on ops_text_defaults;
+create policy "auth_all" on ops_text_defaults
+  for all to authenticated using (true) with check (true);
+revoke all on ops_text_defaults from anon;
+
+insert into ops_text_defaults (key, pt, en) values ('conditions', null, null)
+on conflict (key) do nothing;
+
+-- Condições em dois idiomas na proposta. A coluna antiga vira a versão
+-- em português: o que já estava escrito era português.
+alter table ops_proposals add column if not exists conditions_pt text;
+alter table ops_proposals add column if not exists conditions_en text;
+update ops_proposals
+   set conditions_pt = conditions
+ where conditions_pt is null and conditions is not null;
+
+comment on column ops_proposals.conditions_pt is
+  'Forma de pagamento e condições gerais em português. Sai depois das tabelas.';
+comment on column ops_proposals.conditions_en is
+  'O mesmo em inglês. O documento escolhe pelo lang da proposta.';
+
+-- tl_get_quote passa a devolver o texto do idioma do documento, e os
+-- títulos de seção também. Continua montando campo a campo: nem
+-- internal_notes nem supplier entram.
+create or replace function tl_get_quote(p_token text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pp ops_proposals%rowtype;
+  o  ops_opportunities%rowtype;
+  idioma text;
+  secs   jsonb;
+  result jsonb;
+begin
+  select * into pp from ops_proposals where token = p_token;
+  if not found then return null; end if;
+  select * into o from ops_opportunities where id = pp.opportunity_id;
+  idioma := coalesce(pp.lang, o.lang, 'pt');
+
+  -- Título e instrução de cada seção no idioma do documento, com o
+  -- português como rede: seção sem tradução preenchida é melhor que
+  -- tabela sem título nenhum.
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'key',   s->>'key',
+           'title', case when idioma = 'en'
+                         then coalesce(nullif(s->>'title_en',''), s->>'title')
+                         else coalesce(nullif(s->>'title',''), s->>'title_en') end,
+           'note',  case when idioma = 'en'
+                         then coalesce(nullif(s->>'note_en',''), s->>'note')
+                         else coalesce(nullif(s->>'note',''), s->>'note_en') end
+         ) order by ord), '[]'::jsonb)
+    into secs
+    from jsonb_array_elements(coalesce(pp.sections,'[]'::jsonb)) with ordinality as t(s, ord);
+
+  select jsonb_build_object(
+    'proposal', jsonb_build_object(
+      'id', pp.id, 'version', pp.version, 'title', pp.title, 'summary', pp.summary,
+      'lang', idioma,
+      'pax_summary', pp.pax_summary, 'travel_window', pp.travel_window,
+      'intro', pp.intro, 'payment_note', pp.payment_note, 'terms_url', pp.terms_url,
+      'conditions', case when idioma = 'en'
+                         then coalesce(nullif(pp.conditions_en,''), pp.conditions_pt, pp.conditions)
+                         else coalesce(nullif(pp.conditions_pt,''), pp.conditions) end,
+      'sections', secs,
+      'show_prices', pp.show_prices,
+      'crm_code', o.crm_code, 'agency', o.agency, 'final_client', o.final_client,
+      'outcome', pp.outcome, 'responded_at', pp.responded_at),
+    'items', coalesce((select jsonb_agg(jsonb_build_object(
+        'id', i.id, 'service_date', i.service_date, 'title', i.title,
+        'details', i.details, 'price', i.price, 'section', i.section,
+        'optional', i.optional, 'choice_group', i.choice_group,
+        'extras', i.extras) order by i.sort)
+      from ops_proposal_items i where i.proposal_id = pp.id), '[]'::jsonb)
+  ) into result;
+  return result;
+end $$;
+
+revoke all on function tl_get_quote(text) from public;
+grant execute on function tl_get_quote(text) to anon, authenticated;
+
+-- =====================================================================
+-- 13 · TODO SERVIÇO É ESCOLHA DO CLIENTE
+--
+-- Antes, linha sem "opcional" e sem grupo de escolha entrava sozinha e
+-- o cliente não tinha como desmarcá-la. A proposta não funciona assim:
+-- ela manda duas hospedagens na Umbria e duas em Florença, mais os
+-- serviços terrestres, e quem escolhe o que entra é o cliente. Toda
+-- linha passa a valer só se marcada.
+--
+-- O extra continua sendo subitem de uma linha — assistente em
+-- português, contratação fora do horário — e só conta se a linha dele
+-- tiver sido escolhida.
+-- =====================================================================
+
+create or replace function tl_submit_quote(p_token text, p_payload jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pp       ops_proposals%rowtype;
+  it       ops_proposal_items%rowtype;
+  ex       jsonb;
+  g        text;
+  faltando text[] := '{}';
+  marcados jsonb;
+  exmarc   jsonb;
+  escol    boolean;
+  exsel    jsonb;
+  linhas   jsonb := '[]'::jsonb;
+  soma     numeric := 0;
+  quantos  int := 0;
+begin
+  select * into pp from ops_proposals where token = p_token;
+  if not found then return jsonb_build_object('ok', false, 'error', 'not_found'); end if;
+  if pp.responded_at is not null then
+    return jsonb_build_object('ok', false, 'error', 'already_answered');
+  end if;
+  if coalesce(btrim(p_payload->>'lead_name'),'') = '' then
+    return jsonb_build_object('ok', false, 'error', 'missing_fields', 'missing', to_jsonb(array['lead_name']));
+  end if;
+  if coalesce((p_payload->>'ack_conditions')::boolean, false) is not true then
+    return jsonb_build_object('ok', false, 'error', 'missing_ack');
+  end if;
+
+  marcados := coalesce(p_payload->'items','[]'::jsonb);
+  exmarc   := coalesce(p_payload->'extras','{}'::jsonb);
+
+  for g in select distinct choice_group from ops_proposal_items
+            where proposal_id = pp.id and choice_group is not null loop
+    if not exists (select 1 from ops_proposal_items i
+                    where i.proposal_id = pp.id and i.choice_group = g
+                      and marcados @> to_jsonb(i.id::text)) then
+      faltando := array_append(faltando, g);
+    end if;
+  end loop;
+  if array_length(faltando,1) > 0 then
+    return jsonb_build_object('ok', false, 'error', 'missing_choice', 'missing', to_jsonb(faltando));
+  end if;
+
+  for it in select * from ops_proposal_items where proposal_id = pp.id order by sort loop
+    -- Marcada ou não entra. Não existe mais linha que entra sozinha.
+    escol := marcados @> to_jsonb(it.id::text);
+    exsel := '[]'::jsonb;
+    if escol then
+      quantos := quantos + 1;
+      soma := soma + coalesce(it.price,0);
+      for ex in select * from jsonb_array_elements(coalesce(it.extras,'[]'::jsonb)) loop
+        if coalesce(exmarc->(it.id::text), '[]'::jsonb) @> to_jsonb(ex->>'key') then
+          soma  := soma + coalesce((ex->>'price')::numeric, 0);
+          exsel := exsel || jsonb_build_object('key', ex->>'key', 'label_pt', ex->>'label_pt',
+            'label_en', ex->>'label_en', 'price', ex->>'price');
+        end if;
+      end loop;
+    end if;
+    linhas := linhas || jsonb_build_object(
+      'item_id', it.id, 'service_date', it.service_date, 'title', it.title,
+      'details', it.details, 'price', it.price, 'optional', it.optional,
+      'section', it.section, 'choice_group', it.choice_group,
+      'supplier', it.supplier,
+      'chosen', escol, 'extras', exsel);
+  end loop;
+
+  -- Resposta sem nenhum serviço marcado não é resposta: é formulário
+  -- enviado por engano, e viraria uma order vazia lá na frente.
+  if quantos = 0 then
+    return jsonb_build_object('ok', false, 'error', 'missing_items');
+  end if;
+
+  insert into ops_proposal_selections
+    (proposal_id, lead_name, lead_email, lead_phone, remarks, lines, total, ack_conditions)
+  values (pp.id, p_payload->>'lead_name', p_payload->>'lead_email',
+          p_payload->>'lead_phone', p_payload->>'remarks', linhas, soma, true);
+
+  update ops_proposals set responded_at = now(), updated_at = now() where id = pp.id;
+  return jsonb_build_object('ok', true);
+end $$;
+
+revoke all on function tl_submit_quote(text, jsonb) from public;
+grant execute on function tl_submit_quote(text, jsonb) to anon, authenticated;
+
+
+
+-- =====================================================================
+-- 14 · NÃO INCLUSOS — por proposta, não na parte fixa
+--
+-- Na proposta dela o "NÃO INCLUSOS" sai junto das tabelas e muda de uma
+-- opção para outra: na opção com transfer ele exclui aluguel de carro,
+-- na opção com carro alugado ele exclui combustível, pedágio e
+-- estacionamento. Quer dizer que não é texto fixo da casa — é resposta
+-- ao que aquela opção contém. Por isso mora na proposta, ao lado das
+-- condições, e sai antes da página de forma de pagamento.
+-- =====================================================================
+
+alter table ops_proposals add column if not exists excluded_pt text;
+alter table ops_proposals add column if not exists excluded_en text;
+comment on column ops_proposals.excluded_pt is
+  'O que não está incluso nesta proposta. Sai logo depois do total, antes das condições.';
+
+create or replace function tl_get_quote(p_token text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pp ops_proposals%rowtype;
+  o  ops_opportunities%rowtype;
+  idioma text;
+  secs   jsonb;
+  result jsonb;
+begin
+  select * into pp from ops_proposals where token = p_token;
+  if not found then return null; end if;
+  select * into o from ops_opportunities where id = pp.opportunity_id;
+  idioma := coalesce(pp.lang, o.lang, 'pt');
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'key',   s->>'key',
+           'title', case when idioma = 'en'
+                         then coalesce(nullif(s->>'title_en',''), s->>'title')
+                         else coalesce(nullif(s->>'title',''), s->>'title_en') end,
+           'note',  case when idioma = 'en'
+                         then coalesce(nullif(s->>'note_en',''), s->>'note')
+                         else coalesce(nullif(s->>'note',''), s->>'note_en') end
+         ) order by ord), '[]'::jsonb)
+    into secs
+    from jsonb_array_elements(coalesce(pp.sections,'[]'::jsonb)) with ordinality as t(s, ord);
+
+  select jsonb_build_object(
+    'proposal', jsonb_build_object(
+      'id', pp.id, 'version', pp.version, 'title', pp.title, 'summary', pp.summary,
+      'lang', idioma,
+      'pax_summary', pp.pax_summary, 'travel_window', pp.travel_window,
+      'intro', pp.intro, 'payment_note', pp.payment_note, 'terms_url', pp.terms_url,
+      'conditions', case when idioma = 'en'
+                         then coalesce(nullif(pp.conditions_en,''), pp.conditions_pt, pp.conditions)
+                         else coalesce(nullif(pp.conditions_pt,''), pp.conditions) end,
+      'excluded',   case when idioma = 'en'
+                         then coalesce(nullif(pp.excluded_en,''), pp.excluded_pt)
+                         else coalesce(nullif(pp.excluded_pt,''), pp.excluded_en) end,
+      'sections', secs,
+      'show_prices', pp.show_prices,
+      'crm_code', o.crm_code, 'agency', o.agency, 'final_client', o.final_client,
+      'outcome', pp.outcome, 'responded_at', pp.responded_at),
+    'items', coalesce((select jsonb_agg(jsonb_build_object(
+        'id', i.id, 'service_date', i.service_date, 'title', i.title,
+        'details', i.details, 'price', i.price, 'section', i.section,
+        'optional', i.optional, 'choice_group', i.choice_group,
+        'extras', i.extras) order by i.sort)
+      from ops_proposal_items i where i.proposal_id = pp.id), '[]'::jsonb)
+  ) into result;
+  return result;
+end $$;
+
+revoke all on function tl_get_quote(text) from public;
+grant execute on function tl_get_quote(text) to anon, authenticated;
+
+-- =====================================================================
+-- 15 · O TEXTO PADRÃO DA CASA
+--
+-- Copiado da proposta TL-039-26 dela, palavra por palavra: é texto
+-- comercial da casa, não se reescreve nem se "melhora". O inglês fica
+-- em branco de propósito — cláusula comercial traduzida por conta
+-- própria vira risco, não conveniência. Ela cola a versão em inglês no
+-- editor e clica em "Salvar este texto como padrão".
+--
+-- O "NÃO INCLUSOS" não entra aqui: muda de uma opção para outra, e por
+-- isso vive em ops_proposals.excluded_pt / excluded_en.
+-- =====================================================================
+insert into ops_text_defaults (key, pt, en) values ('conditions', E'O pagamento será feito em EUROS, com câmbio da data de cada pagamento, e pode ser processado por cartão de débito multimoeda/crédito internacional ou transferência bancária internacional. Se tratando de uma transação internacional, eventuais taxas como o IOF, serão de responsabilidade do cliente.\nNossa equipe fornecerá um link de pagamento com as instruções necessárias.\n**Formas de pagamento disponíveis - parte terrestre** (mediante disponibilidade - opção válida para contratação do pacote completo)\n- Transferência bancária internacional ou cartão de crédito à vista, sendo: 30% sinal e restante em até 2 parcelas iguais, 30 e 60 dias após o sinal. Esta opção é uma transação bancária internacional (parcelamento manual). OU\n- Pix à vista com repasse de taxas (1% plataforma + IOF) e juros da operadora. Esta opção é uma transação convertida em reais, com pagamento 100% no ato da transação.\n- Para contratação de serviços pontuais, pagamento sinal 30% e saldo 35 dias antes da viagem.\n**CONDIÇÕES GERAIS:**\n- Ao aceitar as condições desta proposta, a contratação dos serviços será formalizada mediante assinatura de contrato e aceite dos termos e condições dos serviços de transfer. Somente após esta etapa, as reservas serão realizadas e confirmadas.\n- **Serviços de aluguel de carro disponíveis somente com contratação de hospedagem.**\n- Validade das condições comerciais previstas nesta proposta: 01 de setembro (ou enquanto houver disponibilidade das tarifas e opções das hospedagens). Após esta data, os valores propostos poderão ser revistos.\n- Esta proposta não contempla pré-bloqueios ou reservas, salvo se expresso no descritivo.\n- A Tuscan Lands não efetua tais serviços na modalidade last minute (após chegada do cliente ao destino) no período de junho a setembro, bem como durante festas de final de ano (Natal e Ano Novo), salvo exceções.\n- A Tuscan Lands e seus parceiros envolvidos na realização dos passeios não se responsabilizam por perda/roubo ou furto de bens e objetos pessoais, que possam ocorrer durante a execução do roteiro, cabendo ao viajante a responsabilidade por zelar e cuidar de seus pertences pessoais.', null)
+on conflict (key) do update
+   set pt = coalesce(nullif(ops_text_defaults.pt,''), excluded.pt),
+       updated_at = now();
