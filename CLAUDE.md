@@ -184,8 +184,15 @@ das confirmações antigas continuam onde estão e continuam sendo exibidas.
 - Módulo Briefing (etapa 1) e Proposta (etapa 2), travados em sequência: etapa posterior
   só abre quando a anterior estiver completa. Nunca pré-popular tarefa como se a
   aprovação já tivesse acontecido.
+- A capa e as páginas de apresentação da proposta — o material "bonito" que hoje ela monta
+  fora do hub: capa, quem é a Tuscan Lands, descrição das hospedagens com foto e link,
+  moodboard. A quote cobre a parte operacional, que é o que o cliente escolhe e quanto
+  custa. Decidido em agosto/26 deixar para depois, não esquecido.
 - Checklist operacional, gerado só após o checkout e só com os serviços que o cliente
-  efetivamente selecionou.
+  efetivamente selecionou. Especificação já dada por ela: resumo do cliente com telefone,
+  agência e data; serviços dia por dia; o que está pendente de pagamento e de link;
+  conferência dos nomes contra o passaporte; bilhete comprado ou não; e caixas para marcar
+  agendado e reconfirmado. Falta ver a referência que ela quer mostrar.
 - Busca, histórico e filtro por data, cliente e tipo de serviço.
 - Exportação para alimentar o faturamento no CRM, com o hub como fonte de verdade.
 
