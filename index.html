@@ -244,8 +244,6 @@ table.rows tr.par td{border-top:none;padding-top:0;}
    dela. Copper já é o acento quente da paleta; terracota continua sendo
    do Booking e não entra aqui. */
 .doc.com h1.doctitle{color:var(--copper);}
-.doc.com .over{font-size:10px;letter-spacing:.22em;text-transform:uppercase;
-  color:var(--copper);font-weight:500;margin-bottom:6px;}
 .doc.com .head{border-bottom-color:var(--copper);}
 .doc.com .brand .logo-text{color:var(--copper);}
 .doc.com .to .lbl,.doc.com .meta .k,.doc.com .blocktitle{color:var(--copper);}
@@ -1400,14 +1398,14 @@ async function renderCommission(){
   const total = linhas.reduce((x,r)=>x+comissaoDe(r), 0);
   const base  = linhas.reduce((x,r)=>x+(Number(r.price)||0), 0);
   const L = idioma === "en"
-    ? {tit:"Commission report", sub:"Commission due on the services confirmed for this booking.",
+    ? {tit:"Commission report", sub:"Covering the services confirmed for this booking.",
        para:"To", ref:"Reference", per:"Period", date:"Date", svc:"Service", val:"Amount €",
-       inc:"Included", over:"Agency commission", sold:"Totals",
+       inc:"Included", sold:"Totals",
        pct:"%", com:"Commission €", tot:"Total commission", basel:"Total services sold",
        bill:"Invoice to", how:"How to invoice"}
-    : {tit:"Relatório de comissão", sub:"Comissão devida sobre os serviços confirmados desta reserva.",
+    : {tit:"Relatório de comissão", sub:"Referente aos serviços confirmados desta reserva.",
        para:"Para", ref:"Referência", per:"Período", date:"Data", svc:"Serviço", val:"Valor €",
-       inc:"Inclusos", over:"Comissão de agência", sold:"Totais",
+       inc:"Inclusos", sold:"Totais",
        pct:"%", com:"Comissão €", tot:"Total da comissão", basel:"Total de serviços vendidos",
        bill:"Dados para emissão da nota", how:"Como emitir a nota"};
 
@@ -1423,7 +1421,9 @@ async function renderCommission(){
   <div class="docpad"><div class="doc com">
     <div class="head">
       <div class="brand">
-        <div class="logo-text">TUSCAN LANDS</div>
+        <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
         <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
       </div>
       <div class="to">
@@ -1433,7 +1433,6 @@ async function renderCommission(){
       </div>
     </div>
 
-    <div class="over">${L.over}</div>
     <h1 class="doctitle">${L.tit}</h1>
     <div class="intro" style="text-align:left;">${L.sub}</div>
 
