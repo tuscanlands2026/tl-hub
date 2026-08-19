@@ -91,6 +91,9 @@ label{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase
    arredondar nada. */
 .painel{background:var(--sage);min-height:calc(100vh - 44px);padding:38px 22px 70px;}
 .painel .dentro{max-width:1080px;margin:0 auto;}
+.faltasql{background:var(--cream-light);border-left:3px solid var(--brown);color:var(--ink);
+  padding:12px 14px;margin-bottom:18px;font-size:13px;line-height:1.6;}
+.faltasql a{color:var(--brown);}
 .painel .titulo{color:#fff;font-size:11px;letter-spacing:.24em;text-transform:uppercase;font-weight:500;}
 .painel .sub{color:rgba(255,255,255,.72);font-size:13.5px;margin-top:8px;line-height:1.6;}
 .painel .risca{width:30px;height:1px;background:var(--copper);margin:14px 0 28px;}
@@ -804,7 +807,43 @@ async function boot(){
   if(r.startsWith("quote/"))   return renderQuote(r.split("/")[1]);
   const {data} = await sb.auth.getSession();
   if(!data.session) return renderLogin();
+  await conferirBanco();
   renderPainel();
+}
+
+/* O SQL é rodado à mão no painel do Supabase, então o hub e o banco
+   podem ficar em versões diferentes. Quando isso acontece o erro que
+   aparece é de rede ou de coluna, e não diz o que fazer. Aqui a
+   conferência é feita uma vez, na entrada, e o recado é em português
+   com o link do arquivo que falta rodar. */
+let FALTA_SQL = null;
+async function conferirBanco(){
+  const {error} = await sb.from("ops_text_defaults").select("key").limit(1);
+  FALTA_SQL = error ? "db/tl-hub-quote.sql" : null;
+}
+function avisoSQL(){
+  if(!FALTA_SQL) return "";
+  return `<div class="faltasql">
+    O banco está uma atualização atrás do hub. Enquanto isso, criar e salvar proposta
+    vai dar erro. Rode <b>${FALTA_SQL}</b> no SQL Editor do Supabase:<br>
+    <a href="https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/${FALTA_SQL}"
+       target="_blank" rel="noopener">abrir o arquivo para copiar</a>
+  </div>`;
+}
+
+/* Erro de coluna que não existe é sempre a mesma causa: falta rodar a
+   SQL. Traduzir aqui evita "Failed to fetch" e "schema cache" na cara
+   de quem não programa. */
+function explicar(err){
+  const m = (err && err.message) || String(err||"");
+  if(/does not exist|schema cache|Could not find/i.test(m))
+    return "O banco ainda não tem os campos que esta tela grava. Rode a última SQL "
+         + "(db/tl-hub-quote.sql) no SQL Editor do Supabase e recarregue com Ctrl+Shift+R.\n\n"
+         + "Detalhe técnico: " + m;
+  if(/Failed to fetch|NetworkError|fetch/i.test(m))
+    return "O hub não conseguiu falar com o Supabase agora. Confira a conexão e tente de novo. "
+         + "Se persistir, pode ser que falte rodar a última SQL.\n\nDetalhe técnico: " + m;
+  return m;
 }
 window.addEventListener("hashchange", boot);
 
@@ -1001,6 +1040,7 @@ async function renderPainel(){
     <div class="right"><button id="tb-out">Sair</button></div>
   </div>
   <div class="painel"><div class="dentro">
+    ${avisoSQL()}
     <div class="titulo">Painel</div>
     <div class="risca"></div>
     <div class="caixas" id="pn-caixas">
@@ -1232,6 +1272,7 @@ function drawProposals(){
 
 async function newProposal(){
   const v = 1 + PROPS.reduce((m,p)=>Math.max(m,p.version||0),0);
+  if(FALTA_SQL) return alert(explicar({message:"ops_text_defaults does not exist"}));
   // Nasce já com as condições da casa e com as duas seções de sempre —
   // hospedagem e serviços terrestres. Proposta em branco obrigaria a
   // redigitar a mesma coisa toda vez, que é o que ela pediu para acabar.
@@ -1244,7 +1285,7 @@ async function newProposal(){
     conditions_pt: pad.pt || null, conditions_en: pad.en || null,
     sections: SECOES_PADRAO
   }).select().single();
-  if(error) return alert(error.message);
+  if(error) return alert(explicar(error));
   openProposal(data.id);
 }
 
@@ -1265,7 +1306,9 @@ async function saveOpportunity(){
     // oportunidade aberta seria um fato que deixou de ser verdade.
     closed_at: outcome==="open" ? null : (OPP.closed_at || new Date().toISOString())
   };
-  const {error:e1} = await sb.from("ops_opportunities").update(patch).eq("id", OPP.id);
+  let e1=null, e2=null, bd=null;
+  try{
+  ({error:e1} = await sb.from("ops_opportunities").update(patch).eq("id", OPP.id));
 
   const bp = {
     opportunity_id: OPP.id,
@@ -1277,12 +1320,15 @@ async function saveOpportunity(){
     updated_at: new Date().toISOString()
   };
   // upsert pela oportunidade: é uma por oportunidade, e a coluna é unique.
-  const {data:bd, error:e2} = await sb.from("ops_briefings")
-    .upsert(bp, {onConflict:"opportunity_id"}).select().single();
+  ({data:bd, error:e2} = await sb.from("ops_briefings")
+    .upsert(bp, {onConflict:"opportunity_id"}).select().single());
+  }catch(ex){ e1 = ex; }
 
+  // O botão volta ao normal mesmo quando a gravação falha: preso em
+  // "Salvando…" ele diz que ainda está tentando, e não está.
   btn.disabled = false; btn.textContent = "Salvar";
   const err = e1||e2;
-  if(err) return alert(err.message);
+  if(err) return alert(explicar(err));
   Object.assign(OPP, patch);
   BRIEF = bd;
   if(el("op-who")) el("op-who").textContent = quemE(OPP);
@@ -1585,7 +1631,7 @@ async function saveProposal(){
       extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}))) : {};
   btn.disabled = false; btn.textContent = "Salvar";
   const err = e1||e2;
-  if(err) return alert(err.message);
+  if(err) return alert(explicar(err));
   Object.assign(PROP, patch);
   btn.textContent = "Salvo"; setTimeout(()=>btn.textContent="Salvar",1600);
 }
