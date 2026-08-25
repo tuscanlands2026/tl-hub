@@ -27,3 +27,5 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0004 | `0004-destaque-no-texto-da-nota.sql` | sublinha o parágrafo da emissão para o exterior |
 | 0005 | `0005-proposta-apresentada.sql` | capa, índice, hotel com site/quarto/fotos/anexo e itinerário |
 | 0006 | `0006-catalogo.sql` | catálogo de hospedagens e experiências, copiado para a proposta |
+| 0007 | `0007-quem-somos.sql` | quem somos e credenciais, na página antes do resumo |
+| 0008 | `0008-quem-somos-oficial.sql` | troca pelo texto da apresentação corporativa dela |

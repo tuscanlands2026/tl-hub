@@ -212,6 +212,11 @@ table.rows td.x{width:30px;padding-right:0;}
 /* Campo interno na tabela de serviços: marcado para não se confundir
    com o que o cliente lê. */
 input.interno{border-left:2px solid var(--brown);}
+.buscacat{margin-top:10px;border:1px solid var(--cream);padding:10px 12px;background:var(--cream-light);}
+.cat-res{margin-top:6px;}
+.cat-item{padding:8px 10px;border-bottom:1px solid var(--cream);cursor:pointer;background:#fff;}
+.cat-item:hover{background:var(--cream);}
+.apres-box{border-left:2px solid var(--sage);padding-left:10px;margin-top:8px;}
 /* Par de linhas PT/EN na tabela de seções: a segunda não repete a
    borda, para as duas lerem como um bloco só. */
 table.rows td.idio{font-size:9px;letter-spacing:.18em;color:var(--sage);font-weight:500;
@@ -313,6 +318,13 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-extra{font-size:12.5px;font-weight:300;line-height:1.6;color:var(--ink);}
 .ap-extra span{color:var(--muted);}
 .ap-foto-fim{background:var(--sage);}
+.ap-foto-sobre{background:var(--ink);}
+.ap-sobre-txt{font-size:15px;font-weight:300;line-height:1.8;color:var(--ink);max-width:620px;}
+.ap-cred{margin-top:26px;border-left:2px solid var(--copper);padding-left:14px;}
+.ap-cred .k{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);
+  font-weight:500;margin-bottom:7px;}
+.ap-cred ul{margin:0 0 0 16px;}
+.ap-cred li{font-size:13px;font-weight:300;line-height:1.7;color:var(--muted);}
 .ap-extras .k{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);
   font-weight:500;margin-bottom:6px;}
 .ap-escolha{margin-top:16px;border-top:1px solid var(--cream);padding-top:13px;
@@ -703,7 +715,7 @@ const T = {
     qResumoSub:"Somente os serviços que você marcou acima.",
     qSite:"Ver o site da propriedade →", qSelected:"Selecionado",
     qOthers:"Outros serviços", qItinerary:"Roteiro dia a dia", qHighlights:"Destaques",
-    qExtrasDisp:"Adicionais disponíveis", qFacilities:"Estrutura",
+    qExtrasDisp:"Adicionais disponíveis", qFacilities:"Estrutura", qAbout:"Sobre a Tuscan Lands", qCredentials:"Credenciais",
     qResumoLead:"Marque abaixo os serviços que você aprova. O total é calculado automaticamente."
   },
   en:{
@@ -785,7 +797,7 @@ const T = {
     qResumoSub:"Only the services you ticked above.",
     qSite:"Visit the property website →", qSelected:"Selected",
     qOthers:"Other services", qItinerary:"Day by day", qHighlights:"Highlights",
-    qExtrasDisp:"Available add-ons", qFacilities:"Facilities",
+    qExtrasDisp:"Available add-ons", qFacilities:"Facilities", qAbout:"About Tuscan Lands", qCredentials:"Credentials",
     qResumoLead:"Tick below the services you approve. The total is calculated automatically."
   }
 };
@@ -1019,7 +1031,11 @@ const MIGRACOES = [
   {id:"0005-proposta-apresentada",  arq:"0005-proposta-apresentada.sql",
    oque:"capa, índice, hotel com site e anexo, itinerário"},
   {id:"0006-catalogo",              arq:"0006-catalogo.sql",
-   oque:"catálogo de hospedagens e experiências"}
+   oque:"catálogo de hospedagens e experiências"},
+  {id:"0007-quem-somos",            arq:"0007-quem-somos.sql",
+   oque:"quem somos e credenciais, na página antes do resumo"},
+  {id:"0008-quem-somos-oficial",    arq:"0008-quem-somos-oficial.sql",
+   oque:"o texto oficial da apresentação corporativa"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -1718,10 +1734,36 @@ function renderProposal(){
         <option value="nao"${p.show_prices===false?" selected":""}>Não — só os serviços</option></select></div>
       <div><label>Link dos termos</label><input id="q-terms" value="${esc(p.terms_url||"")}" placeholder="${DEFAULT_TERMS_URL}"></div>
     </div>
+    <div class="grid3">
+      <div><label>Formato</label><select id="q-layout" onchange="PROP.layout=this.value;renderProposal()">
+        <option value="tabela"${(p.layout||"tabela")==="tabela"?" selected":""}>Orçamento em tabela</option>
+        <option value="apresentada"${p.layout==="apresentada"?" selected":""}>Proposta apresentada</option>
+      </select></div>
+      <div style="grid-column:span 2;"><label>Imagem da capa — link</label>
+        <input id="q-cover" value="${esc(p.cover_img||"")}" placeholder="https://…"></div>
+    </div>
+    ${p.layout==="apresentada"?`<div class="grid2">
+      <div><label>Tarja da capa · português</label><input id="q-tag" value="${esc(p.cover_tag_pt||"")}" placeholder="Selected Stays · Toscana"></div>
+      <div><label>Tarja da capa · English</label><input id="q-tag-en" value="${esc(p.cover_tag_en||"")}"></div>
+    </div>`:""}
     <div><label>Texto de abertura (opcional)</label>
       <textarea id="q-intro" rows="2" placeholder="A instrução de selecionar os serviços já sai sozinha. Isto é acréscimo.">${esc(p.intro||"")}</textarea></div>
     <div><label>Observação de pagamento — logo abaixo do total</label>
       <textarea id="q-paynote" rows="2">${esc(p.payment_note||"")}</textarea></div>
+    ${p.layout==="apresentada"?`<div>
+      <label>Quem somos — sai na página antes do resumo</label>
+      <div class="hint" style="margin:0 0 7px;">Vem preenchido com o texto da casa. O que você mudar
+        aqui vale só para esta proposta.</div>
+      <div class="grid2">
+        <div><label>Português</label><textarea id="q-about" rows="4">${esc(p.about_pt||"")}</textarea></div>
+        <div><label>English</label><textarea id="q-about-en" rows="4">${esc(p.about_en||"")}</textarea></div>
+      </div>
+      <div class="grid2" style="margin-top:10px;">
+        <div><label>Credenciais · português</label><textarea id="q-cred" rows="3">${esc(p.credentials_pt||"")}</textarea></div>
+        <div><label>Credenciais · English</label><textarea id="q-cred-en" rows="3">${esc(p.credentials_en||"")}</textarea></div>
+      </div>
+    </div>`:""}
+
     <div>
       <label>Não inclusos — sai logo depois do total, junto das tabelas</label>
       <div class="hint" style="margin:0 0 7px;">Muda de uma opção para outra: na opção com transfer
@@ -1778,6 +1820,11 @@ function renderProposal(){
       ou o que você escrever.<br><b>Fornecedor</b> é só seu: não sai na quote nem no documento
       do cliente, e desce para a order quando a proposta virar venda.</div>
     <div id="qi-host"></div>
+    <div class="buscacat">
+      <input id="cat-busca" placeholder="Buscar no catálogo pelo nome — villa, hotel, experiência…"
+        oninput="buscarCatalogo(this.value)">
+      <div id="cat-res" class="cat-res"></div>
+    </div>
     <button class="btn ghost sm" id="qi-add" style="margin-top:6px;">+ Serviço</button>
     <div class="totalline"><span class="lbl">Se levar tudo</span><span class="amt" id="qi-total">—</span></div>
   </div>
@@ -1885,6 +1932,30 @@ function drawQuoteItems(){
       <td>
         <input value="${esc(r.title||"")}" placeholder="Título do serviço" oninput="PITEMS[${i}].title=this.value">
         <textarea rows="2" placeholder="Detalhes" style="margin-top:5px;font-size:12.5px;" oninput="PITEMS[${i}].details=this.value">${esc(r.details||"")}</textarea>
+        ${PROP.layout==="apresentada"?`<div class="apres-box">
+          <div class="grid2" style="margin-top:7px;">
+            <input value="${esc(r.room_type||"")}" placeholder="Acomodação: villa inteira · 288 m² · 5 quartos"
+              oninput="PITEMS[${i}].room_type=this.value">
+            <input value="${esc(r.website||"")}" placeholder="Site da propriedade"
+              oninput="PITEMS[${i}].website=this.value.trim()||null">
+          </div>
+          <input value="${esc(r.facilities||"")}" placeholder="Estrutura: piscina, jardim, o que é compartilhado"
+            style="margin-top:5px;" oninput="PITEMS[${i}].facilities=this.value">
+          <div class="grid2" style="margin-top:5px;">
+            <input value="${esc(r.title_en||"")}" placeholder="Título em inglês" oninput="PITEMS[${i}].title_en=this.value">
+            <input value="${esc(r.room_type_en||"")}" placeholder="Acomodação em inglês" oninput="PITEMS[${i}].room_type_en=this.value">
+          </div>
+          <textarea rows="2" placeholder="Descrição em inglês" style="margin-top:5px;font-size:12.5px;"
+            oninput="PITEMS[${i}].details_en=this.value">${esc(r.details_en||"")}</textarea>
+          <label style="margin-top:8px;">Fotos — um link por linha</label>
+          <textarea rows="2" style="font-size:12px;" placeholder="https://…"
+            oninput="PITEMS[${i}].photos=this.value.split('\n').map(x=>x.trim()).filter(Boolean)"
+            >${esc((r.photos||[]).join("\n"))}</textarea>
+          <label style="margin-top:8px;">Anexos — nome e link, um por linha, separados por |</label>
+          <textarea rows="2" style="font-size:12px;" placeholder="Planimetria.pdf | https://…"
+            oninput="PITEMS[${i}].attachments=this.value.split('\n').map(x=>x.split('|')).filter(a=>a[1]).map(a=>({name:a[0].trim(),url:a[1].trim()}))"
+            >${esc((r.attachments||[]).map(a=>(a.name||"")+" | "+(a.url||"")).join("\n"))}</textarea>
+        </div>`:""}
         <div class="extras-box">
           <label style="margin-top:8px;">Extras desta linha</label>
           ${(r.extras||[]).map((e,j)=>`<div class="extra-row">
@@ -1909,6 +1980,51 @@ function drawQuoteItems(){
       <td class="x"><button class="iconbtn" onclick="PITEMS.splice(${i},1);drawQuoteItems()">×</button></td>
     </tr>`).join("")}</tbody></table>`;
   sumQuote();
+}
+
+/* Busca por nome, não lista de caixinhas: com três registros a lista
+   serve, com sessenta ela atrapalha. O registro escolhido é COPIADO
+   para a linha — dali em diante ela edita o valor, a descrição, o que
+   for, sem tocar no catálogo. */
+let CATTIMER = null;
+function buscarCatalogo(termo){
+  clearTimeout(CATTIMER);
+  const host = el("cat-res");
+  const q = (termo||"").trim();
+  if(q.length < 2){ host.innerHTML = ""; return; }
+  CATTIMER = setTimeout(async ()=>{
+    const {data, error} = await sb.from("ops_catalog").select("*")
+      .ilike("name", "%"+q+"%").eq("active", true).order("name").limit(8);
+    if(error){ host.innerHTML = `<div class="msg">${esc(explicar(error))}</div>`; return; }
+    if(!data || !data.length){
+      host.innerHTML = `<div class="muted" style="padding:8px 0;">Nada com esse nome no catálogo.</div>`;
+      return;
+    }
+    host.innerHTML = data.map(c=>`<div class="cat-item" onclick="puxarDoCatalogo('${c.id}')">
+      <div><b>${esc(c.name)}</b>${c.region?` <span class="muted">· ${esc(c.region)}</span>`:""}</div>
+      <div class="muted">${esc((c.accommodation||c.descr||"").slice(0,90))}</div>
+    </div>`).join("");
+    CATCACHE = data;
+  }, 250);
+}
+let CATCACHE = [];
+function puxarDoCatalogo(id){
+  const c = CATCACHE.find(x=>x.id===id);
+  if(!c) return;
+  PITEMS.push({
+    catalog_id: c.id, service_date: PROP.travel_window || "",
+    title: c.name, title_en: c.name,
+    details: c.descr, details_en: c.descr_en,
+    room_type: c.accommodation, room_type_en: c.accommodation_en,
+    facilities: c.facilities, facilities_en: c.facilities_en,
+    website: c.website, photos: (c.photos||[]).slice(), attachments: (c.attachments||[]).slice(),
+    price: 0, optional: false, extras: [], sort: PITEMS.length,
+    section: (PSECS[0] && PSECS[0].key) || null
+  });
+  el("cat-busca").value = ""; el("cat-res").innerHTML = "";
+  drawQuoteItems();
+  alert(c.name + " entrou na proposta. O valor vem zerado de propósito: preço é desta venda, "
+    + "não do catálogo. Ajuste o valor e o que mais precisar — nada disso volta para o cadastro.");
 }
 
 /* Chave estável por linha: o cliente marca por chave, e renomear o
@@ -1948,6 +2064,14 @@ async function saveProposal(){
     show_prices: el("q-prices").value === "sim",
     terms_url: el("q-terms").value.trim() || null,
     intro: el("q-intro").value, payment_note: el("q-paynote").value,
+    layout: el("q-layout") ? el("q-layout").value : (PROP.layout||"tabela"),
+    cover_img: el("q-cover") ? (el("q-cover").value.trim()||null) : PROP.cover_img,
+    cover_tag_pt: el("q-tag") ? el("q-tag").value : PROP.cover_tag_pt,
+    cover_tag_en: el("q-tag-en") ? el("q-tag-en").value : PROP.cover_tag_en,
+    about_pt: el("q-about") ? el("q-about").value : PROP.about_pt,
+    about_en: el("q-about-en") ? el("q-about-en").value : PROP.about_en,
+    credentials_pt: el("q-cred") ? el("q-cred").value : PROP.credentials_pt,
+    credentials_en: el("q-cred-en") ? el("q-cred-en").value : PROP.credentials_en,
     conditions_pt: el("q-cond").value, conditions_en: el("q-cond-en").value,
     excluded_pt: el("q-exc").value, excluded_en: el("q-exc-en").value,
     internal_notes: el("q-internal").value,
@@ -1961,6 +2085,11 @@ async function saveProposal(){
       title:r.title, details:r.details, price:r.price, optional:!!r.optional,
       choice_group:(r.choice_group||"").trim()||null, section:r.section||null,
       supplier:(r.supplier||"").trim()||null,
+      catalog_id:r.catalog_id||null,
+      title_en:r.title_en||null, details_en:r.details_en||null,
+      room_type:r.room_type||null, room_type_en:r.room_type_en||null,
+      facilities:r.facilities||null, facilities_en:r.facilities_en||null,
+      website:r.website||null, photos:r.photos||[], attachments:r.attachments||[],
       extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}))) : {};
   btn.disabled = false; btn.textContent = "Salvar";
   const err = e1||e2;
@@ -3074,6 +3203,7 @@ function drawQuoteApresentada(){
     secs.map(sec=>({id:"ap-"+sec.key, txt:sec.title||sec.key})),
     soltas.length ? [{id:"ap-outros", txt:t.qOthers}] : [],
     dias.length ? [{id:"ap-dias", txt:t.qItinerary}] : [],
+    (p.about||p.credentials) ? [{id:"ap-sobre", txt:t.qAbout}] : [],
     [{id:"ap-resumo", txt:t.qResumo}]
   );
 
@@ -3107,10 +3237,6 @@ function drawQuoteApresentada(){
         </div>
       </section>
 
-      ${p.welcome?`<section class="ap-welcome"><div class="ap-welcome-in">
-        <div class="ap-ey">${COMPANY.legal}</div>
-        ${nl2br(p.welcome)}</div></section>`:""}
-
       ${secs.map(sec=>bloco("ap-"+sec.key, sec, itens.filter(i=>i.section===sec.key))).join("")}
       ${soltas.length?bloco("ap-outros", null, soltas):""}
 
@@ -3121,6 +3247,21 @@ function drawQuoteApresentada(){
           <tbody>${dias.map(d=>`<tr><td class="date-cell">${esc(d.date||"")}</td>
             <td><ul>${(d.lines||[]).map(l=>`<li>${esc(l)}</li>`).join("")}</ul></td></tr>`).join("")}</tbody>
         </table></div>
+      </section>`:""}
+
+      ${(p.about||p.credentials)?`<section class="ap-sec" id="ap-sobre">
+        <div class="ap-foto ap-foto-sobre">
+          <div class="ap-foto-txt">
+            <div class="ap-ey">${esc(COMPANY.legal)}</div>
+            <h2>${t.qAbout}</h2>
+          </div>
+        </div>
+        <div class="ap-lista">
+          ${p.about?`<div class="ap-sobre-txt">${nl2br(p.about)}</div>`:""}
+          ${p.credentials?`<div class="ap-cred">
+            <div class="k">${t.qCredentials}</div>
+            ${fmtDoc(p.credentials)}</div>`:""}
+        </div>
       </section>`:""}
 
       <section class="ap-sec ap-fim" id="ap-resumo">

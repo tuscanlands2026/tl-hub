@@ -1,7 +1,7 @@
 -- =====================================================================
 -- EXEMPLO · Villa Ghirlandaio · 13 a 17 de outubro de 2026
 --
--- Proposta modelo montada com os dados que ela passou: três famílias,
+-- Proposta TL-045-26 · FAAWAY (Flavia). Três famílias,
 -- dez pessoas, valor fechado para o período. A linha nasce do catálogo
 -- e é COPIADA — mudar o valor aqui não mexe no cadastro da villa, e
 -- corrigir o cadastro depois não reescreve esta proposta.
@@ -9,9 +9,9 @@
 -- Roda depois de 0006-catalogo.sql e catalogo-villa-ghirlandaio.sql.
 -- =====================================================================
 
-insert into ops_opportunities (id, crm_code, title, lang, agency, final_client, internal_notes)
-values ('9126ac00-0000-0000-0000-000000000001', 'TL-041-26',
-  'Villa Ghirlandaio · Toscana · out 2026', 'pt', 'Agência', null,
+insert into ops_opportunities (id, crm_code, title, lang, agency, agency_contact, final_client, internal_notes)
+values ('9126ac00-0000-0000-0000-000000000001', 'TL-045-26',
+  'Villa Ghirlandaio · Toscana · out 2026', 'pt', 'FAAWAY', 'Flavia', null,
   'Três famílias, dez pessoas. Villa fechada para o grupo.')
 on conflict (id) do nothing;
 
@@ -23,13 +23,16 @@ on conflict (opportunity_id) do nothing;
 insert into ops_proposals
   (id, opportunity_id, version, title, lang, layout, pax_summary, travel_window, show_prices,
    cover_tag_pt, cover_tag_en, cover_img,
-   welcome_pt, welcome_en, sections, conditions_pt, excluded_pt, internal_notes)
+   about_pt, about_en, credentials_pt, credentials_en,
+   sections, conditions_pt, excluded_pt, internal_notes)
 values ('9126ac00-0000-0000-0000-0000000000a1','9126ac00-0000-0000-0000-000000000001', 1,
   'Villa Ghirlandaio', 'pt', 'apresentada', '10 pessoas · 3 famílias', '13 – 17 out 2026', true,
   'Selected Stays · Toscana', 'Selected Stays · Tuscany',
   'https://dimoraghirlandaio.it/wp-content/uploads/2024/07/DG_Aerial_Villas-overview.jpg',
-  E'A Tuscan Lands é um DMC boutique com base em Pontassieve, na Toscana.\nCada hospedagem desta proposta foi visitada por nós. O que segue é o que consideramos para o período de 13 a 17 de outubro de 2026.',
-  E'Tuscan Lands is a boutique DMC based in Pontassieve, Tuscany.\nEvery stay in this proposal has been visited by us.',
+  (select pt from ops_text_defaults where key='about'),
+  (select en from ops_text_defaults where key='about'),
+  (select pt from ops_text_defaults where key='credentials'),
+  (select en from ops_text_defaults where key='credentials'),
   '[{"key":"stays","title":"Hospedagem","title_en":"Where you stay",
      "note":"A villa inteira, para as três famílias.",
      "note_en":"The entire villa, for all three families.",
