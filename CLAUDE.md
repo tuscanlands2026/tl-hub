@@ -89,6 +89,13 @@ comercial não se traduz por conta própria.
 `title`/`title_en` · `note`/`note_en` em cada seção. `tl_get_quote` resolve pelo idioma da
 proposta e cai no português quando a tradução não foi escrita.
 
+**A proposta fecha com o resumo da escolha.** Página própria, com só o que o cliente
+marcou, os extras dele e o total — depois das tabelas e antes das condições. É a página que
+ela confere antes de gerar a order, e é o que o cliente aprova. Decisão dela em agosto/26:
+um documento só, com valores, em vez de uma peça bonita sem preço mais um orçamento à
+parte. Dois cadastros para a mesma venda divergem, e aí o cliente aprova uma coisa e a
+agência outra. `show_prices` continua sendo a chave para o caso de mandar sem valor.
+
 **"Não inclusos" não é da parte fixa.** Muda de opção para opção — na opção com transfer
 exclui aluguel de carro, na opção com carro alugado exclui combustível e pedágio. Por isso
 mora na proposta e sai junto das tabelas, na mesma folha se couber. A página separada é só

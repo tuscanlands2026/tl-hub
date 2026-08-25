@@ -236,6 +236,10 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 /* Não inclusos sai colado nas tabelas, na mesma folha se couber: é
    resposta ao que aquela opção contém, e não condição geral da casa. */
 .doc .naoinc{margin-top:26px;}
+/* O resumo fecha a escolha: sai em folha própria, com só o que o
+   cliente marcou. É a página que ela confere antes de gerar a order. */
+.doc .resumo{margin-top:30px;border-top:1px solid var(--cream);padding-top:22px;}
+.doc .resumo .mais{font-size:12px;color:var(--copper);margin-top:3px;}
 /* Bloco fiscal é endereço, não texto corrido: linhas juntas e sem
    partir de uma folha para a outra. */
 /* O relatório de comissão sai em copper, não em sage. É outro documento
@@ -407,6 +411,7 @@ table.rows tr.par td{border-top:none;padding-top:0;}
   .doc .foot{break-inside:avoid;border-top:1px solid var(--cream);
     margin-top:26px;padding-top:14px;}
   .doc .pagina-nova{break-before:page;border-top:none;padding-top:0;}
+  .doc .resumo{break-before:page;border-top:none;padding-top:0;}
   /* Título de seção não fica órfão no pé da folha: ele e a linha de
      instrução grudam na tabela que explicam. */
   .doc .blocktitle,.doc .blocktitle + .muted{break-after:avoid;}
@@ -588,7 +593,9 @@ const T = {
     qAck:"Li e estou ciente das condições comerciais desta proposta.",
     qNeedAck:"Marque o aceite das condições para enviar.",
     qCondTitle:"Forma de pagamento e condições gerais",
-    qExcluded:"Não inclusos"
+    qExcluded:"Não inclusos",
+    qResumo:"Resumo da sua escolha",
+    qResumoSub:"Somente os serviços que você marcou acima."
   },
   en:{
     docTitle:"Service Confirmation",
@@ -664,7 +671,9 @@ const T = {
     qAck:"I have read and understood the commercial conditions of this proposal.",
     qNeedAck:"Please accept the conditions to send.",
     qCondTitle:"Payment and general conditions",
-    qExcluded:"Not included"
+    qExcluded:"Not included",
+    qResumo:"Your selection",
+    qResumoSub:"Only the services you ticked above."
   }
 };
 
@@ -2907,6 +2916,32 @@ function drawQuote(){
       <div class="blocktitle">${t.qExcluded}</div>
       <div class="condicoes">${fmtDoc(p.excluded)}</div>
     </div>`:""}
+
+    ${(()=>{
+      const escolhidos = (QT.items||[]).filter(i=>QSEL.items[i.id]);
+      if(!escolhidos.length) return "";
+      const linhaRes = i => {
+        const ex = (i.extras||[]).filter(e=>(QSEL.extras[i.id]||[]).includes(e.key));
+        return `<tr>
+          <td class="date-cell">${esc(i.service_date||"")}</td>
+          <td><div class="svc-title">${esc(i.title)}</div>
+            ${ex.map(e=>`<div class="mais">+ ${esc(p.lang==="en"?(e.label_en||e.label_pt):e.label_pt)}</div>`).join("")}</td>
+          <td class="money">${mostra?eur(Number(i.price)||0):""}
+            ${mostra?ex.map(e=>`<div class="mais">${eur(e.price)}</div>`).join(""):""}</td>
+        </tr>`;
+      };
+      return `<div class="resumo">
+        <div class="blocktitle" style="margin-top:0;">${t.qResumo}</div>
+        <div class="muted" style="margin:-6px 0 12px;">${t.qResumoSub}</div>
+        <table class="svc">
+          <thead><tr><th style="width:100px;">${t.date}</th><th>${t.service}</th>
+            <th class="money">${mostra?t.price:""}</th></tr></thead>
+          <tbody>${escolhidos.map(linhaRes).join("")}</tbody>
+        </table>
+        ${mostra?`<div class="total-row"><div class="total-box">
+          <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`:""}
+      </div>`;
+    })()}
 
     ${p.conditions?`<div class="pagina-nova">
       <div class="blocktitle" style="margin-top:0;">${t.qCondTitle}</div>
