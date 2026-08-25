@@ -306,6 +306,10 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-anexo{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;
   border:1px solid var(--copper);color:var(--copper);padding:5px 10px;text-decoration:none;}
 .ap-extras{margin-top:14px;border-left:2px solid var(--copper);padding-left:12px;}
+.ap-estrutura{margin-top:12px;font-size:12.5px;font-weight:300;line-height:1.6;
+  color:var(--muted);border-top:1px solid var(--cream);padding-top:11px;}
+.ap-estrutura .k{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);
+  font-weight:500;margin-bottom:4px;}
 .ap-extra{font-size:12.5px;font-weight:300;line-height:1.6;color:var(--ink);}
 .ap-extra span{color:var(--muted);}
 .ap-foto-fim{background:var(--sage);}
@@ -699,7 +703,7 @@ const T = {
     qResumoSub:"Somente os serviços que você marcou acima.",
     qSite:"Ver o site da propriedade →", qSelected:"Selecionado",
     qOthers:"Outros serviços", qItinerary:"Roteiro dia a dia", qHighlights:"Destaques",
-    qExtrasDisp:"Adicionais disponíveis",
+    qExtrasDisp:"Adicionais disponíveis", qFacilities:"Estrutura",
     qResumoLead:"Marque abaixo os serviços que você aprova. O total é calculado automaticamente."
   },
   en:{
@@ -781,7 +785,7 @@ const T = {
     qResumoSub:"Only the services you ticked above.",
     qSite:"Visit the property website →", qSelected:"Selected",
     qOthers:"Other services", qItinerary:"Day by day", qHighlights:"Highlights",
-    qExtrasDisp:"Available add-ons",
+    qExtrasDisp:"Available add-ons", qFacilities:"Facilities",
     qResumoLead:"Tick below the services you approve. The total is calculated automatically."
   }
 };
@@ -1013,7 +1017,9 @@ const MIGRACOES = [
   {id:"0004-destaque-no-texto-da-nota", arq:"0004-destaque-no-texto-da-nota.sql",
    oque:"destaque no parágrafo da emissão para o exterior"},
   {id:"0005-proposta-apresentada",  arq:"0005-proposta-apresentada.sql",
-   oque:"capa, índice, hotel com site e anexo, itinerário"}
+   oque:"capa, índice, hotel com site e anexo, itinerário"},
+  {id:"0006-catalogo",              arq:"0006-catalogo.sql",
+   oque:"catálogo de hospedagens e experiências"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -3041,6 +3047,8 @@ function apItem(i, t, p, mostra, respondida){
         ${mostra?`<div class="ap-preco">${eur(i.price)}</div>`:""}
       </div>
       ${i.details?`<div class="ap-desc">${nl2br(i.details)}</div>`:""}
+      ${i.facilities?`<div class="ap-estrutura">
+        <div class="k">${t.qFacilities}</div>${esc(i.facilities)}</div>`:""}
       ${i.website?`<div class="ap-link"><a href="${esc(i.website)}" target="_blank" rel="noopener">${t.qSite}</a></div>`:""}
       ${anexos.length?`<div class="ap-anexos">${anexos.map(a=>
         `<a href="${esc(a.url)}" target="_blank" rel="noopener" class="ap-anexo">${esc(a.name||"PDF")}</a>`).join("")}</div>`:""}
