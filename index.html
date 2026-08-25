@@ -306,6 +306,9 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-anexo{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;
   border:1px solid var(--copper);color:var(--copper);padding:5px 10px;text-decoration:none;}
 .ap-extras{margin-top:14px;border-left:2px solid var(--copper);padding-left:12px;}
+.ap-extra{font-size:12.5px;font-weight:300;line-height:1.6;color:var(--ink);}
+.ap-extra span{color:var(--muted);}
+.ap-foto-fim{background:var(--sage);}
 .ap-extras .k{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);
   font-weight:500;margin-bottom:6px;}
 .ap-escolha{margin-top:16px;border-top:1px solid var(--cream);padding-top:13px;
@@ -695,7 +698,9 @@ const T = {
     qResumo:"Resumo da sua escolha",
     qResumoSub:"Somente os serviços que você marcou acima.",
     qSite:"Ver o site da propriedade →", qSelected:"Selecionado",
-    qOthers:"Outros serviços", qItinerary:"Roteiro dia a dia", qHighlights:"Destaques"
+    qOthers:"Outros serviços", qItinerary:"Roteiro dia a dia", qHighlights:"Destaques",
+    qExtrasDisp:"Adicionais disponíveis",
+    qResumoLead:"Marque abaixo os serviços que você aprova. O total é calculado automaticamente."
   },
   en:{
     docTitle:"Service Confirmation",
@@ -775,7 +780,9 @@ const T = {
     qResumo:"Your selection",
     qResumoSub:"Only the services you ticked above.",
     qSite:"Visit the property website →", qSelected:"Selected",
-    qOthers:"Other services", qItinerary:"Day by day", qHighlights:"Highlights"
+    qOthers:"Other services", qItinerary:"Day by day", qHighlights:"Highlights",
+    qExtrasDisp:"Available add-ons",
+    qResumoLead:"Tick below the services you approve. The total is calculated automatically."
   }
 };
 
@@ -2946,7 +2953,8 @@ function tabelasPorSecao(t, mostra, linha){
 /* O fecho é o mesmo nos dois layouts: o que o cliente escolheu, o que
    não está incluso, as condições e o bloco de envio. Escrito uma vez —
    duplicado, um ajuste feito num layout sumiria do outro. */
-function quoteFecho(p, t, mostra, respondida){
+function quoteFecho(p, t, mostra, respondida, comResumo){
+  if(comResumo === undefined) comResumo = true;
   return `
     ${p.excluded?`<div class="naoinc">
       <div class="blocktitle">${t.qExcluded}</div>
@@ -2954,6 +2962,7 @@ function quoteFecho(p, t, mostra, respondida){
     </div>`:""}
 
     ${(()=>{
+      if(!comResumo) return "";
       const escolhidos = (QT.items||[]).filter(i=>QSEL.items[i.id]);
       if(!escolhidos.length) return "";
       const linhaRes = i => {
@@ -3019,9 +3028,8 @@ function quoteConfirmar(t, respondida){
 function apItem(i, t, p, mostra, respondida){
   const fotos = (i.photos||[]).filter(u=>u&&u.trim()).slice(0,3);
   const anexos = (i.attachments||[]).filter(a=>a&&a.url);
-  const marcado = !!QSEL.items[i.id];
   const ex = i.extras||[];
-  return `<div class="ap-card${marcado?" on":""}">
+  return `<div class="ap-card">
     ${fotos.length?`<div class="ap-fotos f${fotos.length}">${fotos.map(u=>
       `<img src="${esc(u.trim())}" alt="" loading="lazy">`).join("")}</div>`:""}
     <div class="ap-corpo">
@@ -3036,22 +3044,11 @@ function apItem(i, t, p, mostra, respondida){
       ${i.website?`<div class="ap-link"><a href="${esc(i.website)}" target="_blank" rel="noopener">${t.qSite}</a></div>`:""}
       ${anexos.length?`<div class="ap-anexos">${anexos.map(a=>
         `<a href="${esc(a.url)}" target="_blank" rel="noopener" class="ap-anexo">${esc(a.name||"PDF")}</a>`).join("")}</div>`:""}
-      ${ex.length && marcado && !respondida?`<div class="ap-extras">
-        <div class="k">${t.qExtras}</div>
-        ${ex.map(e=>`<div class="check"><input type="checkbox" id="qe-${esc(i.id)}-${esc(e.key)}"
-          ${((QSEL.extras[i.id]||[]).includes(e.key))?" checked":""}
-          onchange="marcaExtra('${esc(i.id)}','${esc(e.key)}',this.checked)">
-          <label for="qe-${esc(i.id)}-${esc(e.key)}">${esc(p.lang==="en"?(e.label_en||e.label_pt):e.label_pt)}${
-            mostra?` <span style="color:var(--muted);">· ${eur(e.price)}</span>`:""}</label></div>`).join("")}
+      ${ex.length?`<div class="ap-extras">
+        <div class="k">${t.qExtrasDisp}</div>
+        ${ex.map(e=>`<div class="ap-extra">${esc(p.lang==="en"?(e.label_en||e.label_pt):e.label_pt)}${
+          mostra?` <span>· ${eur(e.price)}</span>`:""}</div>`).join("")}
       </div>`:""}
-      ${respondida?"":`<div class="ap-escolha">
-        ${i.choice_group
-          ? `<input type="radio" name="cg-${esc(i.choice_group)}" id="qi-${esc(i.id)}"${marcado?" checked":""}
-              onchange="marcaEscolha('${esc(i.choice_group)}','${esc(i.id)}')">`
-          : `<input type="checkbox" id="qi-${esc(i.id)}"${marcado?" checked":""}
-              onchange="marcaItem('${esc(i.id)}',this.checked)">`}
-        <label for="qi-${esc(i.id)}">${marcado?t.qSelected:t.qChoose}</label>
-      </div>`}
     </div>
   </div>`;
 }
@@ -3119,9 +3116,20 @@ function drawQuoteApresentada(){
       </section>`:""}
 
       <section class="ap-sec ap-fim" id="ap-resumo">
+        <div class="ap-foto ap-foto-fim">
+          <div class="ap-foto-txt">
+            <div class="ap-ey">${esc(p.crm_code||"")}</div>
+            <h2>${t.qResumo}</h2>
+            <div class="ap-note">${t.qResumoLead}</div>
+          </div>
+        </div>
         <div class="ap-lista larga">
           <div class="doc" style="box-shadow:none;padding:0;background:transparent;">
-            ${quoteFecho(p, t, mostra, respondida)}
+            ${tabelasPorSecao(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida))}
+            ${mostra?`<div class="total-row"><div class="total-box">
+              <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
+             :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
+            ${quoteFecho(p, t, mostra, respondida, false)}
           </div>
           ${quoteConfirmar(t, respondida)}
         </div>
@@ -3132,11 +3140,7 @@ function drawQuoteApresentada(){
   if(!respondida && el("qc-go")) el("qc-go").onclick = submitQuote;
 }
 
-function drawQuote(){
-  const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
-  const respondida = !!p.responded_at;
-
-  const linha = i => {
+function quoteLinha(i, t, p, mostra, respondida){
     // Toda linha vale só se marcada: é o cliente que monta a viagem dele.
     const dentro = !!QSEL.items[i.id];
     return `<tr>
@@ -3169,7 +3173,11 @@ function drawQuote(){
       <td class="money">${mostra ? (dentro?eur(i.price)
         :`<span class="fora">${eur(i.price)}</span>`) : ""}</td>
     </tr>`;
-  };
+  }
+
+function drawQuote(){
+  const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
+  const respondida = !!p.responded_at;
 
   // A proposta apresentada troca só o corpo: capa, índice e blocos de
   // hospedagem no lugar das tabelas. Resumo, condições e envio são os
@@ -3208,7 +3216,7 @@ function drawQuote(){
 
     ${p.intro?`<div class="intro">${nl2br(p.intro)}</div>`:""}
 
-    ${tabelasPorSecao(t, mostra, linha)}
+    ${tabelasPorSecao(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida))}
 
     ${mostra?`<div class="total-row"><div class="total-box">
       <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
