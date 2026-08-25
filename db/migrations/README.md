@@ -25,3 +25,4 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0002 | `0002-comissao-de-agencia.sql` | comissão por linha e o relatório para a agência |
 | 0003 | `0003-inclusos-na-comissao.sql` | coluna do que a linha inclui, que justifica a alíquota |
 | 0004 | `0004-destaque-no-texto-da-nota.sql` | sublinha o parágrafo da emissão para o exterior |
+| 0005 | `0005-proposta-apresentada.sql` | capa, índice, hotel com site/quarto/fotos/anexo e itinerário |

@@ -240,6 +240,93 @@ table.rows tr.par td{border-top:none;padding-top:0;}
    cliente marcou. É a página que ela confere antes de gerar a order. */
 .doc .resumo{margin-top:30px;border-top:1px solid var(--cream);padding-top:22px;}
 .doc .resumo .mais{font-size:12px;color:var(--copper);margin-top:3px;}
+/* =====================================================================
+   PROPOSTA APRESENTADA
+   Duas colunas: índice fixo à esquerda, conteúdo rolando à direita, e
+   dentro de cada seção a foto grande com o título por cima. A cara é da
+   casa — sage, Libre Franklin, canto vivo — e não a da referência.
+   ===================================================================== */
+.apres{display:grid;grid-template-columns:238px 1fr;min-height:100vh;background:var(--cream-light);}
+.ap-indice{position:sticky;top:0;align-self:start;height:100vh;background:var(--sage);
+  color:#fff;padding:26px 20px;display:flex;flex-direction:column;gap:16px;}
+.ap-marca{font-size:12px;letter-spacing:.24em;font-weight:500;opacity:.95;}
+.ap-indice nav{display:flex;flex-direction:column;gap:2px;overflow:auto;}
+.ap-indice nav a{color:rgba(255,255,255,.82);text-decoration:none;font-size:12.5px;
+  padding:7px 9px;border-left:2px solid transparent;line-height:1.35;}
+.ap-indice nav a:hover{color:#fff;border-left-color:rgba(255,255,255,.5);background:rgba(255,255,255,.06);}
+.ap-tot{margin-top:auto;border-top:1px solid rgba(255,255,255,.25);padding-top:12px;
+  display:flex;flex-direction:column;gap:3px;}
+.ap-tot span{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;opacity:.8;}
+.ap-tot b{font-size:20px;font-weight:400;font-variant-numeric:tabular-nums;}
+
+.ap-capa{min-height:82vh;background:var(--sage) center/cover no-repeat;position:relative;
+  display:flex;align-items:flex-end;}
+.ap-capa::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(42,42,40,.72),rgba(42,42,40,.15) 55%,rgba(42,42,40,.35));}
+.ap-capa-in{position:relative;z-index:1;color:#fff;padding:48px 56px;max-width:820px;}
+.ap-marca-capa{font-size:13px;letter-spacing:.26em;font-weight:500;margin-bottom:22px;}
+.ap-tag{font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:500;
+  opacity:.9;margin-bottom:10px;}
+.ap-capa-in h1{font-size:44px;font-weight:300;line-height:1.1;letter-spacing:-.015em;}
+.ap-datas{font-size:16px;font-weight:300;margin-top:10px;opacity:.95;}
+.ap-ref{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-top:16px;opacity:.8;}
+
+.ap-welcome{background:#fff;padding:52px 56px;}
+.ap-welcome-in{max-width:660px;font-weight:300;font-size:15px;line-height:1.75;color:var(--ink);}
+.ap-ey{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--copper);
+  font-weight:500;margin-bottom:10px;}
+
+.ap-sec{display:grid;grid-template-columns:38% 1fr;align-items:start;border-top:1px solid var(--cream);}
+.ap-foto{position:sticky;top:0;min-height:100vh;background:var(--sage) center/cover no-repeat;
+  display:flex;align-items:center;position:-webkit-sticky;}
+.ap-foto::after{content:"";position:absolute;inset:0;background:rgba(42,42,40,.42);}
+.ap-foto-txt{position:relative;z-index:1;color:#fff;padding:36px 34px;}
+.ap-foto-txt h2{font-size:30px;font-weight:300;line-height:1.15;letter-spacing:-.01em;}
+.ap-note{font-size:13px;font-weight:300;margin-top:10px;opacity:.9;line-height:1.5;}
+.ap-lista{padding:44px 46px;display:flex;flex-direction:column;gap:26px;background:#fff;min-height:100vh;}
+.ap-lista.larga{padding:34px 40px;}
+
+.ap-card{border:1px solid var(--cream);background:#fff;}
+.ap-card.on{border-color:var(--sage);box-shadow:inset 3px 0 0 var(--sage);}
+.ap-fotos{display:grid;gap:2px;}
+.ap-fotos.f1{grid-template-columns:1fr;}
+.ap-fotos.f2{grid-template-columns:1fr 1fr;}
+.ap-fotos.f3{grid-template-columns:2fr 1fr 1fr;}
+.ap-fotos img{width:100%;height:190px;object-fit:cover;display:block;}
+.ap-corpo{padding:20px 22px;}
+.ap-topo{display:flex;justify-content:space-between;align-items:baseline;gap:18px;}
+.ap-nome{font-size:18px;font-weight:400;line-height:1.3;}
+.ap-quarto{font-size:12px;color:var(--copper);letter-spacing:.06em;margin-top:4px;}
+.ap-preco{font-size:19px;font-weight:400;color:var(--sage);white-space:nowrap;
+  font-variant-numeric:tabular-nums;}
+.ap-desc{font-size:13.5px;font-weight:300;line-height:1.65;margin-top:12px;color:var(--ink);}
+.ap-link{margin-top:10px;font-size:12.5px;}
+.ap-link a{color:var(--sage);}
+.ap-anexos{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;}
+.ap-anexo{font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;
+  border:1px solid var(--copper);color:var(--copper);padding:5px 10px;text-decoration:none;}
+.ap-extras{margin-top:14px;border-left:2px solid var(--copper);padding-left:12px;}
+.ap-extras .k{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);
+  font-weight:500;margin-bottom:6px;}
+.ap-escolha{margin-top:16px;border-top:1px solid var(--cream);padding-top:13px;
+  display:flex;align-items:center;gap:9px;}
+.ap-escolha input{accent-color:var(--sage);width:auto;}
+.ap-escolha label{font-size:12.5px;color:var(--ink);cursor:pointer;}
+table.svc.ap-dias ul{margin:0 0 0 16px;}
+table.svc.ap-dias li{font-size:13px;line-height:1.6;}
+
+@media (max-width:900px){
+  .apres{grid-template-columns:1fr;}
+  .ap-indice{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;}
+  .ap-indice nav{flex-direction:row;flex-wrap:wrap;}
+  .ap-tot{margin:0 0 0 auto;border-top:none;padding-top:0;}
+  .ap-sec{grid-template-columns:1fr;}
+  .ap-foto{position:static;min-height:230px;}
+  .ap-lista{padding:26px 20px;min-height:0;}
+  .ap-capa-in{padding:30px 24px;}
+  .ap-capa-in h1{font-size:30px;}
+}
+
 /* Bloco fiscal é endereço, não texto corrido: linhas juntas e sem
    partir de uma folha para a outra. */
 /* O relatório de comissão sai em copper, não em sage. É outro documento
@@ -398,6 +485,17 @@ table.rows tr.par td{border-top:none;padding-top:0;}
      ocupando a primeira, elas não caberiam junto sem apertar a ponto de
      ficar ilegível — e a primeira página é a que a agência confere. */
   .doc.com .instr{break-before:page;}
+  /* Na impressão a apresentação vira documento: sem índice, sem foto
+     lateral fixa, uma coluna só. A tela é para ler rolando; o papel não
+     rola. */
+  .ap-indice{display:none !important;}
+  .apres{display:block;background:#fff;}
+  .ap-sec{display:block;break-before:page;}
+  .ap-foto{min-height:150px;position:static;}
+  .ap-lista{padding:0;min-height:0;display:block;}
+  .ap-card{break-inside:avoid;margin-bottom:16px;}
+  .ap-capa{min-height:auto;padding:0;}
+  .ap-capa-in{padding:26px 0;}
   .doc.com table.svc thead th{background:var(--copper)!important;}
   .doc .head{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   /* RODAPÉ. Ele fica logo depois do conteúdo, e não colado no pé da
@@ -595,7 +693,9 @@ const T = {
     qCondTitle:"Forma de pagamento e condições gerais",
     qExcluded:"Não inclusos",
     qResumo:"Resumo da sua escolha",
-    qResumoSub:"Somente os serviços que você marcou acima."
+    qResumoSub:"Somente os serviços que você marcou acima.",
+    qSite:"Ver o site da propriedade →", qSelected:"Selecionado",
+    qOthers:"Outros serviços", qItinerary:"Roteiro dia a dia", qHighlights:"Destaques"
   },
   en:{
     docTitle:"Service Confirmation",
@@ -673,7 +773,9 @@ const T = {
     qCondTitle:"Payment and general conditions",
     qExcluded:"Not included",
     qResumo:"Your selection",
-    qResumoSub:"Only the services you ticked above."
+    qResumoSub:"Only the services you ticked above.",
+    qSite:"Visit the property website →", qSelected:"Selected",
+    qOthers:"Other services", qItinerary:"Day by day", qHighlights:"Highlights"
   }
 };
 
@@ -900,7 +1002,11 @@ const MIGRACOES = [
   {id:"0002-comissao-de-agencia",   arq:"0002-comissao-de-agencia.sql",
    oque:"comissão por linha e relatório para a agência"},
   {id:"0003-inclusos-na-comissao",  arq:"0003-inclusos-na-comissao.sql",
-   oque:"o que a linha inclui, que justifica a alíquota"}
+   oque:"o que a linha inclui, que justifica a alíquota"},
+  {id:"0004-destaque-no-texto-da-nota", arq:"0004-destaque-no-texto-da-nota.sql",
+   oque:"destaque no parágrafo da emissão para o exterior"},
+  {id:"0005-proposta-apresentada",  arq:"0005-proposta-apresentada.sql",
+   oque:"capa, índice, hotel com site e anexo, itinerário"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2836,82 +2942,12 @@ function tabelasPorSecao(t, mostra, linha){
   return out;
 }
 
-function drawQuote(){
-  const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
-  const respondida = !!p.responded_at;
-
-  const linha = i => {
-    // Toda linha vale só se marcada: é o cliente que monta a viagem dele.
-    const dentro = !!QSEL.items[i.id];
-    return `<tr>
-      <td class="date-cell">${esc(i.service_date||"")}</td>
-      <td>
-        <div class="svc-title">${esc(i.title)}
-          ${i.choice_group?`<span class="tag" style="margin-left:6px;">${t.qPick}</span>`
-            :(i.optional?`<span class="tag" style="margin-left:6px;">${t.qOptional}</span>`:"")}</div>
-        ${i.details?`<div class="svc-sub">${nl2br(i.details)}</div>`:""}
-        ${respondida ? "" : (i.choice_group ? `<div class="check" style="margin:8px 0 0;">
-          <input type="radio" name="cg-${esc(i.choice_group)}" id="qi-${esc(i.id)}"
-            ${QSEL.items[i.id]?" checked":""}
-            onchange="marcaEscolha('${esc(i.choice_group)}','${esc(i.id)}')">
-          <label for="qi-${esc(i.id)}">${t.qPickOne}</label></div>`
-        : `<div class="check" style="margin:8px 0 0;">
-          <input type="checkbox" id="qi-${esc(i.id)}"${QSEL.items[i.id]?" checked":""}
-            onchange="marcaItem('${esc(i.id)}',this.checked)">
-          <label for="qi-${esc(i.id)}">${t.qChoose}</label></div>`)}
-        ${(i.extras||[]).length && dentro && !respondida ? `<div class="extras-cli">
-          <div class="k">${t.qExtras}</div>
-          ${(i.extras||[]).map(e=>`<div class="check" style="margin:0 0 6px;">
-            <input type="checkbox" id="qe-${esc(i.id)}-${esc(e.key)}"
-              ${((QSEL.extras[i.id]||[]).includes(e.key))?" checked":""}
-              onchange="marcaExtra('${esc(i.id)}','${esc(e.key)}',this.checked)">
-            <label for="qe-${esc(i.id)}-${esc(e.key)}">${esc(p.lang==="en"?(e.label_en||e.label_pt):e.label_pt)}${
-              mostra?` <span style="color:var(--muted);">· ${eur(e.price)}</span>`:""}</label>
-          </div>`).join("")}
-        </div>`:""}
-      </td>
-      <td class="money">${mostra ? (dentro?eur(i.price)
-        :`<span class="fora">${eur(i.price)}</span>`) : ""}</td>
-    </tr>`;
-  };
-
-  app.innerHTML = `
-  <div class="docpad" style="padding:24px 12px;background:var(--cream);">
-  <div class="doc">
-    <div class="head">
-      <div class="brand">
-        <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
-        <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
-      </div>
-      <div class="to">
-        <div class="lbl">${t.to}</div>
-        <div class="val">${esc(p.final_client||p.agency||"")}</div>
-        ${p.crm_code?`<div class="lbl">${t.ref}</div><div class="val">${esc(p.crm_code)}</div>`:""}
-      </div>
-    </div>
-
-    <h1 class="doctitle">${t.qTitle}${p.title?` · ${esc(p.title)}`:""}</h1>
-    <div class="intro" style="text-align:left;">${respondida?t.qAlready:t.qLead}</div>
-
-    <div class="meta">
-      <div class="cell"><div class="k">${t.to}</div><div class="v">${esc(p.final_client||p.agency||"—")}</div></div>
-      <div class="cell"><div class="k">${t.pax}</div><div class="v">${esc(p.pax_summary||"—")}</div></div>
-      <div class="cell"><div class="k">${t.period}</div><div class="v">${esc(p.travel_window||"—")}</div></div>
-      <div class="cell"><div class="k">${t.qTitle}</div><div class="v">v${p.version}</div></div>
-    </div>
-
-    ${p.intro?`<div class="intro">${nl2br(p.intro)}</div>`:""}
-
-    ${tabelasPorSecao(t, mostra, linha)}
-
-    ${mostra?`<div class="total-row"><div class="total-box">
-      <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
-     :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
-
-    ${p.payment_note?`<div class="pay-note">${nl2br(p.payment_note)}</div>`:""}
-
+/* ---------------------------------------------- PROPOSTA APRESENTADA -- */
+/* O fecho é o mesmo nos dois layouts: o que o cliente escolheu, o que
+   não está incluso, as condições e o bloco de envio. Escrito uma vez —
+   duplicado, um ajuste feito num layout sumiria do outro. */
+function quoteFecho(p, t, mostra, respondida){
+  return `
     ${p.excluded?`<div class="naoinc">
       <div class="blocktitle">${t.qExcluded}</div>
       <div class="condicoes">${fmtDoc(p.excluded)}</div>
@@ -2954,9 +2990,14 @@ function drawQuote(){
     <div class="foot">
       <div class="co">TUSCAN LANDS TRAVEL</div>
       ${COMPANY.legal} · ${COMPANY.vat.replace(" · Pontassieve (FI), Italy","")} · ${COMPANY.email}
-    </div>
-  </div>
+    </div>`;
+}
 
+/* O bloco de envio fica fora da folha do documento: ele é formulário,
+   e some na impressão. Por isso é função à parte — cada layout põe onde
+   faz sentido. */
+function quoteConfirmar(t, respondida){
+  return `
   ${respondida?"":`
   <div class="confirm-block">
     <h2>${t.qApproved}</h2>
@@ -2972,7 +3013,212 @@ function drawQuote(){
       <label for="qc-ack">${t.qAck} <span class="req">· ${t.required}</span></label></div>
     <div id="qc-msg" style="margin-top:14px;"></div>
     <button class="btn" id="qc-go" style="margin-top:16px;">${t.qSend}</button>
-  </div>`}
+  </div>`}`;
+}
+
+function apItem(i, t, p, mostra, respondida){
+  const fotos = (i.photos||[]).filter(u=>u&&u.trim()).slice(0,3);
+  const anexos = (i.attachments||[]).filter(a=>a&&a.url);
+  const marcado = !!QSEL.items[i.id];
+  const ex = i.extras||[];
+  return `<div class="ap-card${marcado?" on":""}">
+    ${fotos.length?`<div class="ap-fotos f${fotos.length}">${fotos.map(u=>
+      `<img src="${esc(u.trim())}" alt="" loading="lazy">`).join("")}</div>`:""}
+    <div class="ap-corpo">
+      <div class="ap-topo">
+        <div>
+          <div class="ap-nome">${esc(i.title)}</div>
+          ${i.room_type?`<div class="ap-quarto">${esc(i.room_type)}</div>`:""}
+        </div>
+        ${mostra?`<div class="ap-preco">${eur(i.price)}</div>`:""}
+      </div>
+      ${i.details?`<div class="ap-desc">${nl2br(i.details)}</div>`:""}
+      ${i.website?`<div class="ap-link"><a href="${esc(i.website)}" target="_blank" rel="noopener">${t.qSite}</a></div>`:""}
+      ${anexos.length?`<div class="ap-anexos">${anexos.map(a=>
+        `<a href="${esc(a.url)}" target="_blank" rel="noopener" class="ap-anexo">${esc(a.name||"PDF")}</a>`).join("")}</div>`:""}
+      ${ex.length && marcado && !respondida?`<div class="ap-extras">
+        <div class="k">${t.qExtras}</div>
+        ${ex.map(e=>`<div class="check"><input type="checkbox" id="qe-${esc(i.id)}-${esc(e.key)}"
+          ${((QSEL.extras[i.id]||[]).includes(e.key))?" checked":""}
+          onchange="marcaExtra('${esc(i.id)}','${esc(e.key)}',this.checked)">
+          <label for="qe-${esc(i.id)}-${esc(e.key)}">${esc(p.lang==="en"?(e.label_en||e.label_pt):e.label_pt)}${
+            mostra?` <span style="color:var(--muted);">· ${eur(e.price)}</span>`:""}</label></div>`).join("")}
+      </div>`:""}
+      ${respondida?"":`<div class="ap-escolha">
+        ${i.choice_group
+          ? `<input type="radio" name="cg-${esc(i.choice_group)}" id="qi-${esc(i.id)}"${marcado?" checked":""}
+              onchange="marcaEscolha('${esc(i.choice_group)}','${esc(i.id)}')">`
+          : `<input type="checkbox" id="qi-${esc(i.id)}"${marcado?" checked":""}
+              onchange="marcaItem('${esc(i.id)}',this.checked)">`}
+        <label for="qi-${esc(i.id)}">${marcado?t.qSelected:t.qChoose}</label>
+      </div>`}
+    </div>
+  </div>`;
+}
+
+function drawQuoteApresentada(){
+  const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
+  const respondida = !!p.responded_at;
+  const itens = QT.items||[];
+  const secs = (p.sections||[]).filter(sec=>itens.some(i=>i.section===sec.key));
+  const chaves = secs.map(x=>x.key);
+  const soltas = itens.filter(i=>!i.section || !chaves.includes(i.section));
+  const dias = p.itinerary||[];
+
+  const indice = [].concat(
+    secs.map(sec=>({id:"ap-"+sec.key, txt:sec.title||sec.key})),
+    soltas.length ? [{id:"ap-outros", txt:t.qOthers}] : [],
+    dias.length ? [{id:"ap-dias", txt:t.qItinerary}] : [],
+    [{id:"ap-resumo", txt:t.qResumo}]
+  );
+
+  const bloco = (id, sec, lista) => `<section class="ap-sec" id="${id}">
+    <div class="ap-foto" ${sec && sec.photo?`style="background-image:url('${esc(sec.photo)}')"`:""}>
+      <div class="ap-foto-txt">
+        <div class="ap-ey">${esc(p.travel_window||"")}</div>
+        <h2>${esc(sec ? (sec.title||"") : t.qOthers)}</h2>
+        ${sec && sec.note?`<div class="ap-note">${esc(sec.note)}</div>`:""}
+      </div>
+    </div>
+    <div class="ap-lista">${lista.map(i=>apItem(i,t,p,mostra,respondida)).join("")}</div>
+  </section>`;
+
+  app.innerHTML = `
+  <div class="apres">
+    <aside class="ap-indice noprint">
+      <div class="ap-marca">TUSCAN LANDS</div>
+      <nav>${indice.map(x=>`<a href="#${x.id}">${esc(x.txt)}</a>`).join("")}</nav>
+      ${mostra?`<div class="ap-tot"><span>${t.qYourTotal}</span><b id="ap-total">${eur(quoteTotal())}</b></div>`:""}
+    </aside>
+
+    <main class="ap-main">
+      <section class="ap-capa" ${p.cover_img?`style="background-image:url('${esc(p.cover_img)}')"`:""}>
+        <div class="ap-capa-in">
+          <div class="ap-marca-capa">TUSCAN LANDS</div>
+          ${p.cover_tag?`<div class="ap-tag">${esc(p.cover_tag)}</div>`:""}
+          <h1>${esc(p.final_client||p.agency||"")}</h1>
+          <div class="ap-datas">${esc(p.travel_window||"")}</div>
+          ${p.crm_code?`<div class="ap-ref">${esc(p.crm_code)}</div>`:""}
+        </div>
+      </section>
+
+      ${p.welcome?`<section class="ap-welcome"><div class="ap-welcome-in">
+        <div class="ap-ey">${COMPANY.legal}</div>
+        ${nl2br(p.welcome)}</div></section>`:""}
+
+      ${secs.map(sec=>bloco("ap-"+sec.key, sec, itens.filter(i=>i.section===sec.key))).join("")}
+      ${soltas.length?bloco("ap-outros", null, soltas):""}
+
+      ${dias.length?`<section class="ap-sec" id="ap-dias">
+        <div class="ap-foto"><div class="ap-foto-txt"><h2>${t.qItinerary}</h2></div></div>
+        <div class="ap-lista"><table class="svc ap-dias">
+          <thead><tr><th style="width:120px;">${t.date}</th><th>${t.qHighlights}</th></tr></thead>
+          <tbody>${dias.map(d=>`<tr><td class="date-cell">${esc(d.date||"")}</td>
+            <td><ul>${(d.lines||[]).map(l=>`<li>${esc(l)}</li>`).join("")}</ul></td></tr>`).join("")}</tbody>
+        </table></div>
+      </section>`:""}
+
+      <section class="ap-sec ap-fim" id="ap-resumo">
+        <div class="ap-lista larga">
+          <div class="doc" style="box-shadow:none;padding:0;background:transparent;">
+            ${quoteFecho(p, t, mostra, respondida)}
+          </div>
+          ${quoteConfirmar(t, respondida)}
+        </div>
+      </section>
+    </main>
+  </div>`;
+
+  if(!respondida && el("qc-go")) el("qc-go").onclick = submitQuote;
+}
+
+function drawQuote(){
+  const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
+  const respondida = !!p.responded_at;
+
+  const linha = i => {
+    // Toda linha vale só se marcada: é o cliente que monta a viagem dele.
+    const dentro = !!QSEL.items[i.id];
+    return `<tr>
+      <td class="date-cell">${esc(i.service_date||"")}</td>
+      <td>
+        <div class="svc-title">${esc(i.title)}
+          ${i.choice_group?`<span class="tag" style="margin-left:6px;">${t.qPick}</span>`
+            :(i.optional?`<span class="tag" style="margin-left:6px;">${t.qOptional}</span>`:"")}</div>
+        ${i.details?`<div class="svc-sub">${nl2br(i.details)}</div>`:""}
+        ${respondida ? "" : (i.choice_group ? `<div class="check" style="margin:8px 0 0;">
+          <input type="radio" name="cg-${esc(i.choice_group)}" id="qi-${esc(i.id)}"
+            ${QSEL.items[i.id]?" checked":""}
+            onchange="marcaEscolha('${esc(i.choice_group)}','${esc(i.id)}')">
+          <label for="qi-${esc(i.id)}">${t.qPickOne}</label></div>`
+        : `<div class="check" style="margin:8px 0 0;">
+          <input type="checkbox" id="qi-${esc(i.id)}"${QSEL.items[i.id]?" checked":""}
+            onchange="marcaItem('${esc(i.id)}',this.checked)">
+          <label for="qi-${esc(i.id)}">${t.qChoose}</label></div>`)}
+        ${(i.extras||[]).length && dentro && !respondida ? `<div class="extras-cli">
+          <div class="k">${t.qExtras}</div>
+          ${(i.extras||[]).map(e=>`<div class="check" style="margin:0 0 6px;">
+            <input type="checkbox" id="qe-${esc(i.id)}-${esc(e.key)}"
+              ${((QSEL.extras[i.id]||[]).includes(e.key))?" checked":""}
+              onchange="marcaExtra('${esc(i.id)}','${esc(e.key)}',this.checked)">
+            <label for="qe-${esc(i.id)}-${esc(e.key)}">${esc(p.lang==="en"?(e.label_en||e.label_pt):e.label_pt)}${
+              mostra?` <span style="color:var(--muted);">· ${eur(e.price)}</span>`:""}</label>
+          </div>`).join("")}
+        </div>`:""}
+      </td>
+      <td class="money">${mostra ? (dentro?eur(i.price)
+        :`<span class="fora">${eur(i.price)}</span>`) : ""}</td>
+    </tr>`;
+  };
+
+  // A proposta apresentada troca só o corpo: capa, índice e blocos de
+  // hospedagem no lugar das tabelas. Resumo, condições e envio são os
+  // mesmos — é a mesma proposta, com outra roupa.
+  if(p.layout === "apresentada") return drawQuoteApresentada();
+
+  const cabeca = `
+    <div class="head">
+      <div class="brand">
+        <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
+        <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
+      </div>
+      <div class="to">
+        <div class="lbl">${t.to}</div>
+        <div class="val">${esc(p.final_client||p.agency||"")}</div>
+        ${p.crm_code?`<div class="lbl">${t.ref}</div><div class="val">${esc(p.crm_code)}</div>`:""}
+      </div>
+    </div>`;
+
+  app.innerHTML = `
+  <div class="docpad" style="padding:24px 12px;background:var(--cream);">
+  <div class="doc">
+    ${cabeca}
+
+    <h1 class="doctitle">${t.qTitle}${p.title?` · ${esc(p.title)}`:""}</h1>
+    <div class="intro" style="text-align:left;">${respondida?t.qAlready:t.qLead}</div>
+
+    <div class="meta">
+      <div class="cell"><div class="k">${t.to}</div><div class="v">${esc(p.final_client||p.agency||"—")}</div></div>
+      <div class="cell"><div class="k">${t.pax}</div><div class="v">${esc(p.pax_summary||"—")}</div></div>
+      <div class="cell"><div class="k">${t.period}</div><div class="v">${esc(p.travel_window||"—")}</div></div>
+      <div class="cell"><div class="k">${t.qTitle}</div><div class="v">v${p.version}</div></div>
+    </div>
+
+    ${p.intro?`<div class="intro">${nl2br(p.intro)}</div>`:""}
+
+    ${tabelasPorSecao(t, mostra, linha)}
+
+    ${mostra?`<div class="total-row"><div class="total-box">
+      <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
+     :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
+
+    ${p.payment_note?`<div class="pay-note">${nl2br(p.payment_note)}</div>`:""}
+
+    ${quoteFecho(p, t, mostra, respondida)}
+  </div>
+  ${quoteConfirmar(t, respondida)}
   </div>`;
 
   if(!respondida) el("qc-go").onclick = submitQuote;
