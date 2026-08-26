@@ -214,10 +214,33 @@ volta a aceitar envio. Serve para o teste que ela faz antes de mandar e para a a
 respondeu errado. Some depois que a order foi gerada: ali a resposta deixou de ser
 rascunho e virou o documento que originou uma venda.
 
-**Baixar em PDF é a caixa de impressão do navegador**, e não uma biblioteca. A folha de
-impressão já monta o documento inteiro, e no celular a mesma caixa oferece "Salvar em
-PDF". Um PDF gerado por biblioteca seria um segundo desenho para manter, divergindo
-deste no primeiro ajuste.
+**Baixar em PDF é a caixa de impressão do navegador**, e não uma biblioteca. O "Salvar em
+PDF" do Chrome é vetorial: o texto não perde qualidade e as fotos vão na resolução do
+arquivo. Um PDF gerado por biblioteca seria rasterizado e, pior, um segundo desenho para
+manter, divergindo deste no primeiro ajuste.
+
+**A proposta apresentada sai em uma folha A4 por etapa.** Capa e contracapa sangram até a
+borda; cada hospedagem tem a sua folha, com a faixa da foto da seção e o card inteiro;
+uma folha para os serviços com o total; uma para "não inclusos" e as condições. O corpo
+do texto encolhe no papel — é o que faz caber em vez de cortar.
+
+Três coisas quebravam isso e ficam registradas porque voltam fácil:
+- O bloco `@media (max-width:900px)` não dizia `screen and`. Uma folha A4 a 96dpi tem
+  794px, então **toda a versão de celular entrava na impressão**: a fita de fotos virava
+  uma coluna e comia meia folha, e a tabela de serviços saía empilhada em blocos.
+- `@page` não aceita seletor. A margem zero da apresentação é um `<style>` que a própria
+  tela injeta ao desenhar, e por isso não afeta o documento da order nem o relatório de
+  comissão. Página nomeada (`@page sangrada`) foi tentada antes: o Chrome inseria folha em
+  branco na troca de grupo.
+- Fundo em CSS dentro de etapa escondida **nunca é buscado**: `display:none` não carrega
+  `background-image`, e na impressão as etapas aparecem todas de uma vez. A foto do
+  "Sobre nós" saía em branco. As fotos são pré-carregadas ao desenhar, e as do card
+  perderam o `loading="lazy"` pelo mesmo motivo.
+
+Contêiner flex com altura de folha inteira fragmenta: a contracapa abria uma folha em
+branco antes dela até virar bloco. `break-inside: avoid` na etapa inteira tem o mesmo
+efeito perverso — quando não cabe, o navegador joga adiante e deixa a folha anterior
+vazia. Quem se protege é o miolo: a fita de fotos, o bloco do Incluso, a linha da tabela.
 
 ## Identidade visual — obrigatória em qualquer tela nova
 Vale a seção 8 do `PLANO-HUB.md`, que substituiu a regra antiga deste arquivo.
@@ -291,6 +314,10 @@ obrigatório leva um asterisco em brown ao lado do rótulo — a palavra "obriga
 em cada linha do formulário pesa mais que o formulário. E "opcional" não se escreve em
 lugar nenhum: com caixinha em toda linha da proposta, a etiqueta OPCIONAL não distinguia
 mais nada. A etiqueta de **escolha** — "uma destas" — continua, porque essa informa.
+
+**Texto justificado em toda a proposta, na tela e no papel**, com hifenização junto: em
+coluna estreita, justificar sem poder partir palavra abre rios de espaço. A contracapa é
+exceção — é bloco de contato centrado, não texto corrido.
 
 **Caixa alta só em rótulo curto.** Título de seção e label de uma ou duas palavras vão em
 overline maiúsculo. Pergunta inteira ao cliente, não: em caixa alta parece grito. As

@@ -241,7 +241,7 @@ input.interno{border-left:2px solid var(--brown);}
 .item-topo .ck{text-align:center;}
 .item-topo .ck input{width:auto;}
 .item-topo .iconbtn{align-self:center;}
-@media (max-width:1100px){ .item-topo{grid-template-columns:1fr 1fr 1fr;} }
+@media screen and (max-width:1100px){ .item-topo{grid-template-columns:1fr 1fr 1fr;} }
 /* Par de linhas PT/EN na tabela de seções: a segunda não repete a
    borda, para as duas lerem como um bloco só. */
 .sec-thumb{display:block;width:100%;height:42px;object-fit:cover;margin-top:5px;}
@@ -340,7 +340,8 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-back strong{display:block;margin-top:20px;font-size:10px;letter-spacing:.2em;
   text-transform:uppercase;color:var(--copper);font-weight:500;}
 .ap-back p{margin-bottom:2px;}
-.ap-tot{margin-top:auto;border-top:1px solid rgba(255,255,255,.25);padding-top:12px;
+.ap-rodape-idx{margin-top:auto;}
+.ap-tot{border-top:1px solid rgba(255,255,255,.25);padding-top:12px;
   display:flex;flex-direction:column;gap:3px;}
 .ap-tot span{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;opacity:.8;}
 .ap-tot b{font-size:20px;font-weight:400;font-variant-numeric:tabular-nums;}
@@ -422,6 +423,13 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-preco{font-size:19px;font-weight:400;color:var(--sage);white-space:nowrap;
   font-variant-numeric:tabular-nums;}
 .ap-desc{font-size:13.5px;font-weight:300;line-height:1.65;margin-top:12px;color:var(--ink);}
+/* Justificado em toda a proposta, na tela e no papel — instrução dela.
+   A hifenização entra junto: em coluna estreita, justificar sem poder
+   partir palavra abre rios de espaço no meio do parágrafo. */
+.ap-desc,.ap-estrutura,.ap-back,.ap-note,.condicoes,.ap-sobre-txt p{
+  text-align:justify;hyphens:auto;-webkit-hyphens:auto;}
+/* A contracapa é bloco de contato centrado, não texto corrido. */
+.ap-sec.ap-contracapa .ap-back{text-align:center;hyphens:none;}
 .ap-link{margin-top:10px;font-size:12.5px;}
 .ap-link a{color:var(--sage);}
 .ap-anexos{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;}
@@ -454,7 +462,11 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 table.svc.ap-dias ul{margin:0 0 0 16px;}
 table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 
-@media (max-width:900px){
+/* "screen and": uma folha A4 a 96dpi tem 794px de largura, e sem isto
+   TODA a versão de celular entrava na impressão — a fita de fotos do
+   hotel virava uma coluna e comia meia folha, e a tabela de serviços
+   saía empilhada em blocos. Era boa parte da bagunça no PDF. */
+@media screen and (max-width:900px){
   .apres,.apres.na-capa{grid-template-columns:1fr;}
   .ap-capa{min-height:88vh;}
   .ap-topo{flex-direction:column;align-items:flex-start;gap:6px;}
@@ -463,13 +475,30 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .ap-fotos img{height:210px;}
   .ap-nav{flex-direction:column;}
   .ap-btn{width:100%;}
-  .ap-sobre-txt p{text-align:left;}
+
   .doc table.svc,.doc table.svc thead,.doc table.svc tbody,.doc table.svc tr{display:block;}
   .doc table.svc thead{display:none;}
   .doc table.svc td{display:block;width:auto !important;text-align:left !important;}
-  .ap-indice{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;}
-  .ap-indice nav{flex-direction:row;flex-wrap:wrap;}
-  .ap-tot{margin:0 0 0 auto;border-top:none;padding-top:0;}
+  /* No celular o índice era uma tela inteira de menu antes de cada
+     etapa — a proposta começava abaixo da dobra em todas elas. Aqui ele
+     vira uma faixa: logo pequeno, as etapas numa fita que corre para o
+     lado, e o total com o botão de baixar na mesma linha. */
+  /* overflow:hidden e min-width:0 na fita: sem isso a largura do
+     conteúdo rolável estica o índice inteiro, e o botão de baixar ia
+     parar fora da tela, à direita do que se vê. */
+  .ap-indice{position:static;height:auto;padding:12px 14px;gap:9px;overflow:hidden;}
+  .ap-logo{width:104px;}
+  .ap-indice nav{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:5px;
+    min-width:0;max-width:100%;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .ap-indice nav::-webkit-scrollbar{display:none;}
+  .ap-indice nav button{width:auto;flex:0 0 auto;white-space:nowrap;font-size:11.5px;
+    padding:6px 10px;border-left:none;border-bottom:2px solid transparent;}
+  .ap-indice nav button.on{border-left:none;border-bottom-color:#fff;}
+  .ap-tot{margin:0;border-top:none;padding-top:0;flex-direction:row;align-items:baseline;gap:8px;}
+  .ap-tot b{font-size:16px;}
+  .ap-rodape-idx{margin-top:0;width:100%;display:flex;align-items:center;
+    justify-content:space-between;gap:12px;}
   /* No celular o índice vira uma faixa horizontal: o botão de baixar
      entra na faixa, ao lado do total, e não ocupa a linha inteira. */
   .ap-baixar{margin:0 0 0 12px;width:auto;padding:7px 12px;}
@@ -642,34 +671,120 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
      ocupando a primeira, elas não caberiam junto sem apertar a ponto de
      ficar ilegível — e a primeira página é a que a agência confere. */
   .doc.com .instr{break-before:page;}
-  /* Na impressão a apresentação vira documento: sem índice, sem foto
-     lateral fixa, uma coluna só. A tela é para ler rolando; o papel não
-     rola. */
+  /* ================= A APRESENTAÇÃO NO PAPEL =================
+     Uma etapa por folha A4, e a folha inteira usada. O que a página
+     tinha antes era a etapa correndo solta: a faixa da foto da seção
+     tomava uma folha só para ela, o card do hotel começava na seguinte
+     e terminava numa terceira, e o "Incluso" ficava partido no meio. É
+     o que ela chamou de bagunçado.
+
+     O desenho agora é: capa em folha cheia, uma folha por hospedagem
+     com a faixa da foto e o card juntos, uma folha para os serviços,
+     uma para as condições e a contracapa em folha cheia. Nada de
+     informação some — o que muda é o corpo do texto, menor no papel do
+     que na tela, para o conteúdo caber em vez de ser cortado. */
   .ap-indice{display:none !important;}
   .apres{display:block;background:#fff;}
-  /* No papel não há "avançar": todas as etapas saem, uma por folha. */
   .ap-passo{display:block !important;}
   .ap-nav,.ap-cta,.ap-baixar{display:none !important;}
-  .ap-sec,.ap-capa-sec{display:block;break-before:page;}
-  .ap-foto{min-height:150px;position:static;}
-  .ap-lista{padding:0;min-height:0;display:block;}
-  .ap-card{break-inside:avoid;margin-bottom:16px;}
-  .ap-capa{min-height:auto;padding:0;}
-  .ap-capa-in{padding:26px 0;}
-  .ap-logo-capa{width:170px;filter:none;}
-  /* AS TRÊS PEÇAS DE FOTO SAEM NO PAPEL COM A FOTO.
-     A foto está no atributo style do elemento, e regra de folha não
-     ganha de style: mandar "background:none" na impressão não apagava
-     nada. O que a página tinha era o pior dos dois — a foto saía se a
-     pessoa marcasse "gráficos de fundo" na caixa de impressão, e o
-     texto já tinha virado escuro para o caso de ela não marcar.
-     Resultado: título de seção branco sobre foto, ilegível, e a
-     contracapa idem. Com o print-color-adjust as três saem sempre com
-     a foto e sempre com o texto branco, marcando a caixa ou não. Onde
-     a foto não carregar, o fundo é o sage, e branco sobre sage se lê. */
-  .ap-capa,.ap-foto,.ap-sec.ap-contracapa.com-foto{
+
+  /* Capa e contracapa sangram: foto até a borda do papel, sem moldura
+     branca em volta. As demais folhas ficam com a margem de sempre. */
+  @page sangrada{margin:0;}
+  .ap-capa-sec,.ap-sec.ap-contracapa{page:sangrada;}
+
+  /* Cada etapa começa folha nova. "break-inside: avoid" na etapa
+     inteira parecia proteger, mas o efeito é o contrário: quando a
+     etapa não cabe, o navegador a joga adiante e deixa a folha
+     anterior em branco. O que segura é o miolo — a fita de fotos, o
+     bloco do Incluso, a linha da tabela —, cada um inteiro na sua
+     folha. Assim uma hospedagem com texto muito longo continua na
+     folha seguinte em vez de sair cortada no meio de uma linha. */
+  .ap-capa-sec,.ap-sec{break-before:page;}
+  .ap-capa-sec:first-child{break-before:auto;}
+
+  .ap-fotos,.ap-unidades,.ap-estrutura,.ap-topo{break-inside:avoid;}
+
+  .ap-capa{min-height:0;height:295mm;padding:0;display:flex;align-items:flex-end;}
+  .ap-capa-in{padding:24mm 20mm;max-width:none;}
+  .ap-capa-in h1{font-size:30pt;}
+  .ap-datas{font-size:12pt;}
+  .ap-logo-capa{width:150px;filter:none;margin-bottom:14mm;}
+
+  /* No papel a contracapa não é flex: contêiner flex com altura de
+     folha inteira fragmenta, e o Chrome abria uma folha em branco
+     antes dela. Bloco com respiro em cima faz o mesmo desenho e sai
+     numa folha só. */
+  .ap-sec.ap-contracapa .ap-lista,
+  .ap-sec.ap-contracapa.com-foto .ap-lista{display:block;height:295mm;min-height:0;
+    max-width:none;padding:92mm 20mm 0;text-align:center;}
+  .ap-sec.ap-contracapa .ap-back{font-size:10.5pt;line-height:1.9;max-width:620px;margin:0 auto;}
+
+  /* A folha da hospedagem: faixa da foto em cima, com o título da
+     seção, e o card logo abaixo. As duas coisas numa folha só — a
+     faixa sozinha nunca justificou uma folha inteira. */
+  .ap-sec{display:block;}
+  .ap-foto{position:static;min-height:0;height:58mm;display:flex;align-items:flex-end;}
+  /* A foto da seção é escolhida por ela e pode ser um céu de meio-dia.
+     No papel a camada escura é mais firme do que na tela: sem ela o
+     título branco e o número da proposta somem sobre a foto clara. */
+  .ap-foto::after{background:rgba(42,42,40,.58);}
+  .ap-foto-txt{padding:0 10mm 8mm;}
+  .ap-foto-txt h2{font-size:19pt;line-height:1.1;}
+  .ap-note{font-size:9.5pt;margin-top:3mm;}
+  .ap-lista{padding:7mm 0 0;min-height:0;display:block;gap:0;}
+  .ap-lista.larga{padding:7mm 0 0;}
+
+  /* O card ocupa o resto da folha e não se parte. O corpo do texto
+     encolhe no papel: é o que faz caber sem cortar. */
+  .ap-card{break-inside:avoid;margin:0 0 6mm;border:1px solid var(--cream);}
+  .ap-corpo{padding:6mm 7mm;}
+  .ap-fotos{gap:2mm;}
+  .ap-fotos img{height:44mm;}
+  .ap-fotos.f1 img{height:56mm;}
+  .ap-nome{font-size:14pt;}
+  .ap-preco{font-size:14pt;}
+  .ap-quarto{font-size:8.5pt;}
+  .ap-desc{font-size:9pt;line-height:1.5;margin-top:4mm;}
+  .ap-estrutura{font-size:8.5pt;line-height:1.45;margin-top:4mm;}
+  .ap-estrutura .k{font-size:7.5pt;}
+  .ap-unidades{margin-top:4mm;padding-top:3mm;}
+  .ap-unidade{font-size:9pt;padding:1mm 0;}
+  .ap-link,.ap-anexos{font-size:8.5pt;margin-top:3mm;}
+  .ap-data{font-size:8pt;}
+
+  /* Sobre nós e a folha dos serviços: também uma folha cada. */
+  .ap-sobre-txt{font-size:9.5pt;line-height:1.7;max-width:none;}
+  .ap-sobre-txt strong{font-size:16pt;}
+  .ap-cred{font-size:9pt;margin-top:5mm;}
+
+  /* Folha dos serviços: tudo o que o cliente marcou e o total numa
+     folha só, e linha de tabela que não se parte no meio. O corpo é
+     menor aqui do que nas folhas de hospedagem — a mesma descrição já
+     saiu inteira, em tamanho de leitura, na folha do hotel. */
+  .ap-fim .ap-foto{height:46mm;}
+  .ap-fim .doc table.svc tr{break-inside:avoid;}
+  .ap-fim .doc table.svc{font-size:8pt;}
+  .ap-fim .doc table.svc td,.ap-fim .doc table.svc th{padding:5px 8px;}
+  .ap-fim .doc .svc-sub{font-size:7.5pt;line-height:1.45;margin-top:2px;}
+  .ap-fim .doc .svc-title{font-size:9pt;}
+  .ap-fim .doc .blocktitle{break-after:avoid;}
+  .ap-fim .ap-aviso{font-size:8.5pt;}
+  .unid{font-size:8pt;}
+  /* "Não inclusos" sai junto das tabelas quando cabe. Com duas
+     hospedagens e os extras, não cabe: vai para a folha das condições,
+     que é a outra folha da mesma conversa. A das condições perde o
+     break próprio para as duas não virarem três folhas. */
+  .ap-fim .doc .naoinc{break-before:page;}
+  .ap-fim .doc .pagina-nova{break-before:auto;}
+
+  .ap-capa,.ap-foto,.ap-sec.ap-contracapa{
     -webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .ap-sec.ap-contracapa.com-foto .ap-lista{min-height:0;}
+  /* A foto está no atributo style do elemento, e regra de folha não
+     ganha de style: "apagar o fundo na impressão" nunca funcionou. As
+     três peças de foto saem sempre com a foto e sempre com o texto
+     branco. Onde a foto não carregar, o fundo é o sage, e branco sobre
+     sage se lê. */
   .doc.com table.svc thead th{background:var(--copper)!important;}
   .doc .head{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   /* RODAPÉ. Ele fica logo depois do conteúdo, e não colado no pé da
@@ -856,9 +971,9 @@ const T = {
     brOpp:"Oportunidade",
     qTitle:"Proposta", qIntro:"Confira os serviços e escolha o que quer levar.",
     qIncluded:"Incluso", qOptional:"Opcional", qExtras:"Adicionais",
-    qChoose:"Selecionar", qYourTotal:"Seu total",
+    qChoose:"Aprovado", qYourTotal:"Seu total",
     qNeedItems:"Selecione ao menos um serviço para enviar.",
-    qWho:"Quem está respondendo", qSend:"Enviar escolha",
+    qWho:"Quem está respondendo", qSend:"Enviar",
     qDone:"",
     qDoneText:"Obrigada pelas informações. Vamos reconfirmar todas as condições e disponibilidade, e entraremos em contato para alinharmos os próximos passos — etapa de booking e pagamento.",
     qAlready:"Esta proposta já foi respondida.",
@@ -881,7 +996,7 @@ const T = {
     qResumoLead:"",
     qStaysTitle:"Hospedagens", qExtrasTitle:"Extras e opcionais (válidos para a contratação da hospedagem)",
     qNeedUnits:"Escolha pelo menos uma acomodação em:",
-    qConfirmar:"Confirmar interesse", qPayHow:"Forma de pagamento preferida",
+    qConfirmar:"Confirmar disponibilidade final e agendar", qPayHow:"Forma de pagamento preferida",
     qNeedPay:"Escolha a forma de pagamento para enviar.",
     qCover:"Capa", qPropMenu:"Proposta", qStart:"Ver a proposta →", qNext:"Avançar", qBack:"Voltar", qContact:"Contato",
     qDownload:"Baixar em PDF",
@@ -945,9 +1060,9 @@ const T = {
     brOpp:"Opportunity",
     qTitle:"Proposal", qIntro:"Review the services and choose what you would like to include.",
     qIncluded:"Included", qOptional:"Optional", qExtras:"Add-ons",
-    qChoose:"Select", qYourTotal:"Your total",
+    qChoose:"Approved", qYourTotal:"Your total",
     qNeedItems:"Please select at least one service before sending.",
-    qWho:"Who is answering", qSend:"Send selection",
+    qWho:"Who is answering", qSend:"Send",
     qDone:"",
     qDoneText:"Thank you for the information. We will reconfirm all conditions and availability, and will be in touch to align the next steps — booking and payment.",
     qAlready:"This proposal has already been answered.",
@@ -970,7 +1085,7 @@ const T = {
     qResumoLead:"",
     qStaysTitle:"Stays", qExtrasTitle:"Add-ons and options (available with the stay)",
     qNeedUnits:"Choose at least one room at:",
-    qConfirmar:"Confirm your interest", qPayHow:"Preferred payment method",
+    qConfirmar:"Confirm final availability and schedule", qPayHow:"Preferred payment method",
     qNeedPay:"Please choose a payment method before sending.",
     qCover:"Cover", qPropMenu:"Proposal", qStart:"View the proposal →", qNext:"Next", qBack:"Back", qContact:"Contact",
     qDownload:"Download as PDF",
@@ -2192,7 +2307,9 @@ const ROTULOS = [
   {k:"prop_lead",  onde:"Chamada da proposta",
      pt:"Selecione abaixo os serviços que gostaria de agendar conosco…",
      en:"Select below the services you would like to arrange with us…"},
-  {k:"confirm",    onde:"Título do envio",       pt:"Confirmar interesse", en:"Confirm your interest"},
+  {k:"confirm",    onde:"Título do envio",
+     pt:"Confirmar disponibilidade final e agendar",
+     en:"Confirm final availability and schedule"},
   {k:"pay",        onde:"Pergunta do pagamento", pt:"Forma de pagamento preferida", en:"Preferred payment method"},
   {k:"notice",     onde:"Aviso antes de enviar",
      pt:"O envio destas informações é uma confirmação de interesse e não representa bloqueio…",
@@ -3683,8 +3800,12 @@ function apItem(i, t, p, mostra, respondida){
   const anexos = (i.attachments||[]).filter(a=>a&&a.url);
   const ex = i.extras||[];
   return `<div class="ap-card">
+    ${/* Sem loading="lazy": a etapa fica escondida até a pessoa chegar
+          nela, e imagem preguiçosa que nunca entrou na tela não carrega
+          na hora de imprimir — as fotos saíam em branco no PDF. São no
+          máximo três por hospedagem. */""}
     ${fotos.length?`<div class="ap-fotos f${fotos.length}">${fotos.map(u=>
-      `<img src="${esc(u.trim())}" alt="" loading="lazy">`).join("")}</div>`:""}
+      `<img src="${esc(u.trim())}" alt="">`).join("")}</div>`:""}
     <div class="ap-corpo">
       <div class="ap-topo">
         <div>
@@ -3853,14 +3974,44 @@ function drawQuoteApresentada(){
            onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
       <div class="ap-marca" style="display:none;">TUSCAN LANDS TRAVEL</div>
       <nav>${passos.map((x,k)=>`<button onclick="apIr(${k})" class="${k===0?"on":""}">${esc(x.txt)}</button>`).join("")}</nav>
-      ${mostra?`<div class="ap-tot"><span>${t.qYourTotal}</span><b id="ap-total">${eur(quoteTotal())}</b></div>`:""}
-      <button class="ap-baixar" onclick="baixarProposta()">${t.qDownload}</button>
+      <div class="ap-rodape-idx">
+        ${mostra?`<div class="ap-tot"><span>${t.qYourTotal}</span><b id="ap-total">${eur(quoteTotal())}</b></div>`:""}
+        <button class="ap-baixar" onclick="baixarProposta()">${t.qDownload}</button>
+      </div>
     </aside>
     <main class="ap-main">${passos.map(x=>x.html).join("")}</main>
   </div>`;
 
   if(!respondida && el("qc-go")) el("qc-go").onclick = submitQuote;
+  precarregarFotos(p, itens);
+  paginaSemMargem();
   apIr(APASSO);
+}
+
+/* @page não aceita seletor: não dá para dizer "sem margem só nesta
+   tela" pela folha de estilo. A proposta apresentada injeta a regra ao
+   desenhar, e como ela só existe nesta rota, o documento da order e o
+   relatório de comissão continuam com a margem de 14mm. */
+/* Fundo em CSS dentro de uma etapa escondida nunca é buscado pelo
+   navegador: display:none não carrega background-image. Na tela isso
+   só atrasava a foto até a pessoa chegar na etapa; na impressão as
+   etapas aparecem todas de uma vez e as fotos que ninguém tinha
+   visitado saíam em branco — foi o que aconteceu com a folha do
+   "Sobre nós". Puxar as imagens na hora de desenhar resolve os dois. */
+function precarregarFotos(p, itens){
+  const urls = [p.cover_img, p.about_img, p.backcover_img]
+    .concat((p.sections||[]).map(s=>s.photo))
+    .concat((itens||[]).flatMap(i=>i.photos||[]))
+    .filter(u=>u && String(u).trim());
+  urls.forEach(u=>{ const i = new Image(); i.src = String(u).trim(); });
+}
+
+function paginaSemMargem(){
+  if(document.getElementById("pg-apres")) return;
+  const st = document.createElement("style");
+  st.id = "pg-apres";
+  st.textContent = "@media print{@page{size:A4;margin:0;}}";
+  document.head.appendChild(st);
 }
 
 /* Baixar é a caixa de impressão do navegador, e não uma biblioteca de
