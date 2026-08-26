@@ -439,10 +439,22 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 /* Justificado em toda a proposta, na tela e no papel — instrução dela.
    A hifenização entra junto: em coluna estreita, justificar sem poder
    partir palavra abre rios de espaço no meio do parágrafo. */
-.ap-desc,.ap-estrutura,.ap-back,.ap-note,.condicoes,.ap-sobre-txt p{
+.ap-desc,.ap-estrutura,.ap-back,.condicoes,.ap-sobre-txt p{
   text-align:justify;hyphens:auto;-webkit-hyphens:auto;}
 /* A contracapa é bloco de contato centrado, não texto corrido. */
 .ap-sec.ap-contracapa .ap-back{text-align:center;hyphens:none;}
+/* TÍTULO NÃO SE PARTE. Justificar e hifenizar é para texto corrido:
+   numa linha de título a palavra quebrada no meio salta aos olhos, e
+   foi o que ela viu no "Sobre nós". Título, chamada e rótulo saem
+   sempre inteiros, alinhados à esquerda. */
+.ap-capa-in h1,.ap-tag,.ap-datas,.ap-ref,.ap-marca,.ap-marca-capa,
+.ap-foto-txt h2,.ap-note,.ap-nome,.ap-quarto,.ap-data,.ap-ey,
+.ap-sobre-txt strong,.ap-estrutura .k,.ap-cred .k,.ap-extras .k,
+.doc .blocktitle,.doc .svc-title,.doc .overline,.doc h1.doctitle,
+.ap-indice nav button,.ap-unidade,.unid,.section-title,label,.overline{
+  hyphens:none;-webkit-hyphens:none;text-align:left;}
+/* O único título centrado é o da contracapa, que é bloco de contato. */
+.ap-sec.ap-contracapa .ap-back strong{text-align:center;}
 .ap-link{margin-top:10px;font-size:12.5px;}
 .ap-link a{color:var(--sage);}
 .ap-anexos{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;}

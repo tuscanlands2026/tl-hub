@@ -354,6 +354,10 @@ mais nada. A etiqueta de **escolha** — "uma destas" — continua, porque essa 
 coluna estreita, justificar sem poder partir palavra abre rios de espaço. A contracapa é
 exceção — é bloco de contato centrado, não texto corrido.
 
+**Título não se parte.** Justificar e hifenizar valem para texto corrido; numa linha de
+título a palavra quebrada no meio salta aos olhos. Título, chamada e rótulo saem inteiros
+e à esquerda — `hyphens:none`. Foi instrução dela em agosto/26, vendo o "Sobre nós".
+
 **Caixa alta só em rótulo curto.** Título de seção e label de uma ou duas palavras vão em
 overline maiúsculo. Pergunta inteira ao cliente, não: em caixa alta parece grito. As
 perguntas do checkout saem em caixa normal, peso 400, na cor do texto.
