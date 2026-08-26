@@ -236,7 +236,8 @@ input.interno{border-left:2px solid var(--brown);}
 .cat-item:hover{background:var(--cream);}
 .apres-box{border-left:2px solid var(--sage);padding-left:10px;margin-top:8px;}
 .item-bloco{border:1px solid var(--cream);padding:16px 18px;margin-bottom:14px;background:#fff;}
-.item-topo{display:grid;grid-template-columns:110px 100px 1fr 1fr 1fr 130px 82px 30px;gap:10px;
+.item-topo .mover{display:flex;align-items:center;gap:2px;align-self:center;}
+.item-topo{display:grid;grid-template-columns:110px 100px 1fr 1fr 1fr 130px 82px 92px;gap:10px;
   align-items:end;padding-bottom:14px;margin-bottom:12px;border-bottom:1px solid var(--cream);}
 .item-topo .ck{text-align:center;}
 .item-topo .ck input{width:auto;}
@@ -2373,6 +2374,16 @@ function setRotulo(k, idi, v){
 
 /* A ordem das seções é a ordem em que o cliente percorre a proposta:
    primeiro a hospedagem que ela quer destacar, depois as outras. */
+/* A ordem das linhas é a ordem em que elas saem na proposta comercial
+   e na apresentação — a hospedagem de Roma vem antes da Toscana quando
+   é assim que a viagem acontece. O sort gravado é a posição na lista. */
+function moveItem(i, d){
+  const j = i + d;
+  if(j < 0 || j >= PITEMS.length) return;
+  const t = PITEMS[i]; PITEMS[i] = PITEMS[j]; PITEMS[j] = t;
+  drawQuoteItems();
+}
+
 function moveSection(i, d){
   const j = i + d;
   if(j < 0 || j >= PSECS.length) return;
@@ -2444,7 +2455,10 @@ function drawQuoteItems(){
       </select></td>
       <td><input class="interno" value="${esc(r.supplier||"")}" placeholder="quem opera"
         oninput="PITEMS[${i}].supplier=this.value.trim()||null"></td>
-      <td class="x"><button class="iconbtn" onclick="PITEMS.splice(${i},1);drawQuoteItems()">×</button></td>
+      <td class="x">
+        <button class="iconbtn" onclick="moveItem(${i},-1)" title="Subir">↑</button>
+        <button class="iconbtn" onclick="moveItem(${i},1)" title="Descer">↓</button>
+        <button class="iconbtn" onclick="PITEMS.splice(${i},1);drawQuoteItems()" title="Remover">×</button></td>
     </tr>`).join("")}</tbody></table>`;
   sumQuote();
 }
@@ -2520,7 +2534,11 @@ function drawItensApresentada(){
         </select></div>
       <div class="ck"><label>Opcional</label>
         <input type="checkbox"${r.optional?" checked":""} onchange="PITEMS[${i}].optional=this.checked"></div>
-      <button class="iconbtn" onclick="PITEMS.splice(${i},1);drawQuoteItems()" title="Remover">\u00d7</button>
+      <div class="mover">
+        <button class="iconbtn" onclick="moveItem(${i},-1)" title="Subir">\u2191</button>
+        <button class="iconbtn" onclick="moveItem(${i},1)" title="Descer">\u2193</button>
+        <button class="iconbtn" onclick="PITEMS.splice(${i},1);drawQuoteItems()" title="Remover">\u00d7</button>
+      </div>
     </div>
 
     <label>T\u00edtulo do servi\u00e7o</label>
