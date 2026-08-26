@@ -195,6 +195,13 @@ vale mais: **terracota é do Booking, que é outro módulo.** Aqui não entra. A
 Copper `#a56850` é o acento quente que sobrou: réguas, overlines de documento, marcação
 de campo pré-preenchido.
 
+**Duas versões do logo, escolhidas pelo fundo e não por gosto.** Terracota
+(`i.postimg.cc/k45xbsK4/grosseto.png`) nas peças claras — documento, PDF, papel. Branco
+(`i.postimg.cc/CMnPydqx/white.png`) sobre sage e sobre foto — capa e índice da proposta
+apresentada. Testado sobre os quatro fundos: terracota some no sage e branco some no creme.
+Existe uma terceira, verde (`livorno`), sem uso: sobre creme ela é mais fraca que a
+terracota e sobre sage não aparece.
+
 **Uma exceção, pedida por ela em agosto/26: o relatório de comissão sai em copper**, não
 em sage — título, cabeçalho da tabela, réguas e caixa do total. O motivo é que ele tinha
 a mesma cara do pedido de serviços e os dois se confundiam: são documentos diferentes,

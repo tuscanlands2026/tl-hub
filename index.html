@@ -254,6 +254,12 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .apres{display:grid;grid-template-columns:238px 1fr;min-height:100vh;background:var(--cream-light);}
 .ap-indice{position:sticky;top:0;align-self:start;height:100vh;background:var(--sage);
   color:#fff;padding:26px 20px;display:flex;flex-direction:column;gap:16px;}
+.ap-logo{width:150px;max-width:100%;display:block;}
+/* A foto da capa é escolhida por ela e pode ser clara justo onde o logo
+   cai. A sombra segura a leitura sem precisar escurecer a imagem toda. */
+.ap-logo-capa{width:190px;max-width:44vw;display:block;margin-bottom:22px;
+  filter:drop-shadow(0 1px 10px rgba(42,42,40,.65));}
+.ap-capa-in h1,.ap-tag,.ap-datas,.ap-ref{text-shadow:0 1px 12px rgba(42,42,40,.5);}
 .ap-marca{font-size:12px;letter-spacing:.24em;font-weight:500;opacity:.95;}
 .ap-indice nav{display:flex;flex-direction:column;gap:2px;overflow:auto;}
 .ap-indice nav a{color:rgba(255,255,255,.82);text-decoration:none;font-size:12.5px;
@@ -515,6 +521,10 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .ap-card{break-inside:avoid;margin-bottom:16px;}
   .ap-capa{min-height:auto;padding:0;}
   .ap-capa-in{padding:26px 0;}
+  /* No papel a capa perde o escurecimento da foto e o logo branco
+     sumiria: entra o terracota, que é o das peças claras. */
+  .ap-logo-capa{content:url("https://i.postimg.cc/k45xbsK4/grosseto.png");width:170px;filter:none;}
+  .ap-capa-in h1,.ap-tag,.ap-datas,.ap-ref{text-shadow:none;}
   .doc.com table.svc thead th{background:var(--copper)!important;}
   .doc .head{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   /* RODAPÉ. Ele fica logo depois do conteúdo, e não colado no pé da
@@ -560,7 +570,11 @@ const PUBLIC_BASE_URL = "";
 const SUPABASE_URL = "https://iloznrjpiedrohlhrmce.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlsb3pucmpwaWVkcm9obGhybWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NjQxMjUsImV4cCI6MjA5OTM0MDEyNX0.nz8KvP-BIh3Bm6QWj2WjjOWBTLd_lVhaZJewGkwTunA";
 
+/* Duas versões, escolhidas pelo fundo, não por gosto: o terracota é
+   ilegível sobre sage e o branco some sobre creme. Documento que sai em
+   papel é claro, então terracota; capa e índice são escuros, branco. */
 const LOGO = "https://i.postimg.cc/k45xbsK4/grosseto.png";
+const LOGO_BRANCO = "https://i.postimg.cc/CMnPydqx/white.png";
 /* Endereço para dúvida do cliente depois do envio. Separado do e-mail de
    reservas de propósito: quem acabou de confirmar escreve para a casa,
    não para a caixa operacional. */
@@ -3221,7 +3235,9 @@ function drawQuoteApresentada(){
   app.innerHTML = `
   <div class="apres">
     <aside class="ap-indice noprint">
-      <div class="ap-marca">TUSCAN LANDS</div>
+      <img class="ap-logo" src="${LOGO_BRANCO}" alt="Tuscan Lands"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <div class="ap-marca" style="display:none;">TUSCAN LANDS</div>
       <nav>${indice.map(x=>`<a href="#${x.id}">${esc(x.txt)}</a>`).join("")}</nav>
       ${mostra?`<div class="ap-tot"><span>${t.qYourTotal}</span><b id="ap-total">${eur(quoteTotal())}</b></div>`:""}
     </aside>
@@ -3229,7 +3245,9 @@ function drawQuoteApresentada(){
     <main class="ap-main">
       <section class="ap-capa" ${p.cover_img?`style="background-image:url('${esc(p.cover_img)}')"`:""}>
         <div class="ap-capa-in">
-          <div class="ap-marca-capa">TUSCAN LANDS</div>
+          <img class="ap-logo-capa" src="${LOGO_BRANCO}" alt="Tuscan Lands"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+          <div class="ap-marca-capa" style="display:none;">TUSCAN LANDS</div>
           ${p.cover_tag?`<div class="ap-tag">${esc(p.cover_tag)}</div>`:""}
           <h1>${esc(p.final_client||p.agency||"")}</h1>
           <div class="ap-datas">${esc(p.travel_window||"")}</div>
