@@ -219,6 +219,7 @@ input.interno{border-left:2px solid var(--brown);}
 .card textarea[rows="4"],.card textarea[rows="6"]{min-height:140px;}
 .apres-box textarea{min-height:110px;}
 #qi-host textarea{min-height:96px;}
+.rotulos table.rows td.ondelbl{font-size:11px;color:var(--muted);vertical-align:middle;letter-spacing:.04em;}
 .buscacat{margin-top:10px;border:1px solid var(--cream);padding:10px 12px;background:var(--cream-light);}
 .cat-res{margin-top:6px;}
 .cat-item{padding:8px 10px;border-bottom:1px solid var(--cream);cursor:pointer;background:#fff;}
@@ -796,7 +797,7 @@ const T = {
     qResumoLead:"Selecione abaixo os serviços que gostaria de agendar conosco. O total será calculado automaticamente.",
     qConfirmar:"Confirmar interesse", qPayHow:"Forma de pagamento preferida",
     qNeedPay:"Escolha a forma de pagamento para enviar.",
-    qCover:"Capa", qStart:"Ver a proposta →", qNext:"Avançar", qBack:"Voltar", qContact:"Contato",
+    qCover:"Capa", qPropMenu:"Proposta", qStart:"Ver a proposta →", qNext:"Avançar", qBack:"Voltar", qContact:"Contato",
     qNaoBloqueio:"O envio destas informações é uma confirmação de interesse e não representa bloqueio ou reserva. Nossa equipe revisa o que você selecionou, reconfirma disponibilidade com as propriedades e os fornecedores, e segue com os próximos passos até a formalização."
   },
   en:{
@@ -882,7 +883,7 @@ const T = {
     qResumoLead:"Select below the services you would like to arrange with us. The total is calculated automatically.",
     qConfirmar:"Confirm your interest", qPayHow:"Preferred payment method",
     qNeedPay:"Please choose a payment method before sending.",
-    qCover:"Cover", qStart:"View the proposal →", qNext:"Next", qBack:"Back", qContact:"Contact",
+    qCover:"Cover", qPropMenu:"Proposal", qStart:"View the proposal →", qNext:"Next", qBack:"Back", qContact:"Contact",
     qNaoBloqueio:"Sending this form confirms your interest and does not hold or reserve anything. Our team reviews your selection, reconfirms availability with the properties and suppliers, and follows up with the next steps through to formalisation."
   }
 };
@@ -1124,7 +1125,9 @@ const MIGRACOES = [
   {id:"0009-textos-da-casa",        arq:"0009-textos-da-casa.sql",
    oque:"as páginas que ela diagramou e a contracapa"},
   {id:"0010-ajustes-da-proposta",   arq:"0010-ajustes-da-proposta.sql",
-   oque:"incluso por linha, forma de pagamento e a foto do sobre nós"}
+   oque:"incluso por linha, forma de pagamento e a foto do sobre nós"},
+  {id:"0011-textos-editaveis",      arq:"0011-textos-editaveis.sql",
+   oque:"os títulos e chamadas da proposta editáveis por você"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -1839,7 +1842,22 @@ function renderProposal(){
       <textarea id="q-intro" rows="2" placeholder="A instrução de selecionar os serviços já sai sozinha. Isto é acréscimo.">${esc(p.intro||"")}</textarea></div>
     <div><label>Observação de pagamento — logo abaixo do total</label>
       <textarea id="q-paynote" rows="2">${esc(p.payment_note||"")}</textarea></div>
-    ${p.layout==="apresentada"?`<div>
+    ${p.layout==="apresentada"?`<div class="rotulos">
+      <label>Textos das telas — em branco usa o padrão</label>
+      <div class="hint" style="margin:0 0 8px;">O que aparece em cinza é o que sai se você deixar
+        vazio. Preenchendo, vale o seu — e só nesta proposta.</div>
+      <table class="rows"><thead><tr>
+        <th style="width:180px;">Onde</th><th>Português</th><th>English</th></tr></thead>
+      <tbody>${ROTULOS.map(r=>`<tr>
+        <td class="ondelbl">${r.onde}</td>
+        <td><input value="${esc(rotulo(p,r.k,"pt"))}" placeholder="${esc(r.pt)}"
+          oninput="setRotulo('${r.k}','pt',this.value)"></td>
+        <td><input value="${esc(rotulo(p,r.k,"en"))}" placeholder="${esc(r.en)}"
+          oninput="setRotulo('${r.k}','en',this.value)"></td>
+      </tr>`).join("")}</tbody></table>
+    </div>
+
+    <div>
       <label>Formas de pagamento — o cliente marca uma na última tela</label>
       <div class="hint" style="margin:0 0 7px;">Uma por linha. Para a versão em inglês, use
         <b>português | English</b> na mesma linha. Sem nenhuma, a proposta sai sem essa pergunta.</div>
@@ -2019,6 +2037,33 @@ function drawSections(){
 
 /* Apagar seção não pode deixar linha apontando para chave que sumiu: ela
    cairia na tabela sem título sem ninguém entender por quê. */
+/* Os textos que ela pode reescrever, com o padrão do hub ao lado para
+   ela ver o que sai se deixar em branco. */
+const ROTULOS = [
+  {k:"cover_menu", onde:"Menu · capa",           pt:"Capa", en:"Cover"},
+  {k:"cta",        onde:"Botão da capa",         pt:"Ver a proposta →", en:"View the proposal →"},
+  {k:"about",      onde:"Menu e título · sobre", pt:"Sobre nós", en:"About us"},
+  {k:"prop_menu",  onde:"Menu · proposta",       pt:"Proposta", en:"Proposal"},
+  {k:"prop_title", onde:"Título da proposta",    pt:"Proposta e condições comerciais",
+                                                 en:"Commercial proposal and conditions"},
+  {k:"prop_lead",  onde:"Chamada da proposta",
+     pt:"Selecione abaixo os serviços que gostaria de agendar conosco…",
+     en:"Select below the services you would like to arrange with us…"},
+  {k:"confirm",    onde:"Título do envio",       pt:"Confirmar interesse", en:"Confirm your interest"},
+  {k:"pay",        onde:"Pergunta do pagamento", pt:"Forma de pagamento preferida", en:"Preferred payment method"},
+  {k:"notice",     onde:"Aviso antes de enviar",
+     pt:"O envio destas informações é uma confirmação de interesse e não representa bloqueio…",
+     en:"Sending this form confirms your interest and does not hold or reserve anything…"},
+  {k:"contact",    onde:"Menu · contracapa",     pt:"Contato", en:"Contact"}
+];
+function rotulo(p, k, idi){ return ((p.labels||{})[k]||{})[idi] || ""; }
+function setRotulo(k, idi, v){
+  PROP.labels = PROP.labels || {};
+  PROP.labels[k] = PROP.labels[k] || {};
+  PROP.labels[k][idi] = v.trim();
+  if(!PROP.labels[k].pt && !PROP.labels[k].en) delete PROP.labels[k];
+}
+
 /* A ordem das seções é a ordem em que o cliente percorre a proposta:
    primeiro a hospedagem que ela quer destacar, depois as outras. */
 function moveSection(i, d){
@@ -2189,6 +2234,7 @@ async function saveProposal(){
     cover_tag_pt: el("q-tag") ? el("q-tag").value : PROP.cover_tag_pt,
     cover_tag_en: el("q-tag-en") ? el("q-tag-en").value : PROP.cover_tag_en,
     about_img: el("q-aboutimg") ? (el("q-aboutimg").value.trim()||null) : PROP.about_img,
+    labels: PROP.labels || {},
     payment_options: el("q-pgs")
       ? el("q-pgs").value.split("\n").map(l=>l.trim()).filter(Boolean).map((l,k)=>{
           const [pt, en] = l.split("|").map(x=>(x||"").trim());
@@ -3271,19 +3317,20 @@ function quoteFecho(p, t, mostra, respondida, comResumo){
 /* Aqui o cliente não preenche dados de viajante: isso vem depois, na
    order, quando a venda já existe. Nesta tela ele diz quem está
    enviando, escolhe a forma de pagamento e confirma o interesse. */
-function quoteConfirmar(t, respondida, pagamentos){
+function quoteConfirmar(t, respondida, pagamentos, p){
   const pgs = pagamentos || [];
+  const L = (k,d)=>esc(rot(p||{}, k, d));
   return `
   ${respondida?"":`
   <div class="confirm-block">
-    <h2>${t.qConfirmar}</h2>
+    <h2>${L("confirm",t.qConfirmar)}</h2>
     <div class="rule"></div>
     <div class="grid2 fieldrow" style="margin-bottom:18px;">
       <div><label>${t.leadName} <span class="req">· ${t.required}</span></label><input id="qc-name"></div>
       <div><label>${t.leadEmail}</label><input id="qc-mail" type="email"></div>
     </div>
     ${pgs.length?`<div class="pagto">
-      <label>${t.qPayHow} <span class="req">· ${t.required}</span></label>
+      <label>${L("pay",t.qPayHow)} <span class="req">· ${t.required}</span></label>
       ${pgs.map((o,k)=>`<div class="check"><input type="radio" name="qc-pay" id="qc-pay-${k}"
         value="${esc(o.label||"")}"><label for="qc-pay-${k}">${esc(o.label||"")}</label></div>`).join("")}
     </div>`:""}
@@ -3328,6 +3375,13 @@ function apItem(i, t, p, mostra, respondida){
   </div>`;
 }
 
+/* Rótulo da proposta: o que ela escreveu, e o padrão do hub quando ela
+   não escreveu nada. Um lugar só, para não haver rótulo que escapa. */
+function rot(p, chave, padrao){
+  const v = (p.labels||{})[chave];
+  return (v && String(v).trim()) ? v : padrao;
+}
+
 let APASSO = 0;
 function apIr(n){
   const total = document.querySelectorAll(".ap-passo").length;
@@ -3360,7 +3414,7 @@ function drawQuoteApresentada(){
      hub lia como "trocar de tela" e jogava de volta no Painel. Aqui
      ninguém mexe no endereço: a navegação é só troca de etapa. */
   const passos = [];
-  passos.push({txt:t.qCover, html:`
+  passos.push({txt:rot(p,"cover_menu",t.qCover), html:`
     <section class="ap-capa-sec ap-passo">
       <div class="ap-capa" ${p.cover_img?`style="background-image:url('${esc(p.cover_img)}')"`:""}>
         <div class="ap-capa-in">
@@ -3371,7 +3425,7 @@ function drawQuoteApresentada(){
           <h1>${esc(p.final_client||p.agency||"")}</h1>
           <div class="ap-datas">${esc(p.travel_window||"")}</div>
           ${p.crm_code?`<div class="ap-ref">${esc(p.crm_code)}</div>`:""}
-          <button class="ap-cta" onclick="apAnda(1)">${t.qStart}</button>
+          <button class="ap-cta" onclick="apAnda(1)">${esc(rot(p,"cta",t.qStart))}</button>
         </div>
       </div>
     </section>`});
@@ -3402,10 +3456,10 @@ function drawQuoteApresentada(){
       </table>${apNav(t)}</div>
     </section>`});
 
-  if(p.about) passos.push({txt:t.qAbout, html:`
+  if(p.about) passos.push({txt:rot(p,"about",t.qAbout), html:`
     <section class="ap-sec ap-passo" style="display:none;">
       <div class="ap-foto ap-foto-sobre" ${p.about_img?`style="background-image:url('${esc(p.about_img)}')"`:""}>
-        <div class="ap-foto-txt"><h2>${t.qAbout}</h2></div></div>
+        <div class="ap-foto-txt"><h2>${esc(rot(p,"about",t.qAbout))}</h2></div></div>
       <div class="ap-lista">
         <div class="ap-sobre-txt">${fmtDoc(p.about)}</div>
         ${p.credentials?`<div class="ap-cred"><div class="k">${t.qCredentials}</div>${fmtDoc(p.credentials)}</div>`:""}
@@ -3413,13 +3467,13 @@ function drawQuoteApresentada(){
       </div>
     </section>`});
 
-  passos.push({txt:t.qResumo, html:`
+  passos.push({txt:rot(p,"prop_menu",t.qPropMenu), html:`
     <section class="ap-sec ap-fim ap-passo" style="display:none;">
       <div class="ap-foto ap-foto-fim" style="background-image:url('${IMG_RESUMO}')">
         <div class="ap-foto-txt">
           <div class="ap-ey">${esc(p.crm_code||"")}</div>
-          <h2>${t.qResumo}</h2>
-          <div class="ap-note">${t.qResumoLead}</div></div></div>
+          <h2>${esc(rot(p,"prop_title",t.qResumo))}</h2>
+          <div class="ap-note">${esc(rot(p,"prop_lead",t.qResumoLead))}</div></div></div>
       <div class="ap-lista larga">
         <div class="doc" style="box-shadow:none;padding:0;background:transparent;">
           ${tabelasPorSecao(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida))}
@@ -3428,13 +3482,13 @@ function drawQuoteApresentada(){
            :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
           ${quoteFecho(p, t, mostra, respondida, false)}
         </div>
-        <div class="ap-aviso">${t.qNaoBloqueio}</div>
-        ${quoteConfirmar(t, respondida, p.payment_options)}
+        <div class="ap-aviso">${esc(rot(p,"notice",t.qNaoBloqueio))}</div>
+        ${quoteConfirmar(t, respondida, p.payment_options, p)}
         ${apNav(t, true)}
       </div>
     </section>`});
 
-  if(p.backcover) passos.push({txt:t.qContact, html:`
+  if(p.backcover) passos.push({txt:rot(p,"contact",t.qContact), html:`
     <section class="ap-sec ap-passo ap-contracapa" style="display:none;">
       <div class="ap-lista larga">
         <img class="ap-logo-fim" src="${LOGO}" alt="Tuscan Lands">
@@ -3554,7 +3608,7 @@ function drawQuote(){
 
     ${quoteFecho(p, t, mostra, respondida)}
   </div>
-  ${quoteConfirmar(t, respondida, p.payment_options)}
+  ${quoteConfirmar(t, respondida, p.payment_options, p)}
   </div>`;
 
   if(!respondida) el("qc-go").onclick = submitQuote;
@@ -3611,7 +3665,7 @@ function drawQuote(){
 
     ${quoteFecho(p, t, mostra, respondida)}
   </div>
-  ${quoteConfirmar(t, respondida, p.payment_options)}
+  ${quoteConfirmar(t, respondida, p.payment_options, p)}
   </div>`;
 
   if(!respondida) el("qc-go").onclick = submitQuote;

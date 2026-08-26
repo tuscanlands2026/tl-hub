@@ -225,6 +225,13 @@ perguntas do checkout saem em caixa normal, peso 400, na cor do texto.
 esconde interface, navegação e formulário, e deixa só o documento. É assim que o resumo
 da confirmação vai para a agência — sem biblioteca de PDF, sem serviço novo.
 
+**Título de tela não se escreve no código.** "Sobre nós", "Proposta e condições comerciais",
+o convite da capa, o aviso de que enviar não bloqueia — tudo isso tem padrão no hub e cópia
+opcional em `ops_proposals.labels`. Campo vazio usa o padrão; preenchido, vale o dela e só
+naquela proposta. Foi instrução dela em agosto/26: "não dá pra ficar pedindo pra alterar o
+código toda vez". Rótulo novo entra na lista `ROTULOS` do `index.html` e passa por `rot()` —
+rótulo que escapa desse caminho volta a ser texto que só eu consigo mudar.
+
 ## Regras de conteúdo
 - Linhas de serviço são secas: data, serviço, condição. Sem narrativa, sem segunda pessoa.
 - Nunca insinuar furar fila em serviço de aeroporto. A linguagem é orientação e assistência.

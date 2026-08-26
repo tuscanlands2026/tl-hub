@@ -31,3 +31,4 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0008 | `0008-quem-somos-oficial.sql` | troca pelo texto da apresentação corporativa dela |
 | 0009 | `0009-textos-da-casa.sql` | as páginas que ela diagramou e a contracapa com os contatos |
 | 0010 | `0010-ajustes-da-proposta.sql` | incluso por linha, forma de pagamento e a foto do sobre nós |
+| 0011 | `0011-textos-editaveis.sql` | títulos e chamadas da proposta editáveis por ela |
