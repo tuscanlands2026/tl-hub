@@ -246,6 +246,7 @@ input.interno{border-left:2px solid var(--brown);}
 /* Par de linhas PT/EN na tabela de seções: a segunda não repete a
    borda, para as duas lerem como um bloco só. */
 .sec-thumb{display:block;width:100%;height:42px;object-fit:cover;margin-top:5px;}
+.cat-capa{display:block;width:100%;max-width:340px;height:110px;object-fit:cover;margin-top:6px;}
 table.rows td.idio{font-size:9px;letter-spacing:.18em;color:var(--sage);font-weight:500;
   vertical-align:middle;padding-right:6px;}
 table.rows tr.par td{border-top:none;padding-top:0;}
@@ -1388,7 +1389,9 @@ const MIGRACOES = [
   {id:"0016-prazo-do-link",         arq:"0016-prazo-do-link.sql",
    oque:"o link da proposta para de abrir depois da data que você marcar"},
   {id:"0017-poggio-paradiso",       arq:"0017-poggio-paradiso.sql",
-   oque:"Poggio Paradiso Resort & Spa no catálogo"}
+   oque:"Poggio Paradiso Resort & Spa no catálogo"},
+  {id:"0018-capa-no-catalogo",      arq:"0018-capa-no-catalogo.sql",
+   oque:"foto de capa no cadastro do catálogo"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2452,7 +2455,7 @@ function drawQuoteItems(){
       <td style="text-align:center;padding-top:8px;"><input type="checkbox" style="width:auto;"${r.optional?" checked":""} onchange="PITEMS[${i}].optional=this.checked"></td>
       <td><input value="${esc(r.choice_group||"")}" placeholder="ex.: hotel_umbria"
         oninput="PITEMS[${i}].choice_group=this.value.trim()||null"></td>
-      <td><select onchange="PITEMS[${i}].section=this.value||null">
+      <td><select onchange="PITEMS[${i}].section=this.value||null;capaDaSecao(${i})">
         <option value="">— fora de seção</option>
         ${PSECS.map(sec=>`<option value="${esc(sec.key)}"${r.section===sec.key?" selected":""}>${esc(sec.title||sec.key)}</option>`).join("")}
       </select></td>
@@ -2559,7 +2562,13 @@ function editarCatalogo(id){
     ${campo("Em inglês","facilities_en","",2)}
     ${campo("Descrição","descr","O texto que sai na proposta.",5)}
     ${campo("Em inglês","descr_en","",5)}
-    <label style="margin-top:10px;">Fotos — um link por linha</label>
+    <label style="margin-top:10px;">Foto de capa — a que ocupa a folha inteira da seção</label>
+    <div class="hint" style="margin:0 0 7px;">Entra sozinha na seção ao puxar este cadastro
+      para uma proposta, se a seção ainda estiver sem foto.</div>
+    <input value="${esc(c.cover_img||"")}" placeholder="https://…"
+      oninput="CATEDIT.cover_img=this.value.trim()||null">
+    ${c.cover_img?`<img src="${esc(c.cover_img)}" alt="" class="cat-capa" onerror="this.style.display='none'">`:""}
+    <label style="margin-top:10px;">Fotos do card — um link por linha</label>
     <textarea rows="3" placeholder="https://…"
       oninput="CATEDIT.photos=this.value.split('\n').map(x=>x.trim()).filter(Boolean)"
       >${esc((c.photos||[]).join("\n"))}</textarea>
@@ -2590,6 +2599,7 @@ async function salvarCatalogo(id){
     accommodation: CATEDIT.accommodation||null, accommodation_en: CATEDIT.accommodation_en||null,
     facilities: CATEDIT.facilities||null, facilities_en: CATEDIT.facilities_en||null,
     descr: CATEDIT.descr||null, descr_en: CATEDIT.descr_en||null,
+    cover_img: CATEDIT.cover_img||null,
     photos: CATEDIT.photos||[], internal_notes: CATEDIT.internal_notes||null,
     active: CATEDIT.active !== false, updated_at: new Date().toISOString()
   };
@@ -2612,6 +2622,15 @@ async function apagarCatalogo(id){
   if(error) return alert(explicar(error));
   el("cat-form").innerHTML = "";
   listarCatalogo();
+}
+
+/* A foto de capa do cadastro entra na seção escolhida — mas só se a
+   seção ainda estiver sem foto. Foto que ela escolheu à mão não se
+   sobrescreve, nem quando um segundo hotel entra na mesma seção. */
+function capaDaSecao(i){
+  const r = PITEMS[i]; if(!r || !r._capa || !r.section) return;
+  const sec = PSECS.find(x=>x.key === r.section);
+  if(sec && !(sec.photo||"").trim()){ sec.photo = r._capa; if(el("qs-host")) drawSections(); }
 }
 
 function buscarCatalogo(termo){
@@ -2646,8 +2665,11 @@ function puxarDoCatalogo(id){
     facilities: c.facilities, facilities_en: c.facilities_en,
     website: c.website, photos: (c.photos||[]).slice(), attachments: (c.attachments||[]).slice(),
     price: 0, optional: false, extras: [], sort: PITEMS.length,
-    section: (PSECS[0] && PSECS[0].key) || null
+    section: (PSECS[0] && PSECS[0].key) || null,
+    // guardada só na tela, para preencher a capa da seção; não vai ao banco
+    _capa: c.cover_img || null
   });
+  capaDaSecao(PITEMS.length-1);
   el("cat-busca").value = ""; el("cat-res").innerHTML = "";
   drawQuoteItems();
   alert(c.name + " entrou na proposta. O valor vem zerado de propósito: preço é desta venda, "
@@ -2665,7 +2687,7 @@ function drawItensApresentada(){
         oninput="PITEMS[${i}].service_date=this.value"></div>
       <div><label>Valor \u20ac</label><input type="number" step="0.01" style="text-align:right;"
         value="${Number(r.price)||0}" oninput="PITEMS[${i}].price=parseFloat(this.value)||0;sumQuote()"></div>
-      <div><label>Se\u00e7\u00e3o</label><select onchange="PITEMS[${i}].section=this.value||null">
+      <div><label>Se\u00e7\u00e3o</label><select onchange="PITEMS[${i}].section=this.value||null;capaDaSecao(${i})">
         <option value="">\u2014 fora de se\u00e7\u00e3o</option>
         ${PSECS.map(sec=>`<option value="${esc(sec.key)}"${r.section===sec.key?" selected":""}>${esc(sec.title||sec.key)}</option>`).join("")}
       </select></div>
