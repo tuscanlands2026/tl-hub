@@ -308,8 +308,11 @@ mudar proposta já enviada. Proposta sem foto continua saindo em creme com o log
 **Toda foto grande da apresentação é `<img>`, e não fundo em CSS.** Capa, faixa de seção,
 "Sobre nós" e contracapa. Fundo em CSS só sai no papel se a pessoa marcar "gráficos de
 fundo" na caixa de impressão, e ninguém marca: a capa e a contracapa saíam vazias no PDF.
-`<img>` sai sempre. O `<img>` é absoluto dentro da peça, que por isso é `position:relative`
-também na impressão — em `static` ele escapa da faixa e some da folha.
+`<img>` sai sempre. O `<img>` é absoluto dentro da peça, que por isso precisa ser
+`position:relative` **em toda regra que a redefine** — no celular e na impressão. Em
+`static` ele mede 100% da tela, não da faixa: a foto da seção saiu com 844px de altura
+numa faixa de 230, passando por cima do resto, enquanto a camada escura ficava do tamanho
+certo. Na impressão o efeito é o oposto — ele escapa da faixa e some da folha.
 
 Pela mesma razão, **a camada escura sobre a foto não segura a leitura no papel**: ela é
 fundo de pseudo-elemento e some junto. Quem segura o texto branco sobre foto clara na

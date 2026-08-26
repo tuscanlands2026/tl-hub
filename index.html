@@ -500,7 +500,11 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
      entra na faixa, ao lado do total, e não ocupa a linha inteira. */
   .ap-baixar{margin:0 0 0 12px;width:auto;padding:7px 12px;}
   .ap-sec{grid-template-columns:1fr;}
-  .ap-foto{position:static;min-height:230px;}
+  /* relative, e não static: a foto é um <img> absoluto dentro da faixa,
+     e sem ancestral posicionado ele mede 100% da TELA — a foto saía com
+     844px de altura numa faixa de 230, passando por cima do resto,
+     enquanto a camada escura ficava do tamanho certo. */
+  .ap-foto{position:relative;min-height:230px;}
   .ap-lista{padding:26px 20px;min-height:0;}
   .ap-capa-in{padding:30px 24px;}
   .ap-capa-in h1{font-size:30px;}
