@@ -320,6 +320,21 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-sec.ap-contracapa{display:block;background:var(--cream-light);}
 .ap-sec.ap-contracapa .ap-lista{max-width:620px;margin:0 auto;text-align:center;padding:70px 30px;min-height:100vh;}
 .ap-logo-fim{width:190px;margin:0 auto 32px;display:block;}
+/* Contracapa com foto: mesmo tratamento da capa — folha inteira, mesma
+   camada escura por cima, texto e logo em branco. É o fechamento da
+   proposta, e ao lado de uma capa de foto cheia a versão em creme
+   parecia que o documento tinha acabado antes da hora. */
+.ap-sec.ap-contracapa.com-foto{background:var(--sage) center/cover no-repeat;position:relative;}
+.ap-sec.ap-contracapa.com-foto::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(to bottom,rgba(42,42,40,.62),rgba(42,42,40,.45) 45%,rgba(42,42,40,.75));}
+.ap-sec.ap-contracapa.com-foto .ap-lista{position:relative;z-index:1;background:none;
+  max-width:none;padding:70px 40px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;}
+.ap-sec.ap-contracapa.com-foto .ap-back{max-width:620px;color:#fff;
+  text-shadow:0 1px 12px rgba(42,42,40,.5);}
+.ap-sec.ap-contracapa.com-foto .ap-back strong{color:#fff;opacity:.85;}
+.ap-sec.ap-contracapa.com-foto .ap-nav{border-top-color:rgba(255,255,255,.35);}
+.ap-sec.ap-contracapa.com-foto .ap-btn{border-color:rgba(255,255,255,.6);color:#fff;background:none;}
 .ap-back{font-size:14px;font-weight:300;line-height:1.9;color:var(--ink);}
 .ap-back strong{display:block;margin-top:20px;font-size:10px;letter-spacing:.2em;
   text-transform:uppercase;color:var(--copper);font-weight:500;}
@@ -368,7 +383,8 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-data{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);
   font-weight:500;margin-bottom:5px;}
 .ap-nome{font-size:18px;font-weight:400;line-height:1.3;}
-.ap-quarto{font-size:12px;color:var(--copper);letter-spacing:.06em;margin-top:4px;}
+.ap-quarto{font-size:12px;color:var(--copper);letter-spacing:.06em;margin-top:4px;
+  white-space:pre-line;}
 .ap-preco{font-size:19px;font-weight:400;color:var(--sage);white-space:nowrap;
   font-variant-numeric:tabular-nums;}
 .ap-desc{font-size:13.5px;font-weight:300;line-height:1.65;margin-top:12px;color:var(--ink);}
@@ -599,10 +615,20 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .ap-card{break-inside:avoid;margin-bottom:16px;}
   .ap-capa{min-height:auto;padding:0;}
   .ap-capa-in{padding:26px 0;}
-  /* No papel a capa perde o escurecimento da foto e o logo branco
-     sumiria: entra o terracota, que é o das peças claras. */
-  .ap-logo-capa{content:url("https://i.postimg.cc/k45xbsK4/grosseto.png");width:170px;filter:none;}
-  .ap-capa-in h1,.ap-tag,.ap-datas,.ap-ref{text-shadow:none;}
+  .ap-logo-capa{width:170px;filter:none;}
+  /* AS TRÊS PEÇAS DE FOTO SAEM NO PAPEL COM A FOTO.
+     A foto está no atributo style do elemento, e regra de folha não
+     ganha de style: mandar "background:none" na impressão não apagava
+     nada. O que a página tinha era o pior dos dois — a foto saía se a
+     pessoa marcasse "gráficos de fundo" na caixa de impressão, e o
+     texto já tinha virado escuro para o caso de ela não marcar.
+     Resultado: título de seção branco sobre foto, ilegível, e a
+     contracapa idem. Com o print-color-adjust as três saem sempre com
+     a foto e sempre com o texto branco, marcando a caixa ou não. Onde
+     a foto não carregar, o fundo é o sage, e branco sobre sage se lê. */
+  .ap-capa,.ap-foto,.ap-sec.ap-contracapa.com-foto{
+    -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .ap-sec.ap-contracapa.com-foto .ap-lista{min-height:0;}
   .doc.com table.svc thead th{background:var(--copper)!important;}
   .doc .head{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   /* RODAPÉ. Ele fica logo depois do conteúdo, e não colado no pé da
@@ -1144,7 +1170,11 @@ const MIGRACOES = [
   {id:"0010-ajustes-da-proposta",   arq:"0010-ajustes-da-proposta.sql",
    oque:"incluso por linha, forma de pagamento e a foto do sobre nós"},
   {id:"0011-textos-editaveis",      arq:"0011-textos-editaveis.sql",
-   oque:"os títulos e chamadas da proposta editáveis por você"}
+   oque:"os títulos e chamadas da proposta editáveis por você"},
+  {id:"0012-hotel-em-roma",         arq:"0012-hotel-em-roma.sql",
+   oque:"Palazzo Ripetta no catálogo e a hospedagem de Roma na TL-045-26"},
+  {id:"0013-contracapa-com-foto",   arq:"0013-contracapa-com-foto.sql",
+   oque:"a última página com foto de fundo, do tamanho da tela"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -1901,6 +1931,10 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
       <textarea rows="4" oninput="PROP.${campoP("credentials")}=this.value">${esc(p[campoP("credentials")]||"")}</textarea>
       <label style="margin-top:12px;">Contracapa — contatos, última tela</label>
       <textarea rows="6" oninput="PROP.${campoP("backcover")}=this.value">${esc(p[campoP("backcover")]||"")}</textarea>
+      <label style="margin-top:12px;">Foto de fundo da contracapa — link</label>
+      <div class="hint" style="margin:0 0 7px;">Ocupa a tela inteira, como a capa. Em branco, a
+        contracapa sai em creme, com o logo terracota.</div>
+      <input id="q-backimg" value="${esc(p.backcover_img||"")}" placeholder="https://…">
     </div>`:""}
 
     <div>
@@ -2140,8 +2174,8 @@ function drawQuoteItems(){
           oninput="PITEMS[${i}].${campoI("details")}=this.value">${esc(r[campoI("details")]||"")}</textarea>
         ${PROP.layout==="apresentada"?`<div class="apres-box">
           <label style="margin-top:8px;">Acomodação</label>
-          <input value="${esc(r[campoI("room_type")]||"")}" placeholder="Villa inteira · 288 m² · 5 quartos"
-            oninput="PITEMS[${i}].${campoI("room_type")}=this.value">
+          <textarea rows="2" placeholder="Villa inteira · 288 m² · 5 quartos&#10;Uma linha por unidade, quando for mais de uma"
+            oninput="PITEMS[${i}].${campoI("room_type")}=this.value">${esc(r[campoI("room_type")]||"")}</textarea>
           <label style="margin-top:8px;">Incluso — o que o valor cobre</label>
           <textarea rows="3" placeholder="Café da manhã · limpeza diária · roupa de cama e banho"
             oninput="PITEMS[${i}].${campoI("included")}=this.value">${esc(r[campoI("included")]||"")}</textarea>
@@ -2262,8 +2296,8 @@ function drawItensApresentada(){
     <textarea rows="5" oninput="PITEMS[${i}].${campoI("details")}=this.value">${esc(r[campoI("details")]||"")}</textarea>
 
     <label style="margin-top:10px;">Acomoda\u00e7\u00e3o</label>
-    <input value="${esc(r[campoI("room_type")]||"")}" placeholder="Villa inteira \u00b7 288 m\u00b2 \u00b7 5 quartos"
-      oninput="PITEMS[${i}].${campoI("room_type")}=this.value">
+    <textarea rows="2" placeholder="Villa inteira \u00b7 288 m\u00b2 \u00b7 5 quartos&#10;Uma linha por unidade, quando for mais de uma"
+      oninput="PITEMS[${i}].${campoI("room_type")}=this.value">${esc(r[campoI("room_type")]||"")}</textarea>
 
     <label style="margin-top:10px;">Incluso \u2014 o que o valor cobre</label>
     <textarea rows="3" placeholder="Caf\u00e9 da manh\u00e3 \u00b7 limpeza di\u00e1ria"
@@ -2347,6 +2381,7 @@ function guardaCampos(){
   PROP.internal_notes = el("q-internal").value;
   if(el("q-cover"))    PROP.cover_img = el("q-cover").value.trim() || null;
   if(el("q-aboutimg")) PROP.about_img = el("q-aboutimg").value.trim() || null;
+  if(el("q-backimg"))  PROP.backcover_img = el("q-backimg").value.trim() || null;
   if(el("q-pgs")) PROP.payment_options = el("q-pgs").value.split("\n")
     .map(l=>l.trim()).filter(Boolean).map((l,k)=>{
       const [pt, en] = l.split("|").map(x=>(x||"").trim());
@@ -2366,6 +2401,7 @@ async function saveProposal(){
     cover_tag_pt: PROP.cover_tag_pt, cover_tag_en: PROP.cover_tag_en,
     backcover_pt: PROP.backcover_pt, backcover_en: PROP.backcover_en,
     about_img: el("q-aboutimg") ? (el("q-aboutimg").value.trim()||null) : PROP.about_img,
+    backcover_img: el("q-backimg") ? (el("q-backimg").value.trim()||null) : PROP.backcover_img,
     labels: PROP.labels || {},
     payment_options: el("q-pgs")
       ? el("q-pgs").value.split("\n").map(l=>l.trim()).filter(Boolean).map((l,k)=>{
@@ -3619,9 +3655,11 @@ function drawQuoteApresentada(){
     </section>`});
 
   if(p.backcover) passos.push({txt:rot(p,"contact",t.qContact), html:`
-    <section class="ap-sec ap-passo ap-contracapa" style="display:none;">
+    <section class="ap-sec ap-passo ap-contracapa${p.backcover_img?" com-foto":""}"
+      style="display:none;${p.backcover_img?`background-image:url('${esc(p.backcover_img)}')`:""}">
       <div class="ap-lista larga">
-        <img class="ap-logo-fim" src="${LOGO}" alt="Tuscan Lands">
+        <img class="ap-logo-fim" src="${p.backcover_img?LOGO_BRANCO:LOGO}" alt="Tuscan Lands"
+             onerror="this.style.display='none';">
         <div class="ap-back">${fmtDoc(p.backcover)}</div>
         ${apNav(t, true)}
       </div>

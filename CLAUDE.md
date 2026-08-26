@@ -60,6 +60,13 @@ avisa no Painel qual arquivo falta, com link — em vez de quebrar com nome de c
 tela de quem não programa. Errou numa migração, corrige na próxima; não edita a anterior.
 `db/exemplo-quote-TL-039-26.sql` carrega a proposta real da Camila como dados de exemplo.
 
+**Catálogo.** `ops_catalog` guarda hospedagem e experiência que se repetem entre propostas;
+a proposta leva uma **cópia**, nunca uma referência viva. Já cadastrados: Villa Ghirlandaio
+(`db/catalogo-villa-ghirlandaio.sql`) e Palazzo Ripetta, em Roma (migração 0012). Dado de
+hotel se escreve do que está publicado, e não de memória: a metragem da Ghirlandaio veio da
+planimetria, e a do Ripetta da ficha dele no Relais & Châteaux, porque o site do hotel
+recusa leitura automatizada. Data e valor nunca vêm do catálogo — são desta venda.
+
 **Quote simples.** É o modelo sem a proposta "bonita": serve para hospedagem mais
 serviços terrestres, e para orçamento avulso de transfer. As linhas se agrupam em
 **seções** (`ops_proposals.sections`, chave em `ops_proposal_items.section`), e cada seção
@@ -201,6 +208,20 @@ de campo pré-preenchido.
 apresentada. Testado sobre os quatro fundos: terracota some no sage e branco some no creme.
 Existe uma terceira, verde (`livorno`), sem uso: sobre creme ela é mais fraca que a
 terracota e sobre sage não aparece.
+
+**Capa e contracapa são as duas peças de foto cheia.** A última página — a de contato — é
+o fechamento da proposta, e sai com foto de fundo do tamanho da tela, como a capa. Instrução
+dela em agosto/26. A foto mora em `ops_proposals.backcover_img`, com padrão da casa em
+`ops_text_defaults`, pelo mesmo motivo do `about_img`: trocar a foto de fechamento não pode
+mudar proposta já enviada. Proposta sem foto continua saindo em creme com o logo terracota.
+
+**No papel, as três peças de foto saem com a foto.** Capa, foto de seção e contracapa levam
+`print-color-adjust: exact`. A foto está no atributo `style` do elemento e regra de folha
+não ganha de `style` — "apagar o fundo na impressão" nunca funcionou. O que a página tinha
+era o pior dos dois: a foto saía se a pessoa marcasse "gráficos de fundo" na caixa de
+impressão, e o texto já estava escuro para o caso de ela não marcar, então título de seção
+branco caía sobre foto e sumia. Agora as três saem sempre com a foto e sempre com texto
+branco. Onde a foto não carregar, o fundo é o sage, e branco sobre sage se lê.
 
 **Uma exceção, pedida por ela em agosto/26: o relatório de comissão sai em copper**, não
 em sage — título, cabeçalho da tabela, réguas e caixa do total. O motivo é que ele tinha
