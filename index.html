@@ -251,8 +251,15 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .doc table.svc tbody tr:nth-child(even){background:var(--cream-light);}
 .doc .date-cell{font-weight:500;color:var(--sage);white-space:nowrap;}
 .doc .svc-title{font-weight:400;}
-.doc .svc-sub{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;white-space:pre-wrap;
+.doc .svc-sub{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;
   text-align:justify;hyphens:auto;-webkit-hyphens:auto;}
+/* fmtDoc devolve um <p> por linha: aqui eles são linhas do mesmo bloco,
+   e não parágrafos soltos. */
+.doc .svc-sub p{margin:0 0 3px;}
+.doc .svc-sub ul{margin:2px 0 3px;padding-left:15px;}
+.ap-desc p{margin:0 0 6px;}
+.ap-desc ul{margin:2px 0 6px;padding-left:16px;}
+.ap-desc strong,.doc .svc-sub strong{font-weight:500;}
 .doc .total-row{display:flex;justify-content:flex-end;margin-top:18px;}
 .doc .total-box{background:var(--cream);padding:14px 26px;display:flex;gap:36px;align-items:baseline;}
 .doc .total-box .lbl{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);font-weight:500;}
@@ -696,10 +703,6 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .ap-passo{display:block !important;}
   .ap-nav,.ap-cta,.ap-baixar{display:none !important;}
 
-  /* Capa e contracapa sangram: foto até a borda do papel, sem moldura
-     branca em volta. As demais folhas ficam com a margem de sempre. */
-  @page sangrada{margin:0;}
-  .ap-capa-sec,.ap-sec.ap-contracapa{page:sangrada;}
 
   /* Cada etapa começa folha nova. "break-inside: avoid" na etapa
      inteira parecia proteger, mas o efeito é o contrário: quando a
@@ -731,7 +734,18 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   /* A folha da hospedagem: faixa da foto em cima, com o título da
      seção, e o card logo abaixo. As duas coisas numa folha só — a
      faixa sozinha nunca justificou uma folha inteira. */
-  .ap-sec{display:block;}
+  /* A MARGEM DA FOLHA É PADDING DA ETAPA.
+     A folha vai com @page{margin:0} — é o que deixa a capa, a faixa da
+     seção e a contracapa sangrarem até a borda. Quem devolve a margem
+     nas folhas de texto é o padding daqui. Sem ele o documento saía
+     colado na borda dos quatro lados; no computador passou porque a
+     caixa de impressão do Chrome ainda aplicava a margem dela, no
+     celular não. */
+  .ap-sec{display:block;padding:14mm;}
+  .ap-sec.ap-contracapa{padding:0;}
+  /* A faixa da foto sangra dentro da etapa com margem negativa: aqui
+     não há margem de página envolvida, então ela não é recortada. */
+  .ap-foto{margin:-14mm -14mm 0;}
   /* relative, e não static: a foto é um <img> absoluto dentro dela, e
      sem ancestral posicionado ele escapa da faixa e some da folha. */
   .ap-foto{position:relative;min-height:0;height:58mm;display:flex;align-items:flex-end;
@@ -3761,10 +3775,18 @@ function quoteTotal(){
   return t;
 }
 
+/* Guarda onde a página estava antes de redesenhar, para devolver
+   depois. Sem isso, marcar a segunda caixinha começa com a tela lá em
+   cima de novo. */
+let ROLAGEM = null;
+function redesenharEscolha(){
+  ROLAGEM = window.scrollY || document.documentElement.scrollTop || 0;
+  drawQuote();
+}
 function marcaItem(id, on){
   QSEL.items[id] = on;
-  if(!on) delete QSEL.extras[id];
-  drawQuote();
+  if(!on){ delete QSEL.extras[id]; delete QSEL.units[id]; }
+  redesenharEscolha();
 }
 
 /* Escolher uma alternativa desmarca as irmãs, e leva junto os extras
@@ -3782,12 +3804,12 @@ function marcaEscolha(grupo, id){
 function marcaExtra(id, chave, on){
   const atual = QSEL.extras[id] || [];
   QSEL.extras[id] = on ? atual.concat([chave]) : atual.filter(k=>k!==chave);
-  drawQuote();
+  redesenharEscolha();
 }
 function marcaUnidade(id, chave, on){
   const atual = QSEL.units[id] || [];
   QSEL.units[id] = on ? atual.concat([chave]) : atual.filter(k=>k!==chave);
-  drawQuote();
+  redesenharEscolha();
 }
 
 /* Uma tabela por seção, com o título e a instrução em cima. Linha sem
@@ -3946,7 +3968,7 @@ function apItem(i, t, p, mostra, respondida){
           <span>${esc(u.label||"")}</span>
           ${mostra?`<b>${eur(u.price)}</b>`:""}</div>`).join("")}
       </div>`:""}
-      ${i.details?`<div class="ap-desc">${nl2br(i.details)}</div>`:""}
+      ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
       ${i.included?`<div class="ap-estrutura">
         <div class="k">${t.qIncluded}</div>${fmtDoc(i.included)}</div>`:""}
       ${i.facilities?`<div class="ap-estrutura">
@@ -3971,8 +3993,14 @@ function rot(p, chave, padrao){
 }
 
 let APASSO = 0;
-function apIr(n){
+/* Marcar um serviço redesenha a etapa inteira, porque o total muda. O
+   redesenho passava por apIr, que rolava para o topo: ela marcava uma
+   caixinha, a tela subia, e ela tinha de descer de novo para marcar a
+   seguinte. Agora só se rola ao TROCAR de etapa; ficando na mesma, a
+   página fica onde estava. */
+function apIr(n, manterRolagem){
   const total = document.querySelectorAll(".ap-passo").length;
+  const antes = APASSO;
   APASSO = Math.max(0, Math.min(n, total-1));
   document.querySelectorAll(".ap-passo").forEach((el,k)=>{
     el.style.display = k===APASSO ? "" : "none";
@@ -3984,7 +4012,7 @@ function apIr(n){
   // sem menu ao lado. O índice entra a partir da segunda etapa.
   const raiz = document.querySelector(".apres");
   if(raiz) raiz.classList.toggle("na-capa", APASSO === 0);
-  window.scrollTo(0,0);
+  if(!manterRolagem && APASSO !== antes) window.scrollTo(0,0);
 }
 function apAnda(d){ apIr(APASSO + d); }
 
@@ -4115,7 +4143,8 @@ function drawQuoteApresentada(){
   if(!respondida && el("qc-go")) el("qc-go").onclick = submitQuote;
   precarregarFotos(p, itens);
   paginaSemMargem();
-  apIr(APASSO);
+  apIr(APASSO, true);
+  if(ROLAGEM != null){ window.scrollTo(0, ROLAGEM); ROLAGEM = null; }
 }
 
 /* @page não aceita seletor: não dá para dizer "sem margem só nesta
@@ -4171,7 +4200,7 @@ function quoteLinha(i, t, p, mostra, respondida){
       <td>
         <div class="svc-title">${esc(i.title)}
           ${i.choice_group?`<span class="tag" style="margin-left:6px;">${t.qPick}</span>`:""}</div>
-        ${i.details?`<div class="svc-sub">${nl2br(i.details)}</div>`:""}
+        ${i.details?`<div class="svc-sub">${fmtDoc(i.details)}</div>`:""}
         ${respondida ? "" : (i.choice_group ? `<div class="check" style="margin:8px 0 0;">
           <input type="radio" name="cg-${esc(i.choice_group)}" id="qi-${esc(i.id)}"
             ${QSEL.items[i.id]?" checked":""}
@@ -4247,7 +4276,7 @@ function drawQuote(){
       <div class="cell"><div class="k">${t.qTitle}</div><div class="v">v${p.version}</div></div>
     </div>
 
-    ${p.intro?`<div class="intro">${nl2br(p.intro)}</div>`:""}
+    ${p.intro?`<div class="intro">${fmtDoc(p.intro)}</div>`:""}
 
     ${tabelasPorSecao(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida))}
 
@@ -4304,7 +4333,7 @@ function drawQuote(){
       <div class="cell"><div class="k">${t.qTitle}</div><div class="v">v${p.version}</div></div>
     </div>
 
-    ${p.intro?`<div class="intro">${nl2br(p.intro)}</div>`:""}
+    ${p.intro?`<div class="intro">${fmtDoc(p.intro)}</div>`:""}
 
     ${tabelasPorSecao(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida))}
 

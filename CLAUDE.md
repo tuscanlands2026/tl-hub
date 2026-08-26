@@ -145,6 +145,14 @@ página de contato, e repetir a mesma assinatura duas telas antes polui justamen
 página onde o cliente está escolhendo. Continuam saindo no documento da order e na quote
 simples, onde não há contracapa.
 
+**A descrição do serviço também passa por `fmtDoc`**, na apresentação e na tabela da
+proposta: `**negrito**`, `__sublinhado__` e `-` virando lista funcionam nela como no resto
+do texto dela. Antes só quebrava linha, e os asteriscos saíam impressos na proposta.
+
+**Marcar um serviço não rola a página.** O redesenho passava por `apIr`, que ia para o
+topo: ela marcava uma caixinha, a tela subia, e ela descia de novo para a seguinte. `apIr`
+só rola quando a etapa muda, e o redesenho da escolha guarda e devolve a posição.
+
 **Incluso e Estrutura saem uma informação por linha.** Passam por `fmtDoc`, como o resto
 do texto que ela escreve: quebra de linha vale, `-` vira lista e `**negrito**` funciona.
 Amontoados num parágrafo só ninguém acha nada — foi assim que ela viu e reclamou.
@@ -250,7 +258,10 @@ Três coisas quebravam isso e ficam registradas porque voltam fácil:
 - `@page` não aceita seletor. A margem zero da apresentação é um `<style>` que a própria
   tela injeta ao desenhar, e por isso não afeta o documento da order nem o relatório de
   comissão. Página nomeada (`@page sangrada`) foi tentada antes: o Chrome inseria folha em
-  branco na troca de grupo.
+  branco na troca de grupo. **A margem das folhas de texto é `padding` da etapa**, e não
+  margem de página — com a margem zerada e sem esse padding, o documento sai colado na
+  borda. No computador passava despercebido porque a caixa de impressão do Chrome ainda
+  aplicava a margem dela; no celular, não.
 - Fundo em CSS dentro de etapa escondida **nunca é buscado**: `display:none` não carrega
   `background-image`, e na impressão as etapas aparecem todas de uma vez. A foto do
   "Sobre nós" saía em branco. As fotos são pré-carregadas ao desenhar, e as do card
