@@ -60,12 +60,20 @@ avisa no Painel qual arquivo falta, com link — em vez de quebrar com nome de c
 tela de quem não programa. Errou numa migração, corrige na próxima; não edita a anterior.
 `db/exemplo-quote-TL-039-26.sql` carrega a proposta real da Camila como dados de exemplo.
 
-**Catálogo.** `ops_catalog` guarda hospedagem e experiência que se repetem entre propostas;
-a proposta leva uma **cópia**, nunca uma referência viva. Já cadastrados: Villa Ghirlandaio
-(`db/catalogo-villa-ghirlandaio.sql`) e Palazzo Ripetta, em Roma (migração 0012). Dado de
-hotel se escreve do que está publicado, e não de memória: a metragem da Ghirlandaio veio da
+**Catálogo.** `ops_catalog` guarda hospedagem, transfer e experiência que se repetem entre
+propostas; a proposta leva uma **cópia**, nunca uma referência viva. **O cadastro é dela**:
+tela Operações → Catálogo, com busca, filtro por tipo e edição. Até agosto/26 só se
+cadastrava por SQL, o que na prática queria dizer que só eu cadastrava — e ela pediu para
+montar o banco dos transfers e dos extras que voltam sempre. Apagar do catálogo não mexe em
+proposta nenhuma, porque a linha é cópia.
+
+Já cadastrados: Villa Ghirlandaio (`db/catalogo-villa-ghirlandaio.sql`), Palazzo Ripetta em
+Roma (migração 0012) e Poggio Paradiso Resort & Spa na Val d'Orcia (0017). Dado de hotel se
+escreve do que está publicado, e não de memória: a metragem da Ghirlandaio veio da
 planimetria, e a do Ripetta da ficha dele no Relais & Châteaux, porque o site do hotel
-recusa leitura automatizada. Data e valor nunca vêm do catálogo — são desta venda.
+recusa leitura automatizada. O site do Poggio Paradiso não publica metragem nem ocupação das
+suítes — ficou em branco para ela preencher. Data e valor nunca vêm do catálogo — são desta
+venda.
 
 **Quote simples.** É o modelo sem a proposta "bonita": serve para hospedagem mais
 serviços terrestres, e para orçamento avulso de transfer. As linhas se agrupam em

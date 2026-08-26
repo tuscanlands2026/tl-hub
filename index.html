@@ -1386,7 +1386,9 @@ const MIGRACOES = [
   {id:"0015-proposta-nasce-preenchida", arq:"0015-proposta-nasce-preenchida.sql",
    oque:"proposta nova já nasce com o texto e as fotos da casa"},
   {id:"0016-prazo-do-link",         arq:"0016-prazo-do-link.sql",
-   oque:"o link da proposta para de abrir depois da data que você marcar"}
+   oque:"o link da proposta para de abrir depois da data que você marcar"},
+  {id:"0017-poggio-paradiso",       arq:"0017-poggio-paradiso.sql",
+   oque:"Poggio Paradiso Resort & Spa no catálogo"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -1492,6 +1494,7 @@ const NAVMAP = {
     {k:"orders",        rotulo:"Orders",        ir:()=>renderApp()}
   ]},
   operacoes: {rotulo:"Operações", itens:[
+    {k:"catalogo",  rotulo:"Catálogo",  ir:()=>renderCatalogo()},
     {k:"checklist", rotulo:"Checklist", breve:true}
   ]}
 };
@@ -2468,6 +2471,149 @@ function drawQuoteItems(){
    para a linha — dali em diante ela edita o valor, a descrição, o que
    for, sem tocar no catálogo. */
 let CATTIMER = null;
+/* ===================================================================
+   CATÁLOGO
+   Hospedagem, transfer e experiência que se repetem entre propostas.
+   Até aqui só se cadastrava por SQL, o que quer dizer: só eu cadastrava.
+   Ela pediu para montar o banco de transfers e dos extras que voltam
+   sempre — assistência, mensageria —, e para isso o cadastro tem de ser
+   dela. A proposta continua levando uma CÓPIA: corrigir aqui não
+   reescreve proposta já enviada.
+   =================================================================== */
+const TIPOS = {stay:"Hospedagem", transfer:"Transfer", experience:"Experiência"};
+let CAT = [], CATFILTRO = "", CATBUSCA = "", CATEDIT = null;
+
+async function renderCatalogo(){
+  NAV = "catalogo";
+  shell(`<div class="overline">Catálogo</div><div class="rule"></div>
+    <div class="hint" style="margin-bottom:16px;">O que se repete entre propostas fica aqui e
+      você puxa pelo nome na hora de montar. A proposta leva uma cópia: corrigir um cadastro
+      não muda proposta que já foi enviada.</div>
+    <div class="addbar" style="grid-template-columns:1fr 200px auto;align-items:end;">
+      <div><label>Buscar</label><input id="cat-q" placeholder="nome, região…"
+        value="${esc(CATBUSCA)}"></div>
+      <div><label>Tipo</label><select id="cat-f">
+        <option value="">Todos</option>
+        ${Object.entries(TIPOS).map(([k,v])=>`<option value="${k}"${CATFILTRO===k?" selected":""}>${v}</option>`).join("")}
+      </select></div>
+      <button class="btn" id="cat-novo">+ Novo</button>
+    </div>
+    <div id="cat-host" class="muted" style="margin-top:18px;">Carregando…</div>
+    <div id="cat-form"></div>`);
+  el("cat-q").oninput = e=>{ CATBUSCA = e.target.value; listarCatalogo(); };
+  el("cat-f").onchange = e=>{ CATFILTRO = e.target.value; listarCatalogo(); };
+  el("cat-novo").onclick = ()=>editarCatalogo(null);
+  listarCatalogo();
+}
+
+async function listarCatalogo(){
+  const host = el("cat-host"); if(!host) return;
+  let q = sb.from("ops_catalog").select("*").order("kind").order("name");
+  if(CATFILTRO) q = q.eq("kind", CATFILTRO);
+  const {data, error} = await q;
+  if(error) return host.innerHTML = `<div class="msg">${esc(explicar(error))}</div>`;
+  CAT = data||[];
+  const termo = CATBUSCA.trim().toLowerCase();
+  const lista = CAT.filter(c=>!termo
+    || (c.name||"").toLowerCase().includes(termo)
+    || (c.region||"").toLowerCase().includes(termo));
+  if(!lista.length) return host.innerHTML = `<div class="muted">Nada aqui ainda. Clique em + Novo.</div>`;
+  host.innerHTML = `<table class="list"><thead><tr>
+      <th style="width:120px;">Tipo</th><th>Nome</th><th>Região</th><th>O que é</th>
+      <th style="width:70px;"></th></tr></thead><tbody>
+    ${lista.map(c=>`<tr>
+      <td>${esc(TIPOS[c.kind]||c.kind)}${c.active===false?` <span class="muted">· inativo</span>`:""}</td>
+      <td><b>${esc(c.name)}</b></td>
+      <td class="muted">${esc(c.region||"—")}</td>
+      <td class="muted">${esc((c.accommodation||c.descr||"").replace(/\n/g," · ").slice(0,70))}</td>
+      <td class="x"><button class="iconbtn" onclick="editarCatalogo('${c.id}')" title="Editar">✎</button></td>
+    </tr>`).join("")}</tbody></table>`;
+}
+
+function editarCatalogo(id){
+  const c = id ? (CAT.find(x=>x.id===id)||{}) : {kind:"transfer", active:true, photos:[]};
+  CATEDIT = Object.assign({}, c);
+  const campo = (rot, chave, dica, linhas) => linhas
+    ? `<label style="margin-top:10px;">${rot}</label>
+       <textarea rows="${linhas}" placeholder="${esc(dica||"")}"
+         oninput="CATEDIT.${chave}=this.value">${esc(c[chave]||"")}</textarea>`
+    : `<label style="margin-top:10px;">${rot}</label>
+       <input value="${esc(c[chave]||"")}" placeholder="${esc(dica||"")}"
+         oninput="CATEDIT.${chave}=this.value">`;
+  el("cat-form").innerHTML = `<div class="card" style="margin-top:22px;">
+    <div class="section-title">${id?"Editar cadastro":"Novo cadastro"}</div>
+    <div class="grid3">
+      <div><label>Tipo</label><select onchange="CATEDIT.kind=this.value">
+        ${Object.entries(TIPOS).map(([k,v])=>`<option value="${k}"${(c.kind||"transfer")===k?" selected":""}>${v}</option>`).join("")}
+      </select></div>
+      <div><label>Nome <span class="req">*</span></label>
+        <input id="cat-nome" value="${esc(c.name||"")}" placeholder="Transfer Florença → Val d'Orcia"
+          oninput="CATEDIT.name=this.value"></div>
+      <div><label>Região</label><input value="${esc(c.region||"")}" placeholder="Toscana · Val d'Orcia"
+        oninput="CATEDIT.region=this.value"></div>
+    </div>
+    ${campo("Site","website","https://…")}
+    ${campo("Acomodação ou o que a linha entrega","accommodation","Van privativa até 8 pessoas · motorista falante de inglês",2)}
+    ${campo("Em inglês","accommodation_en","",2)}
+    ${campo("Estrutura ou o que acompanha","facilities","Água a bordo · cadeirinha sob pedido",2)}
+    ${campo("Em inglês","facilities_en","",2)}
+    ${campo("Descrição","descr","O texto que sai na proposta.",5)}
+    ${campo("Em inglês","descr_en","",5)}
+    <label style="margin-top:10px;">Fotos — um link por linha</label>
+    <textarea rows="3" placeholder="https://…"
+      oninput="CATEDIT.photos=this.value.split('\n').map(x=>x.trim()).filter(Boolean)"
+      >${esc((c.photos||[]).join("\n"))}</textarea>
+    <label style="margin-top:10px;" class="interno">Anotação interna — o cliente nunca vê</label>
+    <textarea rows="2" class="interno"
+      oninput="CATEDIT.internal_notes=this.value">${esc(c.internal_notes||"")}</textarea>
+    <div class="check" style="margin-top:14px;">
+      <input type="checkbox" id="cat-ativo"${c.active===false?"":" checked"}
+        onchange="CATEDIT.active=this.checked">
+      <label for="cat-ativo">Aparece na busca ao montar proposta</label></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn" id="cat-salvar">Salvar</button>
+      <button class="btn ghost" onclick="el('cat-form').innerHTML=''">Cancelar</button>
+      ${id?`<button class="btn ghost" id="cat-apagar" style="margin-left:auto;">Apagar</button>`:""}
+    </div>
+  </div>`;
+  el("cat-form").scrollIntoView({block:"start", behavior:"smooth"});
+  el("cat-salvar").onclick = ()=>salvarCatalogo(id);
+  if(el("cat-apagar")) el("cat-apagar").onclick = ()=>apagarCatalogo(id);
+}
+
+async function salvarCatalogo(id){
+  if(!(CATEDIT.name||"").trim()) return alert("O nome é obrigatório: é por ele que você acha depois.");
+  const btn = el("cat-salvar"); btn.disabled = true; btn.textContent = "Salvando…";
+  const linha = {
+    kind: CATEDIT.kind||"transfer", name: CATEDIT.name.trim(),
+    region: (CATEDIT.region||"").trim()||null, website: (CATEDIT.website||"").trim()||null,
+    accommodation: CATEDIT.accommodation||null, accommodation_en: CATEDIT.accommodation_en||null,
+    facilities: CATEDIT.facilities||null, facilities_en: CATEDIT.facilities_en||null,
+    descr: CATEDIT.descr||null, descr_en: CATEDIT.descr_en||null,
+    photos: CATEDIT.photos||[], internal_notes: CATEDIT.internal_notes||null,
+    active: CATEDIT.active !== false, updated_at: new Date().toISOString()
+  };
+  const {error} = id
+    ? await sb.from("ops_catalog").update(linha).eq("id", id)
+    : await sb.from("ops_catalog").insert(linha);
+  btn.disabled = false; btn.textContent = "Salvar";
+  if(error) return alert(explicar(error));
+  el("cat-form").innerHTML = "";
+  listarCatalogo();
+}
+
+/* Apagar do catálogo não mexe em proposta nenhuma: a linha da proposta
+   é cópia, e catalog_id vira nulo se o cadastro sumir. */
+async function apagarCatalogo(id){
+  const c = CAT.find(x=>x.id===id)||{};
+  if(!confirm(`Apagar "${c.name}" do catálogo?\n\n`
+    + `As propostas que já usaram este cadastro não mudam — elas levaram uma cópia.`)) return;
+  const {error} = await sb.from("ops_catalog").delete().eq("id", id);
+  if(error) return alert(explicar(error));
+  el("cat-form").innerHTML = "";
+  listarCatalogo();
+}
+
 function buscarCatalogo(termo){
   clearTimeout(CATTIMER);
   const host = el("cat-res");
