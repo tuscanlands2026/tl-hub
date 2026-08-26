@@ -286,13 +286,15 @@ dela em agosto/26. A foto mora em `ops_proposals.backcover_img`, com padrão da 
 `ops_text_defaults`, pelo mesmo motivo do `about_img`: trocar a foto de fechamento não pode
 mudar proposta já enviada. Proposta sem foto continua saindo em creme com o logo terracota.
 
-**No papel, as três peças de foto saem com a foto.** Capa, foto de seção e contracapa levam
-`print-color-adjust: exact`. A foto está no atributo `style` do elemento e regra de folha
-não ganha de `style` — "apagar o fundo na impressão" nunca funcionou. O que a página tinha
-era o pior dos dois: a foto saía se a pessoa marcasse "gráficos de fundo" na caixa de
-impressão, e o texto já estava escuro para o caso de ela não marcar, então título de seção
-branco caía sobre foto e sumia. Agora as três saem sempre com a foto e sempre com texto
-branco. Onde a foto não carregar, o fundo é o sage, e branco sobre sage se lê.
+**Toda foto grande da apresentação é `<img>`, e não fundo em CSS.** Capa, faixa de seção,
+"Sobre nós" e contracapa. Fundo em CSS só sai no papel se a pessoa marcar "gráficos de
+fundo" na caixa de impressão, e ninguém marca: a capa e a contracapa saíam vazias no PDF.
+`<img>` sai sempre. O `<img>` é absoluto dentro da peça, que por isso é `position:relative`
+também na impressão — em `static` ele escapa da faixa e some da folha.
+
+Pela mesma razão, **a camada escura sobre a foto não segura a leitura no papel**: ela é
+fundo de pseudo-elemento e some junto. Quem segura o texto branco sobre foto clara na
+impressão é a sombra do texto, que é pintada sempre.
 
 **Uma exceção, pedida por ela em agosto/26: o relatório de comissão sai em copper**, não
 em sage — título, cabeçalho da tabela, réguas e caixa do total. O motivo é que ele tinha
@@ -407,6 +409,11 @@ Os dois blocos de texto do relatório — dados fiscais e como emitir a nota —
 `ops_text_defaults`, editáveis sem mexer em código. `commission_pct` não sai em
 `tl_get_order`.
 
+- **Baixar a proposta em um clique, sem a caixa de impressão.** Pedido dela em agosto/26.
+  Hoje o botão abre o "Salvar em PDF" do navegador, que é vetorial e monta o documento
+  certo. Um clique só exige desenhar o PDF por fora: biblioteca no navegador rasteriza o
+  texto e vira um segundo desenho para manter; um serviço que renderize a página no
+  servidor resolve sem perder qualidade. É o caminho a seguir quando for a vez disto.
 - Busca, histórico e filtro por data, cliente e tipo de serviço.
 - Exportação para alimentar o faturamento no CRM, com o hub como fonte de verdade.
 
