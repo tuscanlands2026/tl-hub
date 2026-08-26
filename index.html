@@ -244,6 +244,7 @@ input.interno{border-left:2px solid var(--brown);}
 @media (max-width:1100px){ .item-topo{grid-template-columns:1fr 1fr 1fr;} }
 /* Par de linhas PT/EN na tabela de seções: a segunda não repete a
    borda, para as duas lerem como um bloco só. */
+.sec-thumb{display:block;width:100%;height:42px;object-fit:cover;margin-top:5px;}
 table.rows td.idio{font-size:9px;letter-spacing:.18em;color:var(--sage);font-weight:500;
   vertical-align:middle;padding-right:6px;}
 table.rows tr.par td{border-top:none;padding-top:0;}
@@ -2101,12 +2102,19 @@ function drawSections(){
   const host = el("qs-host");
   if(!PSECS.length){ host.innerHTML = `<div class="muted">Nenhuma seção. Todas as linhas saem numa tabela só.</div>`; return; }
   host.innerHTML = `<table class="rows">
-    <thead><tr><th style="width:60px;"></th><th style="width:230px;">Título</th>
-      <th>Instrução ao cliente</th><th class="x"></th></tr></thead>
+    <thead><tr><th style="width:60px;"></th><th style="width:210px;">Título</th>
+      <th>Instrução ao cliente</th><th style="width:240px;">Foto de capa — link</th>
+      <th class="x"></th></tr></thead>
     <tbody>${PSECS.map((sec,i)=>`<tr>
       <td class="idio">PT</td>
       <td><input value="${esc(sec.title||"")}" placeholder="Selected Stays" oninput="PSECS[${i}].title=this.value"></td>
       <td><input value="${esc(sec.note||"")}" placeholder="Selecione sua hospedagem para esta viagem" oninput="PSECS[${i}].note=this.value"></td>
+      <!-- A foto é a mesma nos dois idiomas: vale a folha inteira da
+           seção, não o texto. Por isso rowspan e não par PT/EN. -->
+      <td rowspan="2"><input value="${esc(sec.photo||"")}" placeholder="https://…"
+        oninput="PSECS[${i}].photo=this.value.trim()||null">
+        ${sec.photo?`<img src="${esc(sec.photo)}" alt="" class="sec-thumb"
+          onerror="this.style.display='none'">`:""}</td>
       <td class="x" rowspan="2">
         <button class="iconbtn" onclick="moveSection(${i},-1)" title="Subir">↑</button>
         <button class="iconbtn" onclick="moveSection(${i},1)" title="Descer">↓</button>
