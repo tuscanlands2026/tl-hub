@@ -214,17 +214,34 @@ table.rows td.x{width:30px;padding-right:0;}
 input.interno{border-left:2px solid var(--brown);}
 /* Campo de conferir texto tem de caber o texto. Antes cabia uma linha e
    meia, e revisar uma descrição de villa virava rolar uma janelinha. */
-.card textarea{min-height:76px;font-size:13px;line-height:1.6;}
-.card textarea[rows="8"],.card textarea[rows="12"]{min-height:260px;}
-.card textarea[rows="4"],.card textarea[rows="6"]{min-height:140px;}
-.apres-box textarea{min-height:110px;}
-#qi-host textarea{min-height:96px;}
+/* Campo de texto ocupa a linha inteira e cresce com o conteúdo: dois
+   idiomas lado a lado davam meia largura cada, e ela não conseguia ler
+   nem revisar o que tinha digitado. Agora escolhe o idioma no topo. */
+.card textarea{width:100%;min-height:100px;font-size:13.5px;line-height:1.65;resize:vertical;}
+.card textarea[rows="14"]{min-height:380px;}
+.card textarea[rows="8"]{min-height:230px;}
+.card textarea[rows="6"]{min-height:170px;}
+.card textarea[rows="4"]{min-height:120px;}
+.apres-box textarea{min-height:100px;}
+#qi-host textarea{min-height:110px;}
+.idioma-sw{display:inline-flex;border:1px solid var(--sage);margin-right:10px;}
+.idioma-sw button{background:none;border:none;color:var(--sage);font-family:inherit;
+  font-size:10px;letter-spacing:.16em;text-transform:uppercase;font-weight:500;
+  padding:8px 14px;cursor:pointer;}
+.idioma-sw button.on{background:var(--sage);color:#fff;}
 .rotulos table.rows td.ondelbl{font-size:11px;color:var(--muted);vertical-align:middle;letter-spacing:.04em;}
 .buscacat{margin-top:10px;border:1px solid var(--cream);padding:10px 12px;background:var(--cream-light);}
 .cat-res{margin-top:6px;}
 .cat-item{padding:8px 10px;border-bottom:1px solid var(--cream);cursor:pointer;background:#fff;}
 .cat-item:hover{background:var(--cream);}
 .apres-box{border-left:2px solid var(--sage);padding-left:10px;margin-top:8px;}
+.item-bloco{border:1px solid var(--cream);padding:16px 18px;margin-bottom:14px;background:#fff;}
+.item-topo{display:grid;grid-template-columns:120px 110px 1fr 1fr 1fr 82px 30px;gap:10px;
+  align-items:end;padding-bottom:14px;margin-bottom:12px;border-bottom:1px solid var(--cream);}
+.item-topo .ck{text-align:center;}
+.item-topo .ck input{width:auto;}
+.item-topo .iconbtn{align-self:center;}
+@media (max-width:1100px){ .item-topo{grid-template-columns:1fr 1fr 1fr;} }
 /* Par de linhas PT/EN na tabela de seções: a segunda não repete a
    borda, para as duas lerem como um bloco só. */
 table.rows td.idio{font-size:9px;letter-spacing:.18em;color:var(--sage);font-weight:500;
@@ -1804,6 +1821,10 @@ function renderProposal(){
       <div class="who">${esc(quemE(OPP))}</div>
     </div>
     <div class="editor-actions">
+      <div class="idioma-sw">
+        <button class="${EDIOMA==="pt"?"on":""}" onclick="trocaIdiomaEdicao('pt')">Português</button>
+        <button class="${EDIOMA==="en"?"on":""}" onclick="trocaIdiomaEdicao('en')">English</button>
+      </div>
       <button class="btn ghost sm" id="pp-back">Voltar</button>
       <button class="btn sm" id="pp-save">Salvar</button>
       <button class="btn ghost sm" id="pp-preview">Ver como o cliente vê</button>
@@ -1834,9 +1855,10 @@ function renderProposal(){
       <div style="grid-column:span 2;"><label>Imagem da capa — link</label>
         <input id="q-cover" value="${esc(p.cover_img||"")}" placeholder="https://…"></div>
     </div>
-    ${p.layout==="apresentada"?`<div class="grid2">
-      <div><label>Tarja da capa · português</label><input id="q-tag" value="${esc(p.cover_tag_pt||"")}" placeholder="Selected Stays · Toscana"></div>
-      <div><label>Tarja da capa · English</label><input id="q-tag-en" value="${esc(p.cover_tag_en||"")}"></div>
+    ${p.layout==="apresentada"?`<div>
+      <label>Tarja da capa</label>
+      <input value="${esc(p[campoP("cover_tag")]||"")}" placeholder="Selected Stays · Toscana"
+        oninput="PROP.${campoP("cover_tag")}=this.value">
     </div>`:""}
     <div><label>Texto de abertura (opcional)</label>
       <textarea id="q-intro" rows="2" placeholder="A instrução de selecionar os serviços já sai sozinha. Isto é acréscimo.">${esc(p.intro||"")}</textarea></div>
@@ -1847,13 +1869,11 @@ function renderProposal(){
       <div class="hint" style="margin:0 0 8px;">O que aparece em cinza é o que sai se você deixar
         vazio. Preenchendo, vale o seu — e só nesta proposta.</div>
       <table class="rows"><thead><tr>
-        <th style="width:180px;">Onde</th><th>Português</th><th>English</th></tr></thead>
+        <th style="width:200px;">Onde</th><th>Texto</th></tr></thead>
       <tbody>${ROTULOS.map(r=>`<tr>
         <td class="ondelbl">${r.onde}</td>
-        <td><input value="${esc(rotulo(p,r.k,"pt"))}" placeholder="${esc(r.pt)}"
-          oninput="setRotulo('${r.k}','pt',this.value)"></td>
-        <td><input value="${esc(rotulo(p,r.k,"en"))}" placeholder="${esc(r.en)}"
-          oninput="setRotulo('${r.k}','en',this.value)"></td>
+        <td><input value="${esc(rotulo(p,r.k,EDIOMA))}" placeholder="${esc(r[EDIOMA])}"
+          oninput="setRotulo('${r.k}','${EDIOMA}',this.value)"></td>
       </tr>`).join("")}</tbody></table>
     </div>
 
@@ -1876,14 +1896,11 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
       <label>Quem somos — sai na página antes do resumo</label>
       <div class="hint" style="margin:0 0 7px;">Vem preenchido com o texto da casa. O que você mudar
         aqui vale só para esta proposta.</div>
-      <div class="grid2">
-        <div><label>Português</label><textarea id="q-about" rows="4">${esc(p.about_pt||"")}</textarea></div>
-        <div><label>English</label><textarea id="q-about-en" rows="4">${esc(p.about_en||"")}</textarea></div>
-      </div>
-      <div class="grid2" style="margin-top:10px;">
-        <div><label>Credenciais · português</label><textarea id="q-cred" rows="3">${esc(p.credentials_pt||"")}</textarea></div>
-        <div><label>Credenciais · English</label><textarea id="q-cred-en" rows="3">${esc(p.credentials_en||"")}</textarea></div>
-      </div>
+      <textarea rows="8" oninput="PROP.${campoP("about")}=this.value">${esc(p[campoP("about")]||"")}</textarea>
+      <label style="margin-top:12px;">Credenciais</label>
+      <textarea rows="4" oninput="PROP.${campoP("credentials")}=this.value">${esc(p[campoP("credentials")]||"")}</textarea>
+      <label style="margin-top:12px;">Contracapa — contatos, última tela</label>
+      <textarea rows="6" oninput="PROP.${campoP("backcover")}=this.value">${esc(p[campoP("backcover")]||"")}</textarea>
     </div>`:""}
 
     <div>
@@ -1891,12 +1908,8 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
       <div class="hint" style="margin:0 0 7px;">Muda de uma opção para outra: na opção com transfer
         entra aluguel de carro, na opção com carro alugado entram combustível, pedágio e
         estacionamento. Por isso é desta proposta, e não do texto padrão.</div>
-      <div class="grid2">
-        <div><label>Português</label>
-          <textarea id="q-exc" rows="6" placeholder="- Reservas de restaurantes">${esc(p.excluded_pt||"")}</textarea></div>
-        <div><label>English</label>
-          <textarea id="q-exc-en" rows="6" placeholder="- Restaurant reservations">${esc(p.excluded_en||"")}</textarea></div>
-      </div>
+      <textarea rows="6" placeholder="- Reservas de restaurantes"
+        oninput="PROP.${campoP("excluded")}=this.value">${esc(p[campoP("excluded")]||"")}</textarea>
     </div>
 
     <div>
@@ -1906,12 +1919,7 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
         O documento sai no idioma da proposta.<br>
         Linha começando com <b>-</b> vira item de lista.
         <b>**texto entre dois asteriscos**</b> sai em negrito.</div>
-      <div class="grid2">
-        <div><label>Português</label>
-          <textarea id="q-cond" rows="12">${esc(p.conditions_pt||p.conditions||"")}</textarea></div>
-        <div><label>English</label>
-          <textarea id="q-cond-en" rows="12">${esc(p.conditions_en||"")}</textarea></div>
-      </div>
+      <textarea rows="14" oninput="PROP.${campoP("conditions")}=this.value">${esc(p[campoP("conditions")]||(EDIOMA==="pt"?p.conditions:"")||"")}</textarea>
       <div style="margin-top:7px;">
         <button class="btn ghost sm" id="q-cond-std">Trazer o texto padrão</button>
         <button class="btn ghost sm" id="q-cond-save">Salvar este texto como padrão</button>
@@ -1998,18 +2006,21 @@ async function lerPadrao(){
   return data || {pt:"", en:""};
 }
 async function trazerPadrao(){
+  guardaCampos();
   const d = await lerPadrao();
   if(!(d.pt||"").trim() && !(d.en||"").trim())
     return alert("Ainda não há texto padrão gravado. Escreva as condições aqui e clique em "
       + "\"Salvar este texto como padrão\" — as próximas propostas já nascem com ele.");
   if(!confirm("Substituir o que está escrito nos dois campos pelo texto padrão?")) return;
-  el("q-cond").value = d.pt||""; el("q-cond-en").value = d.en||"";
+  PROP.conditions_pt = d.pt||""; PROP.conditions_en = d.en||"";
+  renderProposal();
 }
 async function salvarPadrao(){
+  guardaCampos();
   if(!confirm("Guardar este texto como padrão da casa? Toda proposta nova passa a nascer com ele. "
     + "As propostas que já existem não mudam.")) return;
   const {error} = await sb.from("ops_text_defaults").upsert({key:"conditions",
-    pt: el("q-cond").value, en: el("q-cond-en").value, updated_at: new Date().toISOString()});
+    pt: PROP.conditions_pt||"", en: PROP.conditions_en||"", updated_at: new Date().toISOString()});
   alert(error ? error.message : "Guardado. As próximas propostas já nascem com este texto.");
 }
 
@@ -2037,6 +2048,37 @@ function drawSections(){
 
 /* Apagar seção não pode deixar linha apontando para chave que sumiu: ela
    cairia na tabela sem título sem ninguém entender por quê. */
+/* Um idioma por vez. Dois campos lado a lado significam meia largura
+   cada, e ela não consegue ler nem revisar o que digitou. Aqui ela
+   escolhe o idioma no topo e todo campo ocupa a linha inteira. */
+let EDIOMA = "pt";
+function trocaIdiomaEdicao(l){
+  guardaCampos();
+  EDIOMA = l;
+  renderProposal();
+}
+
+/* Os nomes de coluna não seguem um padrão só — algumas vieram com
+   sufixo _pt, outras sem —, então o par fica declarado aqui em vez de
+   ser adivinhado por concatenação. */
+const PARES = {
+  cover_tag:   ["cover_tag_pt",   "cover_tag_en"],
+  about:       ["about_pt",       "about_en"],
+  credentials: ["credentials_pt", "credentials_en"],
+  excluded:    ["excluded_pt",    "excluded_en"],
+  conditions:  ["conditions_pt",  "conditions_en"],
+  backcover:   ["backcover_pt",   "backcover_en"]
+};
+const PARES_ITEM = {
+  title:      ["title",       "title_en"],
+  details:    ["details",     "details_en"],
+  room_type:  ["room_type",   "room_type_en"],
+  included:   ["included_pt", "included_en"],
+  facilities: ["facilities",  "facilities_en"]
+};
+function campoP(base){ return PARES[base][EDIOMA==="en"?1:0]; }
+function campoI(base){ return PARES_ITEM[base][EDIOMA==="en"?1:0]; }
+
 /* Os textos que ela pode reescrever, com o padrão do hub ao lado para
    ela ver o que sai se deixar em branco. */
 const ROTULOS = [
@@ -2083,35 +2125,32 @@ function removeSection(i){
 const quoteLink = tok => (clientLink(tok)||"").replace("#/confirm/","#/quote/");
 
 function drawQuoteItems(){
+  if(PROP.layout === "apresentada"){ return drawItensApresentada(); }
   el("qi-host").innerHTML = `<table class="rows">
-    <thead><tr><th style="width:100px;">Data</th><th>Serviço</th><th style="width:110px;">Valor €</th>
-      <th style="width:82px;">Opcional</th><th style="width:120px;">Escolha</th>
-      <th style="width:130px;">Seção</th><th style="width:140px;">Fornecedor</th>
+    <thead><tr><th style="width:96px;">Data</th><th>Serviço</th><th style="width:100px;">Valor €</th>
+      <th style="width:70px;">Opcional</th><th style="width:110px;">Escolha</th>
+      <th style="width:120px;">Seção</th><th style="width:120px;">Fornecedor</th>
       <th class="x"></th></tr></thead>
     <tbody>${PITEMS.map((r,i)=>`<tr>
       <td><input value="${esc(r.service_date||"")}" oninput="PITEMS[${i}].service_date=this.value"></td>
       <td>
-        <input value="${esc(r.title||"")}" placeholder="Título do serviço" oninput="PITEMS[${i}].title=this.value">
-        <textarea rows="2" placeholder="Detalhes" style="margin-top:5px;font-size:12.5px;" oninput="PITEMS[${i}].details=this.value">${esc(r.details||"")}</textarea>
+        <input value="${esc(r[campoI("title")]||"")}" placeholder="Título do serviço"
+          oninput="PITEMS[${i}].${campoI("title")}=this.value">
+        <textarea rows="4" placeholder="Descrição" style="margin-top:5px;"
+          oninput="PITEMS[${i}].${campoI("details")}=this.value">${esc(r[campoI("details")]||"")}</textarea>
         ${PROP.layout==="apresentada"?`<div class="apres-box">
-          <div class="grid2" style="margin-top:7px;">
-            <input value="${esc(r.room_type||"")}" placeholder="Acomodação: villa inteira · 288 m² · 5 quartos"
-              oninput="PITEMS[${i}].room_type=this.value">
-            <input value="${esc(r.website||"")}" placeholder="Site da propriedade"
-              oninput="PITEMS[${i}].website=this.value.trim()||null">
-          </div>
+          <label style="margin-top:8px;">Acomodação</label>
+          <input value="${esc(r[campoI("room_type")]||"")}" placeholder="Villa inteira · 288 m² · 5 quartos"
+            oninput="PITEMS[${i}].${campoI("room_type")}=this.value">
           <label style="margin-top:8px;">Incluso — o que o valor cobre</label>
-          <textarea rows="2" placeholder="Café da manhã · limpeza diária · roupa de cama e banho"
-            oninput="PITEMS[${i}].included_pt=this.value">${esc(r.included_pt||"")}</textarea>
+          <textarea rows="3" placeholder="Café da manhã · limpeza diária · roupa de cama e banho"
+            oninput="PITEMS[${i}].${campoI("included")}=this.value">${esc(r[campoI("included")]||"")}</textarea>
           <label style="margin-top:8px;">Estrutura — o que é da propriedade</label>
-          <textarea rows="2" placeholder="Piscina · jardim · terraço · estacionamento"
-            oninput="PITEMS[${i}].facilities=this.value">${esc(r.facilities||"")}</textarea>
-          <div class="grid2" style="margin-top:5px;">
-            <input value="${esc(r.title_en||"")}" placeholder="Título em inglês" oninput="PITEMS[${i}].title_en=this.value">
-            <input value="${esc(r.room_type_en||"")}" placeholder="Acomodação em inglês" oninput="PITEMS[${i}].room_type_en=this.value">
-          </div>
-          <textarea rows="2" placeholder="Descrição em inglês" style="margin-top:5px;font-size:12.5px;"
-            oninput="PITEMS[${i}].details_en=this.value">${esc(r.details_en||"")}</textarea>
+          <textarea rows="3" placeholder="Piscina · jardim · terraço · estacionamento"
+            oninput="PITEMS[${i}].${campoI("facilities")}=this.value">${esc(r[campoI("facilities")]||"")}</textarea>
+          <label style="margin-top:8px;">Site da propriedade</label>
+          <input value="${esc(r.website||"")}" placeholder="https://…"
+            oninput="PITEMS[${i}].website=this.value.trim()||null">
           <label style="margin-top:8px;">Fotos — um link por linha</label>
           <textarea rows="2" style="font-size:12px;" placeholder="https://…"
             oninput="PITEMS[${i}].photos=this.value.split('\n').map(x=>x.trim()).filter(Boolean)"
@@ -2192,6 +2231,77 @@ function puxarDoCatalogo(id){
     + "não do catálogo. Ajuste o valor e o que mais precisar — nada disso volta para o cadastro.");
 }
 
+/* Na proposta apresentada cada serviço é um bloco, não uma linha de
+   tabela: oito colunas espremiam a descrição num campo de 340px, onde
+   ela não conseguia reler o que escreveu. Aqui os controles ficam numa
+   faixa em cima e o texto ocupa a largura inteira. */
+function drawItensApresentada(){
+  el("qi-host").innerHTML = PITEMS.map((r,i)=>`<div class="item-bloco">
+    <div class="item-topo">
+      <div><label>Data</label><input value="${esc(r.service_date||"")}"
+        oninput="PITEMS[${i}].service_date=this.value"></div>
+      <div><label>Valor \u20ac</label><input type="number" step="0.01" style="text-align:right;"
+        value="${Number(r.price)||0}" oninput="PITEMS[${i}].price=parseFloat(this.value)||0;sumQuote()"></div>
+      <div><label>Se\u00e7\u00e3o</label><select onchange="PITEMS[${i}].section=this.value||null">
+        <option value="">\u2014 fora de se\u00e7\u00e3o</option>
+        ${PSECS.map(sec=>`<option value="${esc(sec.key)}"${r.section===sec.key?" selected":""}>${esc(sec.title||sec.key)}</option>`).join("")}
+      </select></div>
+      <div><label>Escolha</label><input value="${esc(r.choice_group||"")}" placeholder="uma destas"
+        oninput="PITEMS[${i}].choice_group=this.value.trim()||null"></div>
+      <div><label>Fornecedor</label><input class="interno" value="${esc(r.supplier||"")}"
+        placeholder="quem opera" oninput="PITEMS[${i}].supplier=this.value.trim()||null"></div>
+      <div class="ck"><label>Opcional</label>
+        <input type="checkbox"${r.optional?" checked":""} onchange="PITEMS[${i}].optional=this.checked"></div>
+      <button class="iconbtn" onclick="PITEMS.splice(${i},1);drawQuoteItems()" title="Remover">\u00d7</button>
+    </div>
+
+    <label>T\u00edtulo do servi\u00e7o</label>
+    <input value="${esc(r[campoI("title")]||"")}" oninput="PITEMS[${i}].${campoI("title")}=this.value">
+
+    <label style="margin-top:10px;">Descri\u00e7\u00e3o</label>
+    <textarea rows="5" oninput="PITEMS[${i}].${campoI("details")}=this.value">${esc(r[campoI("details")]||"")}</textarea>
+
+    <label style="margin-top:10px;">Acomoda\u00e7\u00e3o</label>
+    <input value="${esc(r[campoI("room_type")]||"")}" placeholder="Villa inteira \u00b7 288 m\u00b2 \u00b7 5 quartos"
+      oninput="PITEMS[${i}].${campoI("room_type")}=this.value">
+
+    <label style="margin-top:10px;">Incluso \u2014 o que o valor cobre</label>
+    <textarea rows="3" placeholder="Caf\u00e9 da manh\u00e3 \u00b7 limpeza di\u00e1ria"
+      oninput="PITEMS[${i}].${campoI("included")}=this.value">${esc(r[campoI("included")]||"")}</textarea>
+
+    <label style="margin-top:10px;">Estrutura \u2014 o que \u00e9 da propriedade</label>
+    <textarea rows="3" placeholder="Piscina \u00b7 jardim \u00b7 terra\u00e7o"
+      oninput="PITEMS[${i}].${campoI("facilities")}=this.value">${esc(r[campoI("facilities")]||"")}</textarea>
+
+    <label style="margin-top:10px;">Site da propriedade</label>
+    <input value="${esc(r.website||"")}" placeholder="https://\u2026"
+      oninput="PITEMS[${i}].website=this.value.trim()||null">
+
+    <label style="margin-top:10px;">Fotos \u2014 um link por linha</label>
+    <textarea rows="3" placeholder="https://\u2026"
+      oninput="PITEMS[${i}].photos=this.value.split('\\n').map(x=>x.trim()).filter(Boolean)"
+      >${esc((r.photos||[]).join("\\n"))}</textarea>
+
+    <label style="margin-top:10px;">Anexos \u2014 nome e link, um por linha, separados por |</label>
+    <textarea rows="2" placeholder="Planimetria.pdf | https://\u2026"
+      oninput="PITEMS[${i}].attachments=this.value.split('\\n').map(x=>x.split('|')).filter(a=>a[1]).map(a=>({name:a[0].trim(),url:a[1].trim()}))"
+      >${esc((r.attachments||[]).map(a=>(a.name||"")+" | "+(a.url||"")).join("\\n"))}</textarea>
+
+    <div class="extras-box">
+      <label style="margin-top:10px;">Adicionais desta linha</label>
+      ${(r.extras||[]).map((e,j)=>`<div class="extra-row">
+        <input value="${esc(e.label_pt||"")}" placeholder="R\u00f3tulo em portugu\u00eas" oninput="PITEMS[${i}].extras[${j}].label_pt=this.value">
+        <input value="${esc(e.label_en||"")}" placeholder="Em ingl\u00eas" oninput="PITEMS[${i}].extras[${j}].label_en=this.value">
+        <input type="number" step="0.01" value="${Number(e.price)||0}" style="text-align:right;" oninput="PITEMS[${i}].extras[${j}].price=parseFloat(this.value)||0">
+        <button class="iconbtn" onclick="PITEMS[${i}].extras.splice(${j},1);drawQuoteItems()">\u00d7</button>
+      </div>`).join("")}
+      <button class="btn ghost sm" style="margin-top:6px;" onclick="addExtra(${i})">+ Adicional</button>
+    </div>
+  </div>`).join("");
+  sumQuote();
+}
+
+
 /* Chave estável por linha: o cliente marca por chave, e renomear o
    rótulo depois não faz a escolha dele apontar para outro extra. */
 function addExtra(i){
@@ -2221,18 +2331,40 @@ function sumQuote(){
   el("qi-total").textContent = eur(t);
 }
 
+/* Trocar de idioma redesenha a tela. O que estiver digitado e ainda não
+   tiver disparado o oninput — o último caractere, um colar — se perde se
+   não for lido antes. */
+function guardaCampos(){
+  const t = el("q-title"); if(!t) return;
+  PROP.title = t.value.trim();
+  PROP.pax_summary = el("q-pax").value.trim();
+  PROP.travel_window = el("q-window").value.trim();
+  PROP.lang = el("q-lang").value;
+  PROP.show_prices = el("q-prices").value === "sim";
+  PROP.terms_url = el("q-terms").value.trim() || null;
+  PROP.intro = el("q-intro").value;
+  PROP.payment_note = el("q-paynote").value;
+  PROP.internal_notes = el("q-internal").value;
+  if(el("q-cover"))    PROP.cover_img = el("q-cover").value.trim() || null;
+  if(el("q-aboutimg")) PROP.about_img = el("q-aboutimg").value.trim() || null;
+  if(el("q-pgs")) PROP.payment_options = el("q-pgs").value.split("\n")
+    .map(l=>l.trim()).filter(Boolean).map((l,k)=>{
+      const [pt, en] = l.split("|").map(x=>(x||"").trim());
+      return {key:"p"+k, label:pt, label_en:en||null};
+    });
+}
+
 async function saveProposal(){
+  guardaCampos();
   const btn = el("pp-save"); btn.disabled = true; btn.textContent = "Salvando…";
   const patch = {
-    title: el("q-title").value.trim(), pax_summary: el("q-pax").value.trim(),
-    travel_window: el("q-window").value.trim(), lang: el("q-lang").value,
-    show_prices: el("q-prices").value === "sim",
-    terms_url: el("q-terms").value.trim() || null,
-    intro: el("q-intro").value, payment_note: el("q-paynote").value,
-    layout: el("q-layout") ? el("q-layout").value : (PROP.layout||"tabela"),
-    cover_img: el("q-cover") ? (el("q-cover").value.trim()||null) : PROP.cover_img,
-    cover_tag_pt: el("q-tag") ? el("q-tag").value : PROP.cover_tag_pt,
-    cover_tag_en: el("q-tag-en") ? el("q-tag-en").value : PROP.cover_tag_en,
+    title: PROP.title, pax_summary: PROP.pax_summary,
+    travel_window: PROP.travel_window, lang: PROP.lang,
+    show_prices: PROP.show_prices, terms_url: PROP.terms_url,
+    intro: PROP.intro, payment_note: PROP.payment_note,
+    layout: PROP.layout || "tabela", cover_img: PROP.cover_img,
+    cover_tag_pt: PROP.cover_tag_pt, cover_tag_en: PROP.cover_tag_en,
+    backcover_pt: PROP.backcover_pt, backcover_en: PROP.backcover_en,
     about_img: el("q-aboutimg") ? (el("q-aboutimg").value.trim()||null) : PROP.about_img,
     labels: PROP.labels || {},
     payment_options: el("q-pgs")
@@ -2241,13 +2373,11 @@ async function saveProposal(){
           return {key:"p"+k, label:pt, label_en:en||null};
         })
       : (PROP.payment_options||[]),
-    about_pt: el("q-about") ? el("q-about").value : PROP.about_pt,
-    about_en: el("q-about-en") ? el("q-about-en").value : PROP.about_en,
-    credentials_pt: el("q-cred") ? el("q-cred").value : PROP.credentials_pt,
-    credentials_en: el("q-cred-en") ? el("q-cred-en").value : PROP.credentials_en,
-    conditions_pt: el("q-cond").value, conditions_en: el("q-cond-en").value,
-    excluded_pt: el("q-exc").value, excluded_en: el("q-exc-en").value,
-    internal_notes: el("q-internal").value,
+    about_pt: PROP.about_pt, about_en: PROP.about_en,
+    credentials_pt: PROP.credentials_pt, credentials_en: PROP.credentials_en,
+    conditions_pt: PROP.conditions_pt, conditions_en: PROP.conditions_en,
+    excluded_pt: PROP.excluded_pt, excluded_en: PROP.excluded_en,
+    internal_notes: PROP.internal_notes,
     sections: PSECS.filter(x=>(x.title||"").trim() || (x.title_en||"").trim()),
     updated_at: new Date().toISOString()
   };
