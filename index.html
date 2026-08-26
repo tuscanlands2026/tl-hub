@@ -212,6 +212,13 @@ table.rows td.x{width:30px;padding-right:0;}
 /* Campo interno na tabela de serviços: marcado para não se confundir
    com o que o cliente lê. */
 input.interno{border-left:2px solid var(--brown);}
+/* Campo de conferir texto tem de caber o texto. Antes cabia uma linha e
+   meia, e revisar uma descrição de villa virava rolar uma janelinha. */
+.card textarea{min-height:76px;font-size:13px;line-height:1.6;}
+.card textarea[rows="8"],.card textarea[rows="12"]{min-height:260px;}
+.card textarea[rows="4"],.card textarea[rows="6"]{min-height:140px;}
+.apres-box textarea{min-height:110px;}
+#qi-host textarea{min-height:96px;}
 .buscacat{margin-top:10px;border:1px solid var(--cream);padding:10px 12px;background:var(--cream-light);}
 .cat-res{margin-top:6px;}
 .cat-item{padding:8px 10px;border-bottom:1px solid var(--cream);cursor:pointer;background:#fff;}
@@ -252,6 +259,10 @@ table.rows tr.par td{border-top:none;padding-top:0;}
    casa — sage, Libre Franklin, canto vivo — e não a da referência.
    ===================================================================== */
 .apres{display:grid;grid-template-columns:238px 1fr;min-height:100vh;background:var(--cream-light);}
+/* Na capa o menu não existe: a primeira tela é só a imagem, o nome e o
+   convite para entrar. */
+.apres.na-capa{grid-template-columns:1fr;}
+.apres.na-capa .ap-indice{display:none;}
 .ap-indice{position:sticky;top:0;align-self:start;height:100vh;background:var(--sage);
   color:#fff;padding:26px 20px;display:flex;flex-direction:column;gap:16px;}
 .ap-logo{width:150px;max-width:100%;display:block;}
@@ -280,6 +291,9 @@ table.rows tr.par td{border-top:none;padding-top:0;}
   padding:12px 24px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:500;
   cursor:pointer;font-family:inherit;}
 .ap-cta:hover{background:rgba(255,255,255,.15);}
+.pagto{border-left:2px solid var(--sage);padding-left:13px;margin-top:4px;}
+.pagto .check{margin:6px 0;}
+.pagto input[type=radio]{accent-color:var(--sage);width:auto;}
 .ap-aviso{margin-top:24px;border-left:2px solid var(--copper);padding-left:13px;
   font-size:12.5px;font-weight:300;line-height:1.65;color:var(--muted);}
 /* Regra de classe simples perde para .ap-sec por vir antes no arquivo:
@@ -297,7 +311,7 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-tot span{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;opacity:.8;}
 .ap-tot b{font-size:20px;font-weight:400;font-variant-numeric:tabular-nums;}
 
-.ap-capa{min-height:82vh;background:var(--sage) center/cover no-repeat;position:relative;
+.ap-capa{min-height:100vh;background:var(--sage) center/cover no-repeat;position:relative;
   display:flex;align-items:flex-end;}
 .ap-capa::after{content:"";position:absolute;inset:0;
   background:linear-gradient(to top,rgba(42,42,40,.72),rgba(42,42,40,.15) 55%,rgba(42,42,40,.35));}
@@ -333,6 +347,8 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-fotos img{width:100%;height:190px;object-fit:cover;display:block;}
 .ap-corpo{padding:20px 22px;}
 .ap-topo{display:flex;justify-content:space-between;align-items:baseline;gap:18px;}
+.ap-data{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);
+  font-weight:500;margin-bottom:5px;}
 .ap-nome{font-size:18px;font-weight:400;line-height:1.3;}
 .ap-quarto{font-size:12px;color:var(--copper);letter-spacing:.06em;margin-top:4px;}
 .ap-preco{font-size:19px;font-weight:400;color:var(--sage);white-space:nowrap;
@@ -351,8 +367,11 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-extra{font-size:12.5px;font-weight:300;line-height:1.6;color:var(--ink);}
 .ap-extra span{color:var(--muted);}
 .ap-foto-fim{background:var(--sage);}
-.ap-foto-sobre{background:var(--ink);}
+.ap-foto-sobre{background:var(--ink) center/cover no-repeat;}
 .ap-sobre-txt{font-size:15px;font-weight:300;line-height:1.8;color:var(--ink);max-width:620px;}
+.ap-sobre-txt p{text-align:justify;margin-bottom:14px;}
+.ap-sobre-txt strong{display:block;font-size:24px;font-weight:300;line-height:1.2;
+  color:var(--sage);text-align:left;margin-bottom:16px;}
 .ap-cred{margin-top:26px;border-left:2px solid var(--copper);padding-left:14px;}
 .ap-cred .k{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);
   font-weight:500;margin-bottom:7px;}
@@ -368,7 +387,18 @@ table.svc.ap-dias ul{margin:0 0 0 16px;}
 table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 
 @media (max-width:900px){
-  .apres{grid-template-columns:1fr;}
+  .apres,.apres.na-capa{grid-template-columns:1fr;}
+  .ap-capa{min-height:88vh;}
+  .ap-topo{flex-direction:column;align-items:flex-start;gap:6px;}
+  .ap-preco{font-size:22px;}
+  .ap-fotos.f2,.ap-fotos.f3{grid-template-columns:1fr;}
+  .ap-fotos img{height:210px;}
+  .ap-nav{flex-direction:column;}
+  .ap-btn{width:100%;}
+  .ap-sobre-txt p{text-align:left;}
+  .doc table.svc,.doc table.svc thead,.doc table.svc tbody,.doc table.svc tr{display:block;}
+  .doc table.svc thead{display:none;}
+  .doc table.svc td{display:block;width:auto !important;text-align:left !important;}
   .ap-indice{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;}
   .ap-indice nav{flex-direction:row;flex-wrap:wrap;}
   .ap-tot{margin:0 0 0 auto;border-top:none;padding-top:0;}
@@ -605,6 +635,9 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
    papel é claro, então terracota; capa e índice são escuros, branco. */
 const LOGO = "https://i.postimg.cc/k45xbsK4/grosseto.png";
 const LOGO_BRANCO = "https://i.postimg.cc/CMnPydqx/white.png";
+/* Foto da tela de proposta comercial. É da casa e não muda por venda,
+   então vive aqui e não no cadastro de cada proposta. */
+const IMG_RESUMO = "https://i.postimg.cc/HsV7Z2fq/Tuscan-Lands-Travel-Luxury-DMC.png";
 /* Endereço para dúvida do cliente depois do envio. Separado do e-mail de
    reservas de propósito: quem acabou de confirmar escreve para a casa,
    não para a caixa operacional. */
@@ -755,12 +788,14 @@ const T = {
     qNeedAck:"Marque o aceite das condições para enviar.",
     qCondTitle:"Forma de pagamento e condições gerais",
     qExcluded:"Não inclusos",
-    qResumo:"Resumo da sua escolha",
+    qResumo:"Proposta e condições comerciais",
     qResumoSub:"Somente os serviços que você marcou acima.",
     qSite:"Ver o site da propriedade →", qSelected:"Selecionado",
     qOthers:"Outros serviços", qItinerary:"Roteiro dia a dia", qHighlights:"Destaques",
-    qExtrasDisp:"Adicionais disponíveis", qFacilities:"Estrutura", qAbout:"Sobre a Tuscan Lands", qCredentials:"Credenciais",
-    qResumoLead:"Selecione abaixo os serviços de seu interesse. O total é calculado automaticamente.",
+    qExtrasDisp:"Adicionais disponíveis", qFacilities:"Estrutura", qIncluded:"Incluso", qAbout:"Sobre nós", qCredentials:"Credenciais",
+    qResumoLead:"Selecione abaixo os serviços que gostaria de agendar conosco. O total será calculado automaticamente.",
+    qConfirmar:"Confirmar interesse", qPayHow:"Forma de pagamento preferida",
+    qNeedPay:"Escolha a forma de pagamento para enviar.",
     qCover:"Capa", qStart:"Ver a proposta →", qNext:"Avançar", qBack:"Voltar", qContact:"Contato",
     qNaoBloqueio:"O envio destas informações é uma confirmação de interesse e não representa bloqueio ou reserva. Nossa equipe revisa o que você selecionou, reconfirma disponibilidade com as propriedades e os fornecedores, e segue com os próximos passos até a formalização."
   },
@@ -839,12 +874,14 @@ const T = {
     qNeedAck:"Please accept the conditions to send.",
     qCondTitle:"Payment and general conditions",
     qExcluded:"Not included",
-    qResumo:"Your selection",
+    qResumo:"Commercial proposal and conditions",
     qResumoSub:"Only the services you ticked above.",
     qSite:"Visit the property website →", qSelected:"Selected",
     qOthers:"Other services", qItinerary:"Day by day", qHighlights:"Highlights",
-    qExtrasDisp:"Available add-ons", qFacilities:"Facilities", qAbout:"About Tuscan Lands", qCredentials:"Credentials",
-    qResumoLead:"Select below the services you are interested in. The total is calculated automatically.",
+    qExtrasDisp:"Available add-ons", qFacilities:"Facilities", qIncluded:"Included", qAbout:"About us", qCredentials:"Credentials",
+    qResumoLead:"Select below the services you would like to arrange with us. The total is calculated automatically.",
+    qConfirmar:"Confirm your interest", qPayHow:"Preferred payment method",
+    qNeedPay:"Please choose a payment method before sending.",
     qCover:"Cover", qStart:"View the proposal →", qNext:"Next", qBack:"Back", qContact:"Contact",
     qNaoBloqueio:"Sending this form confirms your interest and does not hold or reserve anything. Our team reviews your selection, reconfirms availability with the properties and suppliers, and follows up with the next steps through to formalisation."
   }
@@ -1085,7 +1122,9 @@ const MIGRACOES = [
   {id:"0008-quem-somos-oficial",    arq:"0008-quem-somos-oficial.sql",
    oque:"o texto oficial da apresentação corporativa"},
   {id:"0009-textos-da-casa",        arq:"0009-textos-da-casa.sql",
-   oque:"as páginas que ela diagramou e a contracapa"}
+   oque:"as páginas que ela diagramou e a contracapa"},
+  {id:"0010-ajustes-da-proposta",   arq:"0010-ajustes-da-proposta.sql",
+   oque:"incluso por linha, forma de pagamento e a foto do sobre nós"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -1126,7 +1165,7 @@ window.addEventListener("hashchange", boot);
 function renderSetup(){
   app.innerHTML = `
   <div class="gate">
-    <div class="mark">TUSCAN LANDS</div>
+    <div class="mark">TUSCAN LANDS TRAVEL</div>
     <div class="sub">Hub · Configuração</div>
     <div class="stack">
       <div class="msg">Cole a URL e a anon key do projeto Supabase do hub. Para fixar de vez, edite as duas constantes no topo do arquivo.</div>
@@ -1145,7 +1184,7 @@ function renderSetup(){
 function renderLogin(){
   app.innerHTML = `
   <div class="gate">
-    <div class="mark">TUSCAN LANDS</div>
+    <div class="mark">TUSCAN LANDS TRAVEL</div>
     <div class="sub">Vendas &amp; Operações</div>
     <div class="stack">
       <div><label>E-mail</label><input id="lg-mail" type="email" autocomplete="username"></div>
@@ -1209,7 +1248,7 @@ function navHTML(){
 function shell(inner, crumb){
   app.innerHTML = `
   <div class="topbar">
-    <span class="mark">TUSCAN LANDS</span>
+    <span class="mark">TUSCAN LANDS TRAVEL</span>
     <span class="sep">·</span><span class="ctx">Vendas &amp; Operações</span>
     ${crumb?`<span class="sep">·</span><span class="ctx">${esc(crumb)}</span>`:""}
     <div class="right"><button id="tb-out">Sair</button></div>
@@ -1310,7 +1349,7 @@ async function renderPainel(){
   NAV = "painel";
   app.innerHTML = `
   <div class="topbar">
-    <span class="mark">TUSCAN LANDS</span>
+    <span class="mark">TUSCAN LANDS TRAVEL</span>
     <span class="sep">·</span><span class="ctx">Vendas &amp; Operações</span>
     <div class="right"><button id="tb-out">Sair</button></div>
   </div>
@@ -1676,7 +1715,7 @@ async function renderCommission(){
 
   app.innerHTML = `
   <div class="topbar noprint">
-    <span class="mark">TUSCAN LANDS</span>
+    <span class="mark">TUSCAN LANDS TRAVEL</span>
     <span class="sep">·</span><span class="ctx">${L.tit} · ${esc(o.order_ref||"")}</span>
     <div class="right">
       <button id="cm-back">Voltar</button>
@@ -1688,7 +1727,7 @@ async function renderCommission(){
       <div class="brand">
         <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
              onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
+        <div class="logo-text" style="display:none;">TUSCAN LANDS TRAVEL</div>
         <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
       </div>
       <div class="to">
@@ -1801,6 +1840,21 @@ function renderProposal(){
     <div><label>Observação de pagamento — logo abaixo do total</label>
       <textarea id="q-paynote" rows="2">${esc(p.payment_note||"")}</textarea></div>
     ${p.layout==="apresentada"?`<div>
+      <label>Formas de pagamento — o cliente marca uma na última tela</label>
+      <div class="hint" style="margin:0 0 7px;">Uma por linha. Para a versão em inglês, use
+        <b>português | English</b> na mesma linha. Sem nenhuma, a proposta sai sem essa pergunta.</div>
+      <textarea id="q-pgs" rows="4" placeholder="Transferência bancária internacional | International bank transfer
+Pix à vista | Pix
+Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
+        (o.label||"") + (o.label_en?" | "+o.label_en:"")).join("\n"))}</textarea>
+    </div>
+
+    <div>
+      <label>Foto do "Sobre nós" — link</label>
+      <input id="q-aboutimg" value="${esc(p.about_img||"")}" placeholder="https://…">
+    </div>
+
+    <div>
       <label>Quem somos — sai na página antes do resumo</label>
       <div class="hint" style="margin:0 0 7px;">Vem preenchido com o texto da casa. O que você mudar
         aqui vale só para esta proposta.</div>
@@ -1951,7 +2005,10 @@ function drawSections(){
       <td class="idio">PT</td>
       <td><input value="${esc(sec.title||"")}" placeholder="Selected Stays" oninput="PSECS[${i}].title=this.value"></td>
       <td><input value="${esc(sec.note||"")}" placeholder="Selecione sua hospedagem para esta viagem" oninput="PSECS[${i}].note=this.value"></td>
-      <td class="x" rowspan="2"><button class="iconbtn" onclick="removeSection(${i})">×</button></td>
+      <td class="x" rowspan="2">
+        <button class="iconbtn" onclick="moveSection(${i},-1)" title="Subir">↑</button>
+        <button class="iconbtn" onclick="moveSection(${i},1)" title="Descer">↓</button>
+        <button class="iconbtn" onclick="removeSection(${i})">×</button></td>
     </tr>
     <tr class="par">
       <td class="idio">EN</td>
@@ -1962,6 +2019,15 @@ function drawSections(){
 
 /* Apagar seção não pode deixar linha apontando para chave que sumiu: ela
    cairia na tabela sem título sem ninguém entender por quê. */
+/* A ordem das seções é a ordem em que o cliente percorre a proposta:
+   primeiro a hospedagem que ela quer destacar, depois as outras. */
+function moveSection(i, d){
+  const j = i + d;
+  if(j < 0 || j >= PSECS.length) return;
+  const t = PSECS[i]; PSECS[i] = PSECS[j]; PSECS[j] = t;
+  drawSections(); drawQuoteItems();
+}
+
 function removeSection(i){
   const chave = PSECS[i].key;
   PSECS.splice(i,1);
@@ -1989,8 +2055,12 @@ function drawQuoteItems(){
             <input value="${esc(r.website||"")}" placeholder="Site da propriedade"
               oninput="PITEMS[${i}].website=this.value.trim()||null">
           </div>
-          <input value="${esc(r.facilities||"")}" placeholder="Estrutura: piscina, jardim, o que é compartilhado"
-            style="margin-top:5px;" oninput="PITEMS[${i}].facilities=this.value">
+          <label style="margin-top:8px;">Incluso — o que o valor cobre</label>
+          <textarea rows="2" placeholder="Café da manhã · limpeza diária · roupa de cama e banho"
+            oninput="PITEMS[${i}].included_pt=this.value">${esc(r.included_pt||"")}</textarea>
+          <label style="margin-top:8px;">Estrutura — o que é da propriedade</label>
+          <textarea rows="2" placeholder="Piscina · jardim · terraço · estacionamento"
+            oninput="PITEMS[${i}].facilities=this.value">${esc(r.facilities||"")}</textarea>
           <div class="grid2" style="margin-top:5px;">
             <input value="${esc(r.title_en||"")}" placeholder="Título em inglês" oninput="PITEMS[${i}].title_en=this.value">
             <input value="${esc(r.room_type_en||"")}" placeholder="Acomodação em inglês" oninput="PITEMS[${i}].room_type_en=this.value">
@@ -2118,6 +2188,13 @@ async function saveProposal(){
     cover_img: el("q-cover") ? (el("q-cover").value.trim()||null) : PROP.cover_img,
     cover_tag_pt: el("q-tag") ? el("q-tag").value : PROP.cover_tag_pt,
     cover_tag_en: el("q-tag-en") ? el("q-tag-en").value : PROP.cover_tag_en,
+    about_img: el("q-aboutimg") ? (el("q-aboutimg").value.trim()||null) : PROP.about_img,
+    payment_options: el("q-pgs")
+      ? el("q-pgs").value.split("\n").map(l=>l.trim()).filter(Boolean).map((l,k)=>{
+          const [pt, en] = l.split("|").map(x=>(x||"").trim());
+          return {key:"p"+k, label:pt, label_en:en||null};
+        })
+      : (PROP.payment_options||[]),
     about_pt: el("q-about") ? el("q-about").value : PROP.about_pt,
     about_en: el("q-about-en") ? el("q-about-en").value : PROP.about_en,
     credentials_pt: el("q-cred") ? el("q-cred").value : PROP.credentials_pt,
@@ -2136,6 +2213,7 @@ async function saveProposal(){
       choice_group:(r.choice_group||"").trim()||null, section:r.section||null,
       supplier:(r.supplier||"").trim()||null,
       catalog_id:r.catalog_id||null,
+      included_pt:r.included_pt||null, included_en:r.included_en||null,
       title_en:r.title_en||null, details_en:r.details_en||null,
       room_type:r.room_type||null, room_type_en:r.room_type_en||null,
       facilities:r.facilities||null, facilities_en:r.facilities_en||null,
@@ -2222,7 +2300,7 @@ function renderBriefingDoc(){
       <div class="brand">
         <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
              onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
+        <div class="logo-text" style="display:none;">TUSCAN LANDS TRAVEL</div>
         <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
       </div>
       <div class="to">
@@ -2979,7 +3057,7 @@ function renderSummary(){
       <div class="brand">
         <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
              onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
+        <div class="logo-text" style="display:none;">TUSCAN LANDS TRAVEL</div>
         <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
       </div>
       <div class="to">
@@ -3190,19 +3268,26 @@ function quoteFecho(p, t, mostra, respondida, comResumo){
 /* O bloco de envio fica fora da folha do documento: ele é formulário,
    e some na impressão. Por isso é função à parte — cada layout põe onde
    faz sentido. */
-function quoteConfirmar(t, respondida){
+/* Aqui o cliente não preenche dados de viajante: isso vem depois, na
+   order, quando a venda já existe. Nesta tela ele diz quem está
+   enviando, escolhe a forma de pagamento e confirma o interesse. */
+function quoteConfirmar(t, respondida, pagamentos){
+  const pgs = pagamentos || [];
   return `
   ${respondida?"":`
   <div class="confirm-block">
-    <h2>${t.qApproved}</h2>
+    <h2>${t.qConfirmar}</h2>
     <div class="rule"></div>
-    <div class="muted" style="margin-bottom:20px;">${t.qApprovedSub}</div>
-    <div class="grid3 fieldrow" style="margin-bottom:18px;">
+    <div class="grid2 fieldrow" style="margin-bottom:18px;">
       <div><label>${t.leadName} <span class="req">· ${t.required}</span></label><input id="qc-name"></div>
-      <div><label>${t.leadPhone}</label><input id="qc-phone"></div>
       <div><label>${t.leadEmail}</label><input id="qc-mail" type="email"></div>
     </div>
-    <div><label>${t.remarks}</label><textarea id="qc-rem" rows="3"></textarea></div>
+    ${pgs.length?`<div class="pagto">
+      <label>${t.qPayHow} <span class="req">· ${t.required}</span></label>
+      ${pgs.map((o,k)=>`<div class="check"><input type="radio" name="qc-pay" id="qc-pay-${k}"
+        value="${esc(o.label||"")}"><label for="qc-pay-${k}">${esc(o.label||"")}</label></div>`).join("")}
+    </div>`:""}
+    <div style="margin-top:16px;"><label>${t.remarks}</label><textarea id="qc-rem" rows="3"></textarea></div>
     <div class="check" style="margin-top:18px;"><input type="checkbox" id="qc-ack">
       <label for="qc-ack">${t.qAck} <span class="req">· ${t.required}</span></label></div>
     <div id="qc-msg" style="margin-top:14px;"></div>
@@ -3220,12 +3305,15 @@ function apItem(i, t, p, mostra, respondida){
     <div class="ap-corpo">
       <div class="ap-topo">
         <div>
+          ${i.service_date?`<div class="ap-data">${esc(i.service_date)}</div>`:""}
           <div class="ap-nome">${esc(i.title)}</div>
           ${i.room_type?`<div class="ap-quarto">${esc(i.room_type)}</div>`:""}
         </div>
         ${mostra?`<div class="ap-preco">${eur(i.price)}</div>`:""}
       </div>
       ${i.details?`<div class="ap-desc">${nl2br(i.details)}</div>`:""}
+      ${i.included?`<div class="ap-estrutura">
+        <div class="k">${t.qIncluded}</div>${esc(i.included)}</div>`:""}
       ${i.facilities?`<div class="ap-estrutura">
         <div class="k">${t.qFacilities}</div>${esc(i.facilities)}</div>`:""}
       ${i.website?`<div class="ap-link"><a href="${esc(i.website)}" target="_blank" rel="noopener">${t.qSite}</a></div>`:""}
@@ -3242,7 +3330,7 @@ function apItem(i, t, p, mostra, respondida){
 
 let APASSO = 0;
 function apIr(n){
-  const total = document.querySelectorAll(".ap-sec, .ap-capa-sec").length;
+  const total = document.querySelectorAll(".ap-passo").length;
   APASSO = Math.max(0, Math.min(n, total-1));
   document.querySelectorAll(".ap-passo").forEach((el,k)=>{
     el.style.display = k===APASSO ? "" : "none";
@@ -3250,6 +3338,10 @@ function apIr(n){
   document.querySelectorAll(".ap-indice nav button").forEach((b,k)=>{
     b.className = k===APASSO ? "on" : "";
   });
+  // A capa é a primeira coisa que o cliente vê: ocupa a tela inteira,
+  // sem menu ao lado. O índice entra a partir da segunda etapa.
+  const raiz = document.querySelector(".apres");
+  if(raiz) raiz.classList.toggle("na-capa", APASSO === 0);
   window.scrollTo(0,0);
 }
 function apAnda(d){ apIr(APASSO + d); }
@@ -3274,7 +3366,7 @@ function drawQuoteApresentada(){
         <div class="ap-capa-in">
           <img class="ap-logo-capa" src="${LOGO_BRANCO}" alt="Tuscan Lands"
                onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-          <div class="ap-marca-capa" style="display:none;">TUSCAN LANDS</div>
+          <div class="ap-marca-capa" style="display:none;">TUSCAN LANDS TRAVEL</div>
           ${p.cover_tag?`<div class="ap-tag">${esc(p.cover_tag)}</div>`:""}
           <h1>${esc(p.final_client||p.agency||"")}</h1>
           <div class="ap-datas">${esc(p.travel_window||"")}</div>
@@ -3287,7 +3379,6 @@ function drawQuoteApresentada(){
   const bloco = (sec, lista) => `<section class="ap-sec ap-passo" style="display:none;">
     <div class="ap-foto" ${sec && sec.photo?`style="background-image:url('${esc(sec.photo)}')"`:""}>
       <div class="ap-foto-txt">
-        <div class="ap-ey">${esc(p.travel_window||"")}</div>
         <h2>${esc(sec ? (sec.title||"") : t.qOthers)}</h2>
         ${sec && sec.note?`<div class="ap-note">${esc(sec.note)}</div>`:""}
       </div>
@@ -3313,8 +3404,8 @@ function drawQuoteApresentada(){
 
   if(p.about) passos.push({txt:t.qAbout, html:`
     <section class="ap-sec ap-passo" style="display:none;">
-      <div class="ap-foto ap-foto-sobre"><div class="ap-foto-txt">
-        <div class="ap-ey">${esc(COMPANY.legal)}</div><h2>${t.qAbout}</h2></div></div>
+      <div class="ap-foto ap-foto-sobre" ${p.about_img?`style="background-image:url('${esc(p.about_img)}')"`:""}>
+        <div class="ap-foto-txt"><h2>${t.qAbout}</h2></div></div>
       <div class="ap-lista">
         <div class="ap-sobre-txt">${fmtDoc(p.about)}</div>
         ${p.credentials?`<div class="ap-cred"><div class="k">${t.qCredentials}</div>${fmtDoc(p.credentials)}</div>`:""}
@@ -3324,10 +3415,11 @@ function drawQuoteApresentada(){
 
   passos.push({txt:t.qResumo, html:`
     <section class="ap-sec ap-fim ap-passo" style="display:none;">
-      <div class="ap-foto ap-foto-fim"><div class="ap-foto-txt">
-        <div class="ap-ey">${esc(p.crm_code||"")}</div>
-        <h2>${t.qResumo}</h2>
-        <div class="ap-note">${t.qResumoLead}</div></div></div>
+      <div class="ap-foto ap-foto-fim" style="background-image:url('${IMG_RESUMO}')">
+        <div class="ap-foto-txt">
+          <div class="ap-ey">${esc(p.crm_code||"")}</div>
+          <h2>${t.qResumo}</h2>
+          <div class="ap-note">${t.qResumoLead}</div></div></div>
       <div class="ap-lista larga">
         <div class="doc" style="box-shadow:none;padding:0;background:transparent;">
           ${tabelasPorSecao(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida))}
@@ -3337,7 +3429,7 @@ function drawQuoteApresentada(){
           ${quoteFecho(p, t, mostra, respondida, false)}
         </div>
         <div class="ap-aviso">${t.qNaoBloqueio}</div>
-        ${quoteConfirmar(t, respondida)}
+        ${quoteConfirmar(t, respondida, p.payment_options)}
         ${apNav(t, true)}
       </div>
     </section>`});
@@ -3356,7 +3448,7 @@ function drawQuoteApresentada(){
     <aside class="ap-indice noprint">
       <img class="ap-logo" src="${LOGO_BRANCO}" alt="Tuscan Lands"
            onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-      <div class="ap-marca" style="display:none;">TUSCAN LANDS</div>
+      <div class="ap-marca" style="display:none;">TUSCAN LANDS TRAVEL</div>
       <nav>${passos.map((x,k)=>`<button onclick="apIr(${k})" class="${k===0?"on":""}">${esc(x.txt)}</button>`).join("")}</nav>
       ${mostra?`<div class="ap-tot"><span>${t.qYourTotal}</span><b id="ap-total">${eur(quoteTotal())}</b></div>`:""}
     </aside>
@@ -3425,7 +3517,7 @@ function drawQuote(){
       <div class="brand">
         <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
              onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
+        <div class="logo-text" style="display:none;">TUSCAN LANDS TRAVEL</div>
         <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
       </div>
       <div class="to">
@@ -3462,7 +3554,7 @@ function drawQuote(){
 
     ${quoteFecho(p, t, mostra, respondida)}
   </div>
-  ${quoteConfirmar(t, respondida)}
+  ${quoteConfirmar(t, respondida, p.payment_options)}
   </div>`;
 
   if(!respondida) el("qc-go").onclick = submitQuote;
@@ -3482,7 +3574,7 @@ function drawQuote(){
       <div class="brand">
         <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
              onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
+        <div class="logo-text" style="display:none;">TUSCAN LANDS TRAVEL</div>
         <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
       </div>
       <div class="to">
@@ -3519,7 +3611,7 @@ function drawQuote(){
 
     ${quoteFecho(p, t, mostra, respondida)}
   </div>
-  ${quoteConfirmar(t, respondida)}
+  ${quoteConfirmar(t, respondida, p.payment_options)}
   </div>`;
 
   if(!respondida) el("qc-go").onclick = submitQuote;
@@ -3544,11 +3636,16 @@ async function submitQuote(){
   if(!Object.keys(QSEL.items).filter(k=>QSEL.items[k]).length){
     el("qc-msg").innerHTML = `<div class="msg">${t.qNeedItems}</div>`; return;
   }
+  if(document.querySelector("input[name=qc-pay]") && !document.querySelector("input[name=qc-pay]:checked")){
+    el("qc-msg").innerHTML = `<div class="msg">${t.qNeedPay}</div>`; return;
+  }
   const btn = el("qc-go"); btn.disabled = true; btn.textContent = t.sending;
   const escolhidos = Object.keys(QSEL.items).filter(k=>QSEL.items[k]);
+  const pg = document.querySelector("input[name=qc-pay]:checked");
   const {data,error} = await sb.rpc("tl_submit_quote",{p_token:QT.token, p_payload:{
     lead_name:nome, lead_email:el("qc-mail").value.trim(),
-    lead_phone:el("qc-phone").value.trim(), remarks:el("qc-rem").value.trim(),
+    lead_phone:"", remarks:el("qc-rem").value.trim(),
+    payment_choice: pg ? pg.value : null,
     items: escolhidos, extras: QSEL.extras, ack_conditions: true
   }});
   if(error || !data || !data.ok){
@@ -3652,7 +3749,7 @@ function drawPublic(){
       <div class="brand">
         <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
              onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
+        <div class="logo-text" style="display:none;">TUSCAN LANDS TRAVEL</div>
         <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
       </div>
       <div class="to">
