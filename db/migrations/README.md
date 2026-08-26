@@ -29,3 +29,4 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0006 | `0006-catalogo.sql` | catálogo de hospedagens e experiências, copiado para a proposta |
 | 0007 | `0007-quem-somos.sql` | quem somos e credenciais, na página antes do resumo |
 | 0008 | `0008-quem-somos-oficial.sql` | troca pelo texto da apresentação corporativa dela |
+| 0009 | `0009-textos-da-casa.sql` | as páginas que ela diagramou e a contracapa com os contatos |

@@ -262,9 +262,36 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-capa-in h1,.ap-tag,.ap-datas,.ap-ref{text-shadow:0 1px 12px rgba(42,42,40,.5);}
 .ap-marca{font-size:12px;letter-spacing:.24em;font-weight:500;opacity:.95;}
 .ap-indice nav{display:flex;flex-direction:column;gap:2px;overflow:auto;}
-.ap-indice nav a{color:rgba(255,255,255,.82);text-decoration:none;font-size:12.5px;
-  padding:7px 9px;border-left:2px solid transparent;line-height:1.35;}
-.ap-indice nav a:hover{color:#fff;border-left-color:rgba(255,255,255,.5);background:rgba(255,255,255,.06);}
+.ap-indice nav button{color:rgba(255,255,255,.82);font-size:12.5px;text-align:left;
+  padding:7px 9px;border:none;border-left:2px solid transparent;line-height:1.35;
+  background:none;cursor:pointer;font-family:inherit;width:100%;}
+.ap-indice nav button:hover{color:#fff;background:rgba(255,255,255,.06);}
+.ap-indice nav button.on{color:#fff;border-left-color:#fff;background:rgba(255,255,255,.1);}
+
+/* Avançar e voltar: presentes em toda etapa, para o cliente percorrer a
+   proposta inteira sem usar o botão do navegador. */
+.ap-nav{margin-top:30px;display:flex;gap:10px;justify-content:space-between;
+  border-top:1px solid var(--cream);padding-top:18px;}
+.ap-btn{background:var(--sage);color:#fff;border:1px solid var(--sage);padding:10px 20px;
+  font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:500;cursor:pointer;
+  font-family:inherit;}
+.ap-btn.ghost{background:none;color:var(--sage);}
+.ap-cta{margin-top:26px;background:none;border:1px solid rgba(255,255,255,.75);color:#fff;
+  padding:12px 24px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:500;
+  cursor:pointer;font-family:inherit;}
+.ap-cta:hover{background:rgba(255,255,255,.15);}
+.ap-aviso{margin-top:24px;border-left:2px solid var(--copper);padding-left:13px;
+  font-size:12.5px;font-weight:300;line-height:1.65;color:var(--muted);}
+/* Regra de classe simples perde para .ap-sec por vir antes no arquivo:
+   a contracapa precisa das duas classes para sair da grade de duas
+   colunas e ocupar a folha inteira. */
+.ap-sec.ap-contracapa{display:block;background:var(--cream-light);}
+.ap-sec.ap-contracapa .ap-lista{max-width:620px;margin:0 auto;text-align:center;padding:70px 30px;min-height:100vh;}
+.ap-logo-fim{width:190px;margin:0 auto 32px;display:block;}
+.ap-back{font-size:14px;font-weight:300;line-height:1.9;color:var(--ink);}
+.ap-back strong{display:block;margin-top:20px;font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--copper);font-weight:500;}
+.ap-back p{margin-bottom:2px;}
 .ap-tot{margin-top:auto;border-top:1px solid rgba(255,255,255,.25);padding-top:12px;
   display:flex;flex-direction:column;gap:3px;}
 .ap-tot span{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;opacity:.8;}
@@ -515,7 +542,10 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
      rola. */
   .ap-indice{display:none !important;}
   .apres{display:block;background:#fff;}
-  .ap-sec{display:block;break-before:page;}
+  /* No papel não há "avançar": todas as etapas saem, uma por folha. */
+  .ap-passo{display:block !important;}
+  .ap-nav,.ap-cta{display:none !important;}
+  .ap-sec,.ap-capa-sec{display:block;break-before:page;}
   .ap-foto{min-height:150px;position:static;}
   .ap-lista{padding:0;min-height:0;display:block;}
   .ap-card{break-inside:avoid;margin-bottom:16px;}
@@ -730,7 +760,9 @@ const T = {
     qSite:"Ver o site da propriedade →", qSelected:"Selecionado",
     qOthers:"Outros serviços", qItinerary:"Roteiro dia a dia", qHighlights:"Destaques",
     qExtrasDisp:"Adicionais disponíveis", qFacilities:"Estrutura", qAbout:"Sobre a Tuscan Lands", qCredentials:"Credenciais",
-    qResumoLead:"Marque abaixo os serviços que você aprova. O total é calculado automaticamente."
+    qResumoLead:"Selecione abaixo os serviços de seu interesse. O total é calculado automaticamente.",
+    qCover:"Capa", qStart:"Ver a proposta →", qNext:"Avançar", qBack:"Voltar", qContact:"Contato",
+    qNaoBloqueio:"O envio destas informações é uma confirmação de interesse e não representa bloqueio ou reserva. Nossa equipe revisa o que você selecionou, reconfirma disponibilidade com as propriedades e os fornecedores, e segue com os próximos passos até a formalização."
   },
   en:{
     docTitle:"Service Confirmation",
@@ -812,7 +844,9 @@ const T = {
     qSite:"Visit the property website →", qSelected:"Selected",
     qOthers:"Other services", qItinerary:"Day by day", qHighlights:"Highlights",
     qExtrasDisp:"Available add-ons", qFacilities:"Facilities", qAbout:"About Tuscan Lands", qCredentials:"Credentials",
-    qResumoLead:"Tick below the services you approve. The total is calculated automatically."
+    qResumoLead:"Select below the services you are interested in. The total is calculated automatically.",
+    qCover:"Cover", qStart:"View the proposal →", qNext:"Next", qBack:"Back", qContact:"Contact",
+    qNaoBloqueio:"Sending this form confirms your interest and does not hold or reserve anything. Our team reviews your selection, reconfirms availability with the properties and suppliers, and follows up with the next steps through to formalisation."
   }
 };
 
@@ -1049,7 +1083,9 @@ const MIGRACOES = [
   {id:"0007-quem-somos",            arq:"0007-quem-somos.sql",
    oque:"quem somos e credenciais, na página antes do resumo"},
   {id:"0008-quem-somos-oficial",    arq:"0008-quem-somos-oficial.sql",
-   oque:"o texto oficial da apresentação corporativa"}
+   oque:"o texto oficial da apresentação corporativa"},
+  {id:"0009-textos-da-casa",        arq:"0009-textos-da-casa.sql",
+   oque:"as páginas que ela diagramou e a contracapa"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -3204,6 +3240,20 @@ function apItem(i, t, p, mostra, respondida){
   </div>`;
 }
 
+let APASSO = 0;
+function apIr(n){
+  const total = document.querySelectorAll(".ap-sec, .ap-capa-sec").length;
+  APASSO = Math.max(0, Math.min(n, total-1));
+  document.querySelectorAll(".ap-passo").forEach((el,k)=>{
+    el.style.display = k===APASSO ? "" : "none";
+  });
+  document.querySelectorAll(".ap-indice nav button").forEach((b,k)=>{
+    b.className = k===APASSO ? "on" : "";
+  });
+  window.scrollTo(0,0);
+}
+function apAnda(d){ apIr(APASSO + d); }
+
 function drawQuoteApresentada(){
   const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
   const respondida = !!p.responded_at;
@@ -3213,37 +3263,14 @@ function drawQuoteApresentada(){
   const soltas = itens.filter(i=>!i.section || !chaves.includes(i.section));
   const dias = p.itinerary||[];
 
-  const indice = [].concat(
-    secs.map(sec=>({id:"ap-"+sec.key, txt:sec.title||sec.key})),
-    soltas.length ? [{id:"ap-outros", txt:t.qOthers}] : [],
-    dias.length ? [{id:"ap-dias", txt:t.qItinerary}] : [],
-    (p.about||p.credentials) ? [{id:"ap-sobre", txt:t.qAbout}] : [],
-    [{id:"ap-resumo", txt:t.qResumo}]
-  );
-
-  const bloco = (id, sec, lista) => `<section class="ap-sec" id="${id}">
-    <div class="ap-foto" ${sec && sec.photo?`style="background-image:url('${esc(sec.photo)}')"`:""}>
-      <div class="ap-foto-txt">
-        <div class="ap-ey">${esc(p.travel_window||"")}</div>
-        <h2>${esc(sec ? (sec.title||"") : t.qOthers)}</h2>
-        ${sec && sec.note?`<div class="ap-note">${esc(sec.note)}</div>`:""}
-      </div>
-    </div>
-    <div class="ap-lista">${lista.map(i=>apItem(i,t,p,mostra,respondida)).join("")}</div>
-  </section>`;
-
-  app.innerHTML = `
-  <div class="apres">
-    <aside class="ap-indice noprint">
-      <img class="ap-logo" src="${LOGO_BRANCO}" alt="Tuscan Lands"
-           onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-      <div class="ap-marca" style="display:none;">TUSCAN LANDS</div>
-      <nav>${indice.map(x=>`<a href="#${x.id}">${esc(x.txt)}</a>`).join("")}</nav>
-      ${mostra?`<div class="ap-tot"><span>${t.qYourTotal}</span><b id="ap-total">${eur(quoteTotal())}</b></div>`:""}
-    </aside>
-
-    <main class="ap-main">
-      <section class="ap-capa" ${p.cover_img?`style="background-image:url('${esc(p.cover_img)}')"`:""}>
+  /* Uma etapa por vez, com avançar e voltar. Rolagem contínua misturava
+     as seções e — pior — o índice mudava o endereço da página, o que o
+     hub lia como "trocar de tela" e jogava de volta no Painel. Aqui
+     ninguém mexe no endereço: a navegação é só troca de etapa. */
+  const passos = [];
+  passos.push({txt:t.qCover, html:`
+    <section class="ap-capa-sec ap-passo">
+      <div class="ap-capa" ${p.cover_img?`style="background-image:url('${esc(p.cover_img)}')"`:""}>
         <div class="ap-capa-in">
           <img class="ap-logo-capa" src="${LOGO_BRANCO}" alt="Tuscan Lands"
                onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
@@ -3252,59 +3279,101 @@ function drawQuoteApresentada(){
           <h1>${esc(p.final_client||p.agency||"")}</h1>
           <div class="ap-datas">${esc(p.travel_window||"")}</div>
           ${p.crm_code?`<div class="ap-ref">${esc(p.crm_code)}</div>`:""}
+          <button class="ap-cta" onclick="apAnda(1)">${t.qStart}</button>
         </div>
-      </section>
+      </div>
+    </section>`});
 
-      ${secs.map(sec=>bloco("ap-"+sec.key, sec, itens.filter(i=>i.section===sec.key))).join("")}
-      ${soltas.length?bloco("ap-outros", null, soltas):""}
+  const bloco = (sec, lista) => `<section class="ap-sec ap-passo" style="display:none;">
+    <div class="ap-foto" ${sec && sec.photo?`style="background-image:url('${esc(sec.photo)}')"`:""}>
+      <div class="ap-foto-txt">
+        <div class="ap-ey">${esc(p.travel_window||"")}</div>
+        <h2>${esc(sec ? (sec.title||"") : t.qOthers)}</h2>
+        ${sec && sec.note?`<div class="ap-note">${esc(sec.note)}</div>`:""}
+      </div>
+    </div>
+    <div class="ap-lista">
+      ${lista.map(i=>apItem(i,t,p,mostra,respondida)).join("")}
+      ${apNav(t)}
+    </div>
+  </section>`;
 
-      ${dias.length?`<section class="ap-sec" id="ap-dias">
-        <div class="ap-foto"><div class="ap-foto-txt"><h2>${t.qItinerary}</h2></div></div>
-        <div class="ap-lista"><table class="svc ap-dias">
-          <thead><tr><th style="width:120px;">${t.date}</th><th>${t.qHighlights}</th></tr></thead>
-          <tbody>${dias.map(d=>`<tr><td class="date-cell">${esc(d.date||"")}</td>
-            <td><ul>${(d.lines||[]).map(l=>`<li>${esc(l)}</li>`).join("")}</ul></td></tr>`).join("")}</tbody>
-        </table></div>
-      </section>`:""}
+  secs.forEach(sec=>passos.push({txt:sec.title||sec.key, html:bloco(sec, itens.filter(i=>i.section===sec.key))}));
+  if(soltas.length) passos.push({txt:t.qOthers, html:bloco(null, soltas)});
 
-      ${(p.about||p.credentials)?`<section class="ap-sec" id="ap-sobre">
-        <div class="ap-foto ap-foto-sobre">
-          <div class="ap-foto-txt">
-            <div class="ap-ey">${esc(COMPANY.legal)}</div>
-            <h2>${t.qAbout}</h2>
-          </div>
-        </div>
-        <div class="ap-lista">
-          ${p.about?`<div class="ap-sobre-txt">${nl2br(p.about)}</div>`:""}
-          ${p.credentials?`<div class="ap-cred">
-            <div class="k">${t.qCredentials}</div>
-            ${fmtDoc(p.credentials)}</div>`:""}
-        </div>
-      </section>`:""}
+  if(dias.length) passos.push({txt:t.qItinerary, html:`
+    <section class="ap-sec ap-passo" style="display:none;">
+      <div class="ap-foto"><div class="ap-foto-txt"><h2>${t.qItinerary}</h2></div></div>
+      <div class="ap-lista"><table class="svc ap-dias">
+        <thead><tr><th style="width:120px;">${t.date}</th><th>${t.qHighlights}</th></tr></thead>
+        <tbody>${dias.map(d=>`<tr><td class="date-cell">${esc(d.date||"")}</td>
+          <td><ul>${(d.lines||[]).map(l=>`<li>${esc(l)}</li>`).join("")}</ul></td></tr>`).join("")}</tbody>
+      </table>${apNav(t)}</div>
+    </section>`});
 
-      <section class="ap-sec ap-fim" id="ap-resumo">
-        <div class="ap-foto ap-foto-fim">
-          <div class="ap-foto-txt">
-            <div class="ap-ey">${esc(p.crm_code||"")}</div>
-            <h2>${t.qResumo}</h2>
-            <div class="ap-note">${t.qResumoLead}</div>
-          </div>
+  if(p.about) passos.push({txt:t.qAbout, html:`
+    <section class="ap-sec ap-passo" style="display:none;">
+      <div class="ap-foto ap-foto-sobre"><div class="ap-foto-txt">
+        <div class="ap-ey">${esc(COMPANY.legal)}</div><h2>${t.qAbout}</h2></div></div>
+      <div class="ap-lista">
+        <div class="ap-sobre-txt">${fmtDoc(p.about)}</div>
+        ${p.credentials?`<div class="ap-cred"><div class="k">${t.qCredentials}</div>${fmtDoc(p.credentials)}</div>`:""}
+        ${apNav(t)}
+      </div>
+    </section>`});
+
+  passos.push({txt:t.qResumo, html:`
+    <section class="ap-sec ap-fim ap-passo" style="display:none;">
+      <div class="ap-foto ap-foto-fim"><div class="ap-foto-txt">
+        <div class="ap-ey">${esc(p.crm_code||"")}</div>
+        <h2>${t.qResumo}</h2>
+        <div class="ap-note">${t.qResumoLead}</div></div></div>
+      <div class="ap-lista larga">
+        <div class="doc" style="box-shadow:none;padding:0;background:transparent;">
+          ${tabelasPorSecao(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida))}
+          ${mostra?`<div class="total-row"><div class="total-box">
+            <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
+           :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
+          ${quoteFecho(p, t, mostra, respondida, false)}
         </div>
-        <div class="ap-lista larga">
-          <div class="doc" style="box-shadow:none;padding:0;background:transparent;">
-            ${tabelasPorSecao(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida))}
-            ${mostra?`<div class="total-row"><div class="total-box">
-              <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
-             :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
-            ${quoteFecho(p, t, mostra, respondida, false)}
-          </div>
-          ${quoteConfirmar(t, respondida)}
-        </div>
-      </section>
-    </main>
+        <div class="ap-aviso">${t.qNaoBloqueio}</div>
+        ${quoteConfirmar(t, respondida)}
+        ${apNav(t, true)}
+      </div>
+    </section>`});
+
+  if(p.backcover) passos.push({txt:t.qContact, html:`
+    <section class="ap-sec ap-passo ap-contracapa" style="display:none;">
+      <div class="ap-lista larga">
+        <img class="ap-logo-fim" src="${LOGO}" alt="Tuscan Lands">
+        <div class="ap-back">${fmtDoc(p.backcover)}</div>
+        ${apNav(t, true)}
+      </div>
+    </section>`});
+
+  app.innerHTML = `
+  <div class="apres">
+    <aside class="ap-indice noprint">
+      <img class="ap-logo" src="${LOGO_BRANCO}" alt="Tuscan Lands"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <div class="ap-marca" style="display:none;">TUSCAN LANDS</div>
+      <nav>${passos.map((x,k)=>`<button onclick="apIr(${k})" class="${k===0?"on":""}">${esc(x.txt)}</button>`).join("")}</nav>
+      ${mostra?`<div class="ap-tot"><span>${t.qYourTotal}</span><b id="ap-total">${eur(quoteTotal())}</b></div>`:""}
+    </aside>
+    <main class="ap-main">${passos.map(x=>x.html).join("")}</main>
   </div>`;
 
   if(!respondida && el("qc-go")) el("qc-go").onclick = submitQuote;
+  apIr(APASSO);
+}
+
+/* Avançar e voltar em toda etapa: o cliente revisa a proposta inteira
+   sem sair dela e sem depender do botão do navegador. */
+function apNav(t, fim){
+  return `<div class="ap-nav noprint">
+    <button class="ap-btn ghost" onclick="apAnda(-1)">← ${t.qBack}</button>
+    ${fim?"":`<button class="ap-btn" onclick="apAnda(1)">${t.qNext} →</button>`}
+  </div>`;
 }
 
 function quoteLinha(i, t, p, mostra, respondida){
@@ -3341,6 +3410,63 @@ function quoteLinha(i, t, p, mostra, respondida){
         :`<span class="fora">${eur(i.price)}</span>`) : ""}</td>
     </tr>`;
   }
+
+function drawQuote(){
+  const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
+  const respondida = !!p.responded_at;
+
+  // A proposta apresentada troca só o corpo: capa, índice e blocos de
+  // hospedagem no lugar das tabelas. Resumo, condições e envio são os
+  // mesmos — é a mesma proposta, com outra roupa.
+  if(p.layout === "apresentada") return drawQuoteApresentada();
+
+  const cabeca = `
+    <div class="head">
+      <div class="brand">
+        <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="logo-text" style="display:none;">TUSCAN LANDS</div>
+        <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
+      </div>
+      <div class="to">
+        <div class="lbl">${t.to}</div>
+        <div class="val">${esc(p.final_client||p.agency||"")}</div>
+        ${p.crm_code?`<div class="lbl">${t.ref}</div><div class="val">${esc(p.crm_code)}</div>`:""}
+      </div>
+    </div>`;
+
+  app.innerHTML = `
+  <div class="docpad" style="padding:24px 12px;background:var(--cream);">
+  <div class="doc">
+    ${cabeca}
+
+    <h1 class="doctitle">${t.qTitle}${p.title?` · ${esc(p.title)}`:""}</h1>
+    <div class="intro" style="text-align:left;">${respondida?t.qAlready:t.qLead}</div>
+
+    <div class="meta">
+      <div class="cell"><div class="k">${t.to}</div><div class="v">${esc(p.final_client||p.agency||"—")}</div></div>
+      <div class="cell"><div class="k">${t.pax}</div><div class="v">${esc(p.pax_summary||"—")}</div></div>
+      <div class="cell"><div class="k">${t.period}</div><div class="v">${esc(p.travel_window||"—")}</div></div>
+      <div class="cell"><div class="k">${t.qTitle}</div><div class="v">v${p.version}</div></div>
+    </div>
+
+    ${p.intro?`<div class="intro">${nl2br(p.intro)}</div>`:""}
+
+    ${tabelasPorSecao(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida))}
+
+    ${mostra?`<div class="total-row"><div class="total-box">
+      <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
+     :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
+
+    ${p.payment_note?`<div class="pay-note">${nl2br(p.payment_note)}</div>`:""}
+
+    ${quoteFecho(p, t, mostra, respondida)}
+  </div>
+  ${quoteConfirmar(t, respondida)}
+  </div>`;
+
+  if(!respondida) el("qc-go").onclick = submitQuote;
+}
 
 function drawQuote(){
   const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
