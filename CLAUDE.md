@@ -205,7 +205,19 @@ A chave da Resend fica em `ops_notify_config`, com RLS ligada e **nenhuma policy
 `anon` nem `authenticated` leem. Se o e-mail falhar, a confirmação é gravada assim mesmo.
 
 Token: 32 caracteres hex, gerado no banco. Nunca usar o código TL no link.
-Campo `token_expires_at` existe e está sem uso por enquanto.
+`token_expires_at` existe na order e na proposta, e é conferido nas duas pontas — na
+função que lê e na que grava. Quem deixou a página aberta desde antes da data não passa a
+poder enviar depois: tela se contorna com o console aberto, função não. Vazio é o normal.
+
+**Apagar a resposta do cliente** devolve a proposta ao estado de não respondida e o link
+volta a aceitar envio. Serve para o teste que ela faz antes de mandar e para a agência que
+respondeu errado. Some depois que a order foi gerada: ali a resposta deixou de ser
+rascunho e virou o documento que originou uma venda.
+
+**Baixar em PDF é a caixa de impressão do navegador**, e não uma biblioteca. A folha de
+impressão já monta o documento inteiro, e no celular a mesma caixa oferece "Salvar em
+PDF". Um PDF gerado por biblioteca seria um segundo desenho para manter, divergindo
+deste no primeiro ajuste.
 
 ## Identidade visual — obrigatória em qualquer tela nova
 Vale a seção 8 do `PLANO-HUB.md`, que substituiu a regra antiga deste arquivo.
@@ -273,6 +285,12 @@ Régua de 30px em sage ou copper como acento, nunca linha de largura total.
 
 **Densidade.** Interface é ferramenta usada horas por dia: peso 400, espaçamento apertado.
 Documento que sai é outra coisa: peso 300, respiração ampla, texto justificado.
+
+**Obrigatório é um `*`, e opcional não se escreve.** Instrução dela em agosto/26. Campo
+obrigatório leva um asterisco em brown ao lado do rótulo — a palavra "obrigatório" repetida
+em cada linha do formulário pesa mais que o formulário. E "opcional" não se escreve em
+lugar nenhum: com caixinha em toda linha da proposta, a etiqueta OPCIONAL não distinguia
+mais nada. A etiqueta de **escolha** — "uma destas" — continua, porque essa informa.
 
 **Caixa alta só em rótulo curto.** Título de seção e label de uma ou duas palavras vão em
 overline maiúsculo. Pergunta inteira ao cliente, não: em caixa alta parece grito. As

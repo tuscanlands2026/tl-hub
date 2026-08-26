@@ -344,6 +344,10 @@ table.rows tr.par td{border-top:none;padding-top:0;}
   display:flex;flex-direction:column;gap:3px;}
 .ap-tot span{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;opacity:.8;}
 .ap-tot b{font-size:20px;font-weight:400;font-variant-numeric:tabular-nums;}
+.ap-baixar{margin-top:14px;width:100%;background:none;border:1px solid rgba(255,255,255,.45);
+  color:#fff;padding:9px 12px;font-family:inherit;font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;font-weight:500;cursor:pointer;}
+.ap-baixar:hover{background:rgba(255,255,255,.12);}
 
 .ap-capa{min-height:100vh;background:var(--sage) center/cover no-repeat;position:relative;
   display:flex;align-items:flex-end;}
@@ -466,6 +470,9 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .ap-indice{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;}
   .ap-indice nav{flex-direction:row;flex-wrap:wrap;}
   .ap-tot{margin:0 0 0 auto;border-top:none;padding-top:0;}
+  /* No celular o índice vira uma faixa horizontal: o botão de baixar
+     entra na faixa, ao lado do total, e não ocupa a linha inteira. */
+  .ap-baixar{margin:0 0 0 12px;width:auto;padding:7px 12px;}
   .ap-sec{grid-template-columns:1fr;}
   .ap-foto{position:static;min-height:230px;}
   .ap-lista{padding:26px 20px;min-height:0;}
@@ -642,7 +649,7 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .apres{display:block;background:#fff;}
   /* No papel não há "avançar": todas as etapas saem, uma por folha. */
   .ap-passo{display:block !important;}
-  .ap-nav,.ap-cta{display:none !important;}
+  .ap-nav,.ap-cta,.ap-baixar{display:none !important;}
   .ap-sec,.ap-capa-sec{display:block;break-before:page;}
   .ap-foto{min-height:150px;position:static;}
   .ap-lista{padding:0;min-height:0;display:block;}
@@ -811,14 +818,14 @@ const T = {
     ackVehicle:"Estou ciente do limite do volume de bagagens previsto para o tipo de veículo selecionado.",
     ackPre:"Li e aceito os ", ackLink:"termos e condições",
     ackPost:" para contratação dos serviços elencados.",
-    remarks:"Observações (opcional)",
+    remarks:"Observações",
     submit:"Enviar", sending:"Enviando…",
     doneTitle:"Confirmação recebida",
     doneText:"Agradecemos as informações. Receberemos esta confirmação por e-mail e seguiremos com a etapa do pagamento.",
     doneHelp:"Para qualquer dúvida, entre em contato conosco:",
     alreadyTitle:"Serviços já confirmados", alreadyText:"Este documento já foi confirmado. Para alterações, fale com a Tuscan Lands.",
     expired:"Este link expirou.", notFound:"Documento não encontrado.",
-    errFill:"Preencha os campos obrigatórios e aceite os termos.",
+    errFill:"Preencha os campos marcados com * e aceite os termos.",
     errMissing:"Faltam dados obrigatórios:",
     print:"Imprimir / PDF",
     required:"obrigatório",
@@ -852,8 +859,8 @@ const T = {
     qChoose:"Selecionar", qYourTotal:"Seu total",
     qNeedItems:"Selecione ao menos um serviço para enviar.",
     qWho:"Quem está respondendo", qSend:"Enviar escolha",
-    qDone:"Escolha recebida",
-    qDoneText:"Agradecemos. Vamos reconfirmar os serviços com os fornecedores e voltamos com a confirmação e o pagamento.",
+    qDone:"",
+    qDoneText:"Obrigada pelas informações. Vamos reconfirmar todas as condições e disponibilidade, e entraremos em contato para alinharmos os próximos passos — etapa de booking e pagamento.",
     qAlready:"Esta proposta já foi respondida.",
     qNoPrices:"Os valores serão informados em seguida.",
     qNeedName:"Informe o seu nome para enviar.",
@@ -877,6 +884,7 @@ const T = {
     qConfirmar:"Confirmar interesse", qPayHow:"Forma de pagamento preferida",
     qNeedPay:"Escolha a forma de pagamento para enviar.",
     qCover:"Capa", qPropMenu:"Proposta", qStart:"Ver a proposta →", qNext:"Avançar", qBack:"Voltar", qContact:"Contato",
+    qDownload:"Baixar em PDF",
     qNaoBloqueio:"O envio destas informações é uma confirmação de interesse e não representa bloqueio ou reserva. Nossa equipe revisa o que você selecionou, reconfirma disponibilidade com as propriedades e os fornecedores, e segue com os próximos passos até a formalização."
   },
   en:{
@@ -899,14 +907,14 @@ const T = {
     ackVehicle:"I am aware of the luggage volume limit for the type of vehicle selected.",
     ackPre:"I have read and accept the ", ackLink:"terms and conditions",
     ackPost:" for the services listed.",
-    remarks:"Remarks (optional)",
+    remarks:"Remarks",
     submit:"Send", sending:"Sending…",
     doneTitle:"Confirmation received",
     doneText:"Thank you for the information. We will receive this confirmation by email and will proceed with the payment stage.",
     doneHelp:"For any questions, please contact us:",
     alreadyTitle:"Already confirmed", alreadyText:"This document has already been confirmed. For changes, contact Tuscan Lands.",
     expired:"This link has expired.", notFound:"Document not found.",
-    errFill:"Please fill in the required fields and accept the terms.",
+    errFill:"Please fill in the fields marked with * and accept the terms.",
     errMissing:"Required information is missing:",
     print:"Print / PDF",
     required:"required",
@@ -940,8 +948,8 @@ const T = {
     qChoose:"Select", qYourTotal:"Your total",
     qNeedItems:"Please select at least one service before sending.",
     qWho:"Who is answering", qSend:"Send selection",
-    qDone:"Selection received",
-    qDoneText:"Thank you. We will reconfirm the services with the suppliers and come back with the confirmation and payment.",
+    qDone:"",
+    qDoneText:"Thank you for the information. We will reconfirm all conditions and availability, and will be in touch to align the next steps — booking and payment.",
     qAlready:"This proposal has already been answered.",
     qNoPrices:"Prices will follow shortly.",
     qNeedName:"Please give your name to send.",
@@ -965,6 +973,7 @@ const T = {
     qConfirmar:"Confirm your interest", qPayHow:"Preferred payment method",
     qNeedPay:"Please choose a payment method before sending.",
     qCover:"Cover", qPropMenu:"Proposal", qStart:"View the proposal →", qNext:"Next", qBack:"Back", qContact:"Contact",
+    qDownload:"Download as PDF",
     qNaoBloqueio:"Sending this form confirms your interest and does not hold or reserve anything. Our team reviews your selection, reconfirms availability with the properties and suppliers, and follows up with the next steps through to formalisation."
   }
 };
@@ -1216,7 +1225,9 @@ const MIGRACOES = [
   {id:"0014-unidades-e-extras",     arq:"0014-unidades-e-extras.sql",
    oque:"valor por acomodação, extras em grupo próprio e o aviso no booking"},
   {id:"0015-proposta-nasce-preenchida", arq:"0015-proposta-nasce-preenchida.sql",
-   oque:"proposta nova já nasce com o texto e as fotos da casa"}
+   oque:"proposta nova já nasce com o texto e as fotos da casa"},
+  {id:"0016-prazo-do-link",         arq:"0016-prazo-do-link.sql",
+   oque:"o link da proposta para de abrir depois da data que você marcar"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -1515,7 +1526,7 @@ async function renderOpportunities(){
       <div class="section-title">Nova oportunidade</div>
       <div class="grid3">
         <div><label>Título</label><input id="o-title" placeholder="Família Souza · out 2026"></div>
-        <div><label>Nº no CRM (opcional)</label><input id="o-crm" placeholder="TL035-26"></div>
+        <div><label>Nº no CRM</label><input id="o-crm" placeholder="TL035-26"></div>
         <div><label>Idioma</label><select id="o-lang">
           <option value="pt">Português</option><option value="en">English</option></select></div>
       </div>
@@ -1918,6 +1929,10 @@ function renderProposal(){
         <option value="sim"${p.show_prices!==false?" selected":""}>Sim</option>
         <option value="nao"${p.show_prices===false?" selected":""}>Não — só os serviços</option></select></div>
       <div><label>Link dos termos</label><input id="q-terms" value="${esc(p.terms_url||"")}" placeholder="${DEFAULT_TERMS_URL}"></div>
+      <div><label>Link válido até</label>
+        <input type="date" id="q-exp" value="${p.token_expires_at?p.token_expires_at.slice(0,10):""}">
+        <div class="hint" style="margin-top:5px;">Em branco, o link não expira. Com data, depois
+          dela a página diz que o link expirou e o envio é recusado.</div></div>
     </div>
     <div class="grid3">
       <div><label>Formato</label><select id="q-layout" onchange="PROP.layout=this.value;renderProposal()">
@@ -1932,7 +1947,7 @@ function renderProposal(){
       <input value="${esc(p[campoP("cover_tag")]||"")}" placeholder="Selected Stays · Toscana"
         oninput="PROP.${campoP("cover_tag")}=this.value">
     </div>`:""}
-    <div><label>Texto de abertura (opcional)</label>
+    <div><label>Texto de abertura</label>
       <textarea id="q-intro" rows="2" placeholder="A instrução de selecionar os serviços já sai sozinha. Isto é acréscimo.">${esc(p.intro||"")}</textarea></div>
     <div><label>Observação de pagamento — logo abaixo do total</label>
       <textarea id="q-paynote" rows="2">${esc(p.payment_note||"")}</textarea></div>
@@ -2469,6 +2484,8 @@ function guardaCampos(){
   PROP.intro = el("q-intro").value;
   PROP.payment_note = el("q-paynote").value;
   PROP.internal_notes = el("q-internal").value;
+  if(el("q-exp")) PROP.token_expires_at = el("q-exp").value
+    ? new Date(el("q-exp").value + "T23:59:59").toISOString() : null;
   if(el("q-cover"))    PROP.cover_img = el("q-cover").value.trim() || null;
   if(el("q-aboutimg")) PROP.about_img = el("q-aboutimg").value.trim() || null;
   if(el("q-backimg"))  PROP.backcover_img = el("q-backimg").value.trim() || null;
@@ -2490,6 +2507,7 @@ async function saveProposal(){
     layout: PROP.layout || "tabela", cover_img: PROP.cover_img,
     cover_tag_pt: PROP.cover_tag_pt, cover_tag_en: PROP.cover_tag_en,
     backcover_pt: PROP.backcover_pt, backcover_en: PROP.backcover_en,
+    token_expires_at: PROP.token_expires_at || null,
     about_img: el("q-aboutimg") ? (el("q-aboutimg").value.trim()||null) : PROP.about_img,
     backcover_img: el("q-backimg") ? (el("q-backimg").value.trim()||null) : PROP.backcover_img,
     labels: PROP.labels || {},
@@ -2548,24 +2566,47 @@ function drawSelection(){
     <table class="rows" style="margin-top:14px;"><tbody>
       ${linhas.map(l=>`<tr>
         <td style="width:26px;padding:3px 6px 3px 0;">${l.chosen?"✓":`<span class="req">✕</span>`}</td>
-        <td style="padding:3px 10px 3px 0;">${esc(l.title)}${l.optional?` <span class="muted">(opcional)</span>`:""}
+        <td style="padding:3px 10px 3px 0;">${esc(l.title)}
           ${l.chosen && l.supplier?`<br><span style="color:var(--brown);font-size:12px;">${esc(l.supplier)}</span>`:""}
           ${(l.extras||[]).map(e=>`<br><span style="color:var(--copper);font-size:12px;">+ ${esc(e.label_pt||e.key)}</span>`).join("")}</td>
         <td style="text-align:right;padding:3px 0;">${l.chosen && PROP.show_prices!==false ? eur(l.price) : ""}</td>
       </tr>`).join("")}
     </tbody></table>
     ${PSEL.remarks?`<div style="margin-top:12px;"><label>Observações</label><div class="muted">${nl2br(PSEL.remarks)}</div></div>`:""}
-    <div style="margin-top:18px;">
+    <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
       ${PSEL.order_id
         ? `<button class="btn sm" id="qs-open">Abrir a order gerada</button>`
         : `<button class="btn sm" id="qs-gen">Reconfirmei — gerar order</button>`}
+      ${PSEL.order_id ? "" : `<button class="btn ghost sm" id="qs-del">Apagar esta resposta</button>`}
     </div>
     <div class="hint" style="margin-top:7px;">${PSEL.order_id
       ? "A order já foi gerada a partir desta resposta."
       : "Gera a order em rascunho com o que ele escolheu, e marca esta proposta como aceita. Faça depois de reconfirmar os serviços com os fornecedores — o fornecedor de cada linha vai escrito abaixo dela."}</div>`;
 
   if(el("qs-gen")) el("qs-gen").onclick = gerarOrder;
+  if(el("qs-del")) el("qs-del").onclick = apagarResposta;
   if(el("qs-open")) el("qs-open").onclick = () => openOrder(PSEL.order_id);
+}
+
+/* Apagar a resposta devolve a proposta ao estado de quem ainda não
+   respondeu: o link volta a aceitar envio. Serve para o teste que ela
+   faz antes de mandar, e para o caso de a agência responder errado e
+   pedir para refazer.
+
+   Não aparece depois que a order foi gerada: ali a resposta deixou de
+   ser um rascunho e virou o documento que originou uma venda. */
+async function apagarResposta(){
+  if(!confirm(`Apagar a resposta de ${PSEL.lead_name||"o cliente"}?\n\n`
+    + `A proposta volta a constar como não respondida e o link aceita um novo envio. `
+    + `Isto não se desfaz.`)) return;
+  const btn = el("qs-del"); btn.disabled = true; btn.textContent = "Apagando…";
+  const {error:e1} = await sb.from("ops_proposal_selections").delete().eq("id", PSEL.id);
+  if(e1){ btn.disabled=false; btn.textContent="Apagar esta resposta"; return alert(explicar(e1)); }
+  const {error:e2} = await sb.from("ops_proposals")
+    .update({responded_at:null, updated_at:new Date().toISOString()}).eq("id", PROP.id);
+  if(e2){ btn.disabled=false; btn.textContent="Apagar esta resposta"; return alert(explicar(e2)); }
+  PSEL = null; PROP.responded_at = null;
+  drawSelection();
 }
 
 async function gerarOrder(){
@@ -2702,7 +2743,7 @@ function renderEditor(){
       </select></div>
     </div>
     <div>
-      <label>Link dos termos e condições (opcional)</label>
+      <label>Link dos termos e condições</label>
       <div class="linkbox" style="margin-top:0;">
         <input id="f-terms" value="${esc(o.terms_url||"")}" placeholder="${DEFAULT_TERMS_URL}">
         <button class="btn ghost sm" id="tu-std">Usar o padrão</button>
@@ -2711,7 +2752,7 @@ function renderEditor(){
         “termos e condições” do aceite. <b>Vazio vale o padrão</b> — só preencha para uma venda com condição própria.
         O texto integral continua dentro do documento: o link é acréscimo, não substituição.</div>
     </div>
-    <div><label>Texto de abertura (opcional)</label><textarea id="f-intro" rows="3">${esc(o.intro||"")}</textarea></div>
+    <div><label>Texto de abertura</label><textarea id="f-intro" rows="3">${esc(o.intro||"")}</textarea></div>
     <div><label>Notas internas — nunca aparecem para o cliente</label><textarea id="f-notes" rows="2">${esc(o.internal_notes||"")}</textarea></div>
   </div>
 
@@ -3450,6 +3491,7 @@ async function renderQuote(token){
   app.innerHTML = `<div class="done"><div class="muted">…</div></div>`;
   const {data,error} = await sb.rpc("tl_get_quote",{p_token:token});
   if(error || !data) return app.innerHTML = message(T.pt.notFound);
+  if(data.expired) return app.innerHTML = message(T.pt.expired);
   QT = data; QT.token = token;
   QSEL = {items:{}, extras:{}, units:{}};
   drawQuote();
@@ -3620,17 +3662,17 @@ function quoteConfirmar(t, respondida, pagamentos, p){
     <h2>${L("confirm",t.qConfirmar)}</h2>
     <div class="rule"></div>
     <div class="grid2 fieldrow" style="margin-bottom:18px;">
-      <div><label>${t.leadName} <span class="req">· ${t.required}</span></label><input id="qc-name"></div>
+      <div><label>${t.leadName} <span class="req">*</span></label><input id="qc-name"></div>
       <div><label>${t.leadEmail}</label><input id="qc-mail" type="email"></div>
     </div>
     ${pgs.length?`<div class="pagto">
-      <label>${L("pay",t.qPayHow)} <span class="req">· ${t.required}</span></label>
+      <label>${L("pay",t.qPayHow)} <span class="req">*</span></label>
       ${pgs.map((o,k)=>`<div class="check"><input type="radio" name="qc-pay" id="qc-pay-${k}"
         value="${esc(o.label||"")}"><label for="qc-pay-${k}">${esc(o.label||"")}</label></div>`).join("")}
     </div>`:""}
     <div style="margin-top:16px;"><label>${t.remarks}</label><textarea id="qc-rem" rows="3"></textarea></div>
     <div class="check" style="margin-top:18px;"><input type="checkbox" id="qc-ack">
-      <label for="qc-ack">${t.qAck} <span class="req">· ${t.required}</span></label></div>
+      <label for="qc-ack">${t.qAck} <span class="req">*</span></label></div>
     <div id="qc-msg" style="margin-top:14px;"></div>
     <button class="btn" id="qc-go" style="margin-top:16px;">${t.qSend}</button>
   </div>`}`;
@@ -3654,7 +3696,7 @@ function apItem(i, t, p, mostra, respondida){
       </div>
       ${(i.units||[]).length?`<div class="ap-unidades">
         ${(i.units||[]).map(u=>`<div class="ap-unidade">
-          <span>${esc(u.label||"")}${u.optional?` <em>${t.qOptional}</em>`:""}</span>
+          <span>${esc(u.label||"")}</span>
           ${mostra?`<b>${eur(u.price)}</b>`:""}</div>`).join("")}
       </div>`:""}
       ${i.details?`<div class="ap-desc">${nl2br(i.details)}</div>`:""}
@@ -3812,6 +3854,7 @@ function drawQuoteApresentada(){
       <div class="ap-marca" style="display:none;">TUSCAN LANDS TRAVEL</div>
       <nav>${passos.map((x,k)=>`<button onclick="apIr(${k})" class="${k===0?"on":""}">${esc(x.txt)}</button>`).join("")}</nav>
       ${mostra?`<div class="ap-tot"><span>${t.qYourTotal}</span><b id="ap-total">${eur(quoteTotal())}</b></div>`:""}
+      <button class="ap-baixar" onclick="baixarProposta()">${t.qDownload}</button>
     </aside>
     <main class="ap-main">${passos.map(x=>x.html).join("")}</main>
   </div>`;
@@ -3819,6 +3862,13 @@ function drawQuoteApresentada(){
   if(!respondida && el("qc-go")) el("qc-go").onclick = submitQuote;
   apIr(APASSO);
 }
+
+/* Baixar é a caixa de impressão do navegador, e não uma biblioteca de
+   PDF: a folha de impressão já monta o documento inteiro, uma etapa por
+   folha, e no celular a mesma caixa oferece "Salvar em PDF" ou o menu
+   de compartilhar. Um PDF gerado por biblioteca seria um segundo
+   desenho para manter, divergindo deste no primeiro ajuste. */
+function baixarProposta(){ window.print(); }
 
 /* Avançar e voltar em toda etapa: o cliente revisa a proposta inteira
    sem sair dela e sem depender do botão do navegador. */
@@ -3836,8 +3886,7 @@ function quoteLinha(i, t, p, mostra, respondida){
       <td class="date-cell">${esc(i.service_date||"")}</td>
       <td>
         <div class="svc-title">${esc(i.title)}
-          ${i.choice_group?`<span class="tag" style="margin-left:6px;">${t.qPick}</span>`
-            :(i.optional?`<span class="tag" style="margin-left:6px;">${t.qOptional}</span>`:"")}</div>
+          ${i.choice_group?`<span class="tag" style="margin-left:6px;">${t.qPick}</span>`:""}</div>
         ${i.details?`<div class="svc-sub">${nl2br(i.details)}</div>`:""}
         ${respondida ? "" : (i.choice_group ? `<div class="check" style="margin:8px 0 0;">
           <input type="radio" name="cg-${esc(i.choice_group)}" id="qi-${esc(i.id)}"
@@ -3856,8 +3905,7 @@ function quoteLinha(i, t, p, mostra, respondida){
                    onchange="marcaUnidade('${esc(i.id)}','${esc(u.key)}',this.checked)">
                  <label for="qu-${esc(i.id)}-${esc(u.key)}">${esc(u.label||"")}</label></span>
                ${mostra?`<b>${eur(u.price)}</b>`:""}</div>`
-            : `<div class="unid${(u.optional && !unidadeDentro(i,u))?" fora":""}"><span>${esc(u.label||"")}${
-                 u.optional?` <em>${t.qOptional}</em>`:""}</span>
+            : `<div class="unid${(u.optional && !unidadeDentro(i,u))?" fora":""}"><span>${esc(u.label||"")}</span>
                ${mostra?`<b>${eur(u.price)}</b>`:""}</div>`).join("")}
         </div>`:""}
         ${(i.extras||[]).length && dentro && !respondida ? `<div class="extras-cli">
@@ -4032,7 +4080,8 @@ async function submitQuote(){
     btn.disabled = false; btn.textContent = t.qSend; return;
   }
   app.innerHTML = `<div class="done">
-    <h2>${t.qDone}</h2><div class="rule" style="margin:0 auto 18px;"></div>
+    ${t.qDone?`<h2>${t.qDone}</h2>`:""}
+    <div class="rule" style="margin:0 auto 18px;"></div>
     <div class="muted" style="font-size:14px;">${t.qDoneText}</div>
     <div class="muted" style="margin-top:14px;">${t.doneHelp}
       <a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></div></div>`;
@@ -4086,13 +4135,13 @@ function pubField(f, t){
   else if(f.input_type==="checkbox")
     input = `<div class="check" style="margin:0;"><input type="checkbox" id="fx-${esc(f.field_key)}"${v==="true"?" checked":""}
       onchange="FLD['${k}']=this.checked?'true':'false'">
-      <label for="fx-${esc(f.field_key)}">${esc(lbl)}${f.required?` <span class="req">· ${t.required}</span>`:""}</label></div>`;
+      <label for="fx-${esc(f.field_key)}">${esc(lbl)}${f.required?` <span class="req">*</span>`:""}</label></div>`;
   else
     input = `<input type="${f.input_type==="number"?"number":(f.input_type==="date"?"date":"text")}" value="${esc(v)}" ${set}>`;
 
   return `<div class="fld">
     ${f.input_type==="checkbox" ? input :
-      `<label class="q">${esc(lbl)}${f.required?` <span class="req">· ${t.required}</span>`:""}</label>${input}`}
+      `<label class="q">${esc(lbl)}${f.required?` <span class="req">*</span>`:""}</label>${input}`}
     ${f.mode==="prefilled"?`<div class="pre">${t.prefilled}</div>`:""}
     ${(PUB.order.lang==="en"?f.help_en:f.help_pt)?`<div class="muted" style="margin-top:3px;">${esc(PUB.order.lang==="en"?f.help_en:f.help_pt)}</div>`:""}
   </div>`;
@@ -4191,7 +4240,7 @@ function drawPublic(){
       passportNames(o)?` <b>${t.passportNote}</b>`:""}</div>`:""}
 
     ${bTrav!=="off"?`
-    <div class="section-title">${t.travellers} <span class="req">· ${t.required}</span></div>
+    <div class="section-title">${t.travellers} <span class="req">*</span></div>
     <div id="tv-host" style="margin-bottom:8px;"></div>
     <button class="btn ghost sm" id="tv-add" style="margin-bottom:22px;">${t.addTraveller}</button>`:""}
 
@@ -4199,9 +4248,9 @@ function drawPublic(){
     <div class="section-title">${t.lead}</div>
     <div class="muted" style="margin-bottom:12px;">${t.leadIntro}</div>
     <div class="grid3 fieldrow" style="margin-bottom:20px;">
-      <div><label>${t.leadName} <span class="req">· ${t.required}</span></label>
+      <div><label>${t.leadName} <span class="req">*</span></label>
         <input id="c-name" value="${bLead==="prefilled"?esc(p.lead_name||""):""}"></div>
-      <div><label>${t.leadPhone} <span class="req">· ${t.required}</span></label>
+      <div><label>${t.leadPhone} <span class="req">*</span></label>
         <input id="c-phone" value="${bLead==="prefilled"?esc(p.lead_phone||""):""}"></div>
       <div><label>${t.leadEmail}</label>
         <input id="c-mail" type="email" value="${bLead==="prefilled"?esc(p.lead_email||""):""}"></div>
@@ -4213,11 +4262,11 @@ function drawPublic(){
 
     <div style="margin-top:24px;"></div>
     ${bVeh!=="off"?`<div class="check"><input type="checkbox" id="c-veh">
-      <label for="c-veh">${t.ackVehicle} <span class="req">· ${t.required}</span></label></div>`:""}
+      <label for="c-veh">${t.ackVehicle} <span class="req">*</span></label></div>`:""}
     <div class="check"><input type="checkbox" id="c-terms">
       <span id="c-terms-txt" class="checktext">${t.ackPre}${termsHref(o)
         ? `<a href="${esc(termsHref(o))}" target="_blank" rel="noopener">${t.ackLink}</a>`
-        : `<u>${t.ackLink}</u>`}${t.ackPost} <span class="req">· ${t.required}</span></span></div>
+        : `<u>${t.ackLink}</u>`}${t.ackPost} <span class="req">*</span></span></div>
 
     ${bRem!=="off"?`<div style="margin-top:16px;"><label>${t.remarks}</label><textarea id="c-rem" rows="3"></textarea></div>`:""}
 
