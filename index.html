@@ -600,6 +600,12 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .extras-cli .k{font-size:10px;letter-spacing:.18em;text-transform:uppercase;
   color:var(--copper);font-weight:500;margin-bottom:6px;}
 .extras-box{border-left:2px solid var(--copper);padding-left:10px;margin-top:8px;}
+.anexos-box{border-left:2px solid var(--cream);padding-left:12px;margin-top:4px;}
+.anexo-linha{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:3px 0;}
+.anexo-linha a{color:var(--copper);text-decoration:underline;text-underline-offset:2px;}
+.anexo-acoes{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.anexo-lbl{position:relative;overflow:hidden;display:inline-block;cursor:pointer;}
+.anexo-lbl input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;}
 .extra-row{display:grid;grid-template-columns:1fr 1fr 90px 30px;gap:6px;margin-bottom:5px;align-items:center;}
 .extra-row.unid-row{grid-template-columns:1fr 1fr 90px 76px 30px;}
 .extra-row .mini{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);
@@ -2383,10 +2389,8 @@ function drawQuoteItems(){
           <textarea rows="2" style="font-size:12px;" placeholder="https://…"
             oninput="PITEMS[${i}].photos=this.value.split('\n').map(x=>x.trim()).filter(Boolean)"
             >${esc((r.photos||[]).join("\n"))}</textarea>
-          <label style="margin-top:8px;">Anexos — nome e link, um por linha, separados por |</label>
-          <textarea rows="2" style="font-size:12px;" placeholder="Planimetria.pdf | https://…"
-            oninput="PITEMS[${i}].attachments=this.value.split('\n').map(x=>x.split('|')).filter(a=>a[1]).map(a=>({name:a[0].trim(),url:a[1].trim()}))"
-            >${esc((r.attachments||[]).map(a=>(a.name||"")+" | "+(a.url||"")).join("\n"))}</textarea>
+          <label style="margin-top:8px;">Anexos — planimetria, ficha do hotel</label>
+          ${anexoCampo(r, i)}
         </div>`:""}
         <div class="extras-box">
           <label style="margin-top:8px;">Extras desta linha</label>
@@ -2515,10 +2519,8 @@ function drawItensApresentada(){
       oninput="PITEMS[${i}].photos=this.value.split('\n').map(x=>x.trim()).filter(Boolean)"
       >${esc((r.photos||[]).join("\n"))}</textarea>
 
-    <label style="margin-top:10px;">Anexos \u2014 nome e link, um por linha, separados por |</label>
-    <textarea rows="2" placeholder="Planimetria.pdf | https://\u2026"
-      oninput="PITEMS[${i}].attachments=this.value.split('\n').map(x=>x.split('|')).filter(a=>a[1]).map(a=>({name:a[0].trim(),url:a[1].trim()}))"
-      >${esc((r.attachments||[]).map(a=>(a.name||"")+" | "+(a.url||"")).join("\n"))}</textarea>
+    <label style="margin-top:10px;">Anexos \u2014 planimetria, ficha do hotel</label>
+    ${anexoCampo(r, i)}
 
     <div class="extras-box">
       <label style="margin-top:10px;">Acomoda\u00e7\u00f5es desta linha \u2014 cada uma com o seu valor</label>
@@ -2557,6 +2559,82 @@ function drawItensApresentada(){
 
 /* Chave estável por linha: o cliente marca por chave, e renomear o
    rótulo depois não faz a escolha dele apontar para outro extra. */
+/* ANEXO É ARQUIVO, E NÃO LINK.
+   O campo era "nome | endereço", e ela tem o PDF da planimetria no
+   computador, não hospedado em lugar nenhum — então o anexo nunca
+   aparecia na proposta do cliente. O arquivo sobe para o Storage do
+   Supabase, no balde ops-anexos, e o que fica gravado na linha é o
+   endereço público dele, do mesmo jeito que era antes. Colar um link
+   continua funcionando, para o caso do arquivo já estar em outro lugar. */
+const BALDE = "ops-anexos";
+
+function anexoCampo(r, i){
+  const lista = (r.attachments||[]).filter(a=>a&&a.url);
+  return `<div class="anexos-box">
+    ${lista.map((a,j)=>`<div class="anexo-linha">
+      <a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.name||"arquivo")}</a>
+      <button class="iconbtn" title="Remover"
+        onclick="PITEMS[${i}].attachments.splice(${j},1);drawQuoteItems()">×</button>
+    </div>`).join("")}
+    <div class="anexo-acoes">
+      <label class="btn ghost sm anexo-lbl">Escolher arquivo
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+          onchange="subirAnexo(${i}, this)"></label>
+      <button class="btn ghost sm" onclick="anexoPorLink(${i})">Colar um link</button>
+      <span class="hint" id="anx-${i}"></span>
+    </div>
+  </div>`;
+}
+
+function anexoPorLink(i){
+  const url = prompt("Endereço do arquivo (https://…)");
+  if(!url || !/^https?:\/\//i.test(url.trim())) return;
+  const nome = prompt("Como chamar este anexo?", "Planimetria.pdf") || "Arquivo";
+  PITEMS[i].attachments = (PITEMS[i].attachments||[]).concat([{name:nome.trim(), url:url.trim()}]);
+  drawQuoteItems();
+}
+
+async function subirAnexo(i, input){
+  const f = input.files && input.files[0];
+  if(!f) return;
+  const aviso = el("anx-"+i);
+  if(f.size > 10*1024*1024){
+    input.value = "";
+    return alert("Arquivo de " + Math.round(f.size/1048576) + " MB. O limite é 10 MB — "
+      + "comprima o PDF ou mande a planimetria em uma página só.");
+  }
+  if(aviso) aviso.textContent = "Enviando…";
+  // Nome sem acento, espaço nem sinal: chave de Storage não aceita.
+  const limpo = f.name.normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^A-Za-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"").slice(-60) || "arquivo";
+  const caminho = (PROP.id || "sem-proposta") + "/" + Date.now() + "-" + limpo;
+  const {error} = await sb.storage.from(BALDE).upload(caminho, f, {upsert:false});
+  input.value = "";
+  if(error){
+    if(aviso) aviso.textContent = "";
+    return alert(explicarAnexo(error));
+  }
+  const {data} = sb.storage.from(BALDE).getPublicUrl(caminho);
+  PITEMS[i].attachments = (PITEMS[i].attachments||[]).concat([{name:f.name, url:data.publicUrl}]);
+  if(aviso) aviso.textContent = "";
+  drawQuoteItems();
+  alert("Arquivo anexado. Clique em Salvar para gravar na proposta.");
+}
+
+/* O balde é criado uma vez por ela, no painel do Supabase. Se não
+   existir, a mensagem crua não diz o que fazer. */
+function explicarAnexo(err){
+  const m = (err && (err.message||err.error||"")) + "";
+  if(/not found|does not exist|bucket/i.test(m))
+    return "O balde de arquivos ainda não existe.\n\nNo painel do Supabase: Storage → "
+      + "New bucket → nome \"" + BALDE + "\", marque Public bucket → Save. "
+      + "Depois volte aqui e anexe de novo.";
+  if(/policy|permission|denied|unauthorized/i.test(m))
+    return "O balde \"" + BALDE + "\" existe mas não aceita envio.\n\n"
+      + "No painel do Supabase: Storage → " + BALDE + " → Configuration → marque Public bucket.";
+  return m || "Não consegui enviar o arquivo.";
+}
+
 function addExtra(i){
   const usadas = (PITEMS[i].extras||[]).map(e=>e.key);
   const base = ["transport","host","guide"].find(k=>!usadas.includes(k));

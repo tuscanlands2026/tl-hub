@@ -221,6 +221,18 @@ volta a aceitar envio. Serve para o teste que ela faz antes de mandar e para a a
 respondeu errado. Some depois que a order foi gerada: ali a resposta deixou de ser
 rascunho e virou o documento que originou uma venda.
 
+**Anexo é arquivo, e não link.** O campo era "nome | endereço", e o PDF da planimetria está
+no computador dela, não hospedado em lugar nenhum — o anexo nunca aparecia na proposta do
+cliente. O arquivo sobe pelo hub para o Storage do Supabase, balde **`ops-anexos`**, e o que
+fica gravado em `ops_proposal_items.attachments` continua sendo `{name, url}`: nada mudou
+para quem lê. Colar um link continua existindo, para o arquivo que já mora em outro lugar.
+Limite de 10 MB, e a chave do arquivo é higienizada — Storage não aceita acento nem espaço.
+
+O balde é **público de leitura**, como o link da proposta: quem tem o endereço abre, sem
+login. É a mesma exposição do documento que o anexo acompanha. O balde se cria uma vez no
+painel do Supabase (Storage → New bucket → `ops-anexos` → Public); se não existir, o hub
+explica o passo em vez de mostrar erro cru.
+
 **Baixar em PDF é a caixa de impressão do navegador**, e não uma biblioteca. O "Salvar em
 PDF" do Chrome é vetorial: o texto não perde qualidade e as fotos vão na resolução do
 arquivo. Um PDF gerado por biblioteca seria rasterizado e, pior, um segundo desenho para
