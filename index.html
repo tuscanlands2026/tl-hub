@@ -1214,7 +1214,9 @@ const MIGRACOES = [
   {id:"0013-contracapa-com-foto",   arq:"0013-contracapa-com-foto.sql",
    oque:"a última página com foto de fundo, do tamanho da tela"},
   {id:"0014-unidades-e-extras",     arq:"0014-unidades-e-extras.sql",
-   oque:"valor por acomodação, extras em grupo próprio e o aviso no booking"}
+   oque:"valor por acomodação, extras em grupo próprio e o aviso no booking"},
+  {id:"0015-proposta-nasce-preenchida", arq:"0015-proposta-nasce-preenchida.sql",
+   oque:"proposta nova já nasce com o texto e as fotos da casa"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -1959,6 +1961,8 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
 
     <div>
       <label>Foto do "Sobre nós" — link</label>
+      <div class="hint" style="margin:0 0 7px;">Vem preenchida com a foto da casa. Toda proposta
+        nova nasce com ela; o que você trocar aqui vale só para esta proposta.</div>
       <input id="q-aboutimg" value="${esc(p.about_img||"")}" placeholder="https://…">
     </div>
 
@@ -1972,8 +1976,9 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
       <label style="margin-top:12px;">Contracapa — contatos, última tela</label>
       <textarea rows="6" oninput="PROP.${campoP("backcover")}=this.value">${esc(p[campoP("backcover")]||"")}</textarea>
       <label style="margin-top:12px;">Foto de fundo da contracapa — link</label>
-      <div class="hint" style="margin:0 0 7px;">Ocupa a tela inteira, como a capa. Em branco, a
-        contracapa sai em creme, com o logo terracota.</div>
+      <div class="hint" style="margin:0 0 7px;">Ocupa a tela inteira, como a capa. Vem preenchida
+        com a foto da casa, e toda proposta nova nasce com ela. Em branco, a contracapa sai em
+        creme, com o logo terracota.</div>
       <input id="q-backimg" value="${esc(p.backcover_img||"")}" placeholder="https://…">
     </div>`:""}
 

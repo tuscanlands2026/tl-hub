@@ -234,6 +234,17 @@ apresentada. Testado sobre os quatro fundos: terracota some no sage e branco som
 Existe uma terceira, verde (`livorno`), sem uso: sobre creme ela é mais fraca que a
 terracota e sobre sage não aparece.
 
+**Proposta nova nasce preenchida, e o preenchimento vive no banco.** O gatilho
+`tl_proposal_defaults` copia de `ops_text_defaults` para a proposta, no insert, o que veio
+vazio: sobre nós, credenciais, contracapa, condições e as duas fotos fixas. É no banco
+porque a tela é um caminho entre vários — o exemplo em SQL, a duplicação, uma correção no
+painel. **Só no insert e sempre cópia**: mudar o padrão depois não reescreve proposta já
+enviada, e o que ela escreveu na proposta ganha do padrão.
+
+**As fotos do "Sobre nós" e da contracapa são fixas** — instrução dela em agosto/26,
+"sempre essa foto". Ficam no padrão da casa e descem para toda proposta nova. O campo
+continua no editor para o caso de uma proposta pedir outra, e a troca vale só ali.
+
 **Capa e contracapa são as duas peças de foto cheia.** A última página — a de contato — é
 o fechamento da proposta, e sai com foto de fundo do tamanho da tela, como a capa. Instrução
 dela em agosto/26. A foto mora em `ops_proposals.backcover_img`, com padrão da casa em
