@@ -236,7 +236,7 @@ input.interno{border-left:2px solid var(--brown);}
 .cat-item:hover{background:var(--cream);}
 .apres-box{border-left:2px solid var(--sage);padding-left:10px;margin-top:8px;}
 .item-bloco{border:1px solid var(--cream);padding:16px 18px;margin-bottom:14px;background:#fff;}
-.item-topo{display:grid;grid-template-columns:120px 110px 1fr 1fr 1fr 82px 30px;gap:10px;
+.item-topo{display:grid;grid-template-columns:110px 100px 1fr 1fr 1fr 130px 82px 30px;gap:10px;
   align-items:end;padding-bottom:14px;margin-bottom:12px;border-bottom:1px solid var(--cream);}
 .item-topo .ck{text-align:center;}
 .item-topo .ck input{width:auto;}
@@ -360,6 +360,35 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-welcome-in{max-width:660px;font-weight:300;font-size:15px;line-height:1.75;color:var(--ink);}
 .ap-ey{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--copper);
   font-weight:500;margin-bottom:10px;}
+/* Sobre a foto, copper não se lê — o número da proposta sumia. Ali o
+   overline é branco, como o resto do texto daquela camada. */
+.ap-foto-txt .ap-ey{color:#fff;font-size:11px;opacity:.9;
+  text-shadow:0 1px 10px rgba(42,42,40,.5);}
+
+/* Unidades: do que a hospedagem é feita, cada uma com o seu valor. */
+.ap-unidades{margin-top:12px;border-top:1px solid var(--cream);padding-top:10px;}
+.ap-unidade{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  font-size:13px;font-weight:300;padding:3px 0;}
+.ap-unidade b{font-weight:400;color:var(--sage);white-space:nowrap;
+  font-variant-numeric:tabular-nums;}
+.ap-unidade em{font-style:normal;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--copper);margin-left:6px;}
+.unid-cli{margin:8px 0 0;padding-left:14px;border-left:1px solid var(--cream);}
+.unid{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  font-size:12.5px;font-weight:300;padding:2px 0;margin:0 0 2px;}
+/* O rótulo tem de ocupar a linha: sem isto o span encolhe, o texto cai
+   para baixo do quadradinho e o valor fica solto no alto. */
+.unid > span{flex:1 1 auto;display:flex;gap:8px;align-items:baseline;min-width:0;}
+.unid b{font-weight:400;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.unid.fora{color:var(--muted);}
+.unid.fora b{color:var(--muted);}
+.unid em{font-style:normal;font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--copper);margin-left:6px;}
+/* Incluso e estrutura vêm em parágrafos: uma informação por linha, que
+   é como ela escreve. Amontoadas num bloco só ninguém acha nada. */
+.ap-estrutura p{margin:0 0 3px;}
+.ap-estrutura ul{margin:0;padding-left:16px;}
+.ap-estrutura li{margin-bottom:2px;}
 
 .ap-sec{display:grid;grid-template-columns:38% 1fr;align-items:start;border-top:1px solid var(--cream);}
 .ap-foto{position:sticky;top:0;min-height:100vh;background:var(--sage) center/cover no-repeat;
@@ -538,6 +567,10 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   color:var(--copper);font-weight:500;margin-bottom:6px;}
 .extras-box{border-left:2px solid var(--copper);padding-left:10px;margin-top:8px;}
 .extra-row{display:grid;grid-template-columns:1fr 1fr 90px 30px;gap:6px;margin-bottom:5px;align-items:center;}
+.extra-row.unid-row{grid-template-columns:1fr 1fr 90px 76px 30px;}
+.extra-row .mini{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);
+  text-transform:none;letter-spacing:0;margin:0;}
+.extra-row .mini input{width:auto;margin:0;}
 .trav-row{display:grid;grid-template-columns:1fr 170px 30px;gap:7px;margin-bottom:7px;align-items:center;}
 .check{display:flex;gap:9px;align-items:flex-start;font-size:13px;line-height:1.65;margin-bottom:12px;}
 .check input{width:auto;margin-top:3px;}
@@ -837,7 +870,9 @@ const T = {
     qSite:"Ver o site da propriedade →", qSelected:"Selecionado",
     qOthers:"Outros serviços", qItinerary:"Roteiro dia a dia", qHighlights:"Destaques",
     qExtrasDisp:"Adicionais disponíveis", qFacilities:"Estrutura", qIncluded:"Incluso", qAbout:"Sobre nós", qCredentials:"Credenciais",
-    qResumoLead:"Selecione abaixo os serviços que gostaria de agendar conosco. O total será calculado automaticamente.",
+    qResumoLead:"",
+    qStaysTitle:"Hospedagens", qExtrasTitle:"Extras e opcionais (válidos para a contratação da hospedagem)",
+    qNeedUnits:"Escolha pelo menos uma acomodação em:",
     qConfirmar:"Confirmar interesse", qPayHow:"Forma de pagamento preferida",
     qNeedPay:"Escolha a forma de pagamento para enviar.",
     qCover:"Capa", qPropMenu:"Proposta", qStart:"Ver a proposta →", qNext:"Avançar", qBack:"Voltar", qContact:"Contato",
@@ -923,7 +958,9 @@ const T = {
     qSite:"Visit the property website →", qSelected:"Selected",
     qOthers:"Other services", qItinerary:"Day by day", qHighlights:"Highlights",
     qExtrasDisp:"Available add-ons", qFacilities:"Facilities", qIncluded:"Included", qAbout:"About us", qCredentials:"Credentials",
-    qResumoLead:"Select below the services you would like to arrange with us. The total is calculated automatically.",
+    qResumoLead:"",
+    qStaysTitle:"Stays", qExtrasTitle:"Add-ons and options (available with the stay)",
+    qNeedUnits:"Choose at least one room at:",
     qConfirmar:"Confirm your interest", qPayHow:"Preferred payment method",
     qNeedPay:"Please choose a payment method before sending.",
     qCover:"Cover", qPropMenu:"Proposal", qStart:"View the proposal →", qNext:"Next", qBack:"Back", qContact:"Contact",
@@ -1174,7 +1211,9 @@ const MIGRACOES = [
   {id:"0012-hotel-em-roma",         arq:"0012-hotel-em-roma.sql",
    oque:"Palazzo Ripetta no catálogo e a hospedagem de Roma na TL-045-26"},
   {id:"0013-contracapa-com-foto",   arq:"0013-contracapa-com-foto.sql",
-   oque:"a última página com foto de fundo, do tamanho da tela"}
+   oque:"a última página com foto de fundo, do tamanho da tela"},
+  {id:"0014-unidades-e-extras",     arq:"0014-unidades-e-extras.sql",
+   oque:"valor por acomodação, extras em grupo próprio e o aviso no booking"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2130,6 +2169,10 @@ const ROTULOS = [
   {k:"notice",     onde:"Aviso antes de enviar",
      pt:"O envio destas informações é uma confirmação de interesse e não representa bloqueio…",
      en:"Sending this form confirms your interest and does not hold or reserve anything…"},
+  {k:"stays_title",  onde:"Proposta · grupo da hospedagem", pt:"Hospedagens", en:"Stays"},
+  {k:"extras_title", onde:"Proposta · grupo dos extras",
+     pt:"Extras e opcionais (válidos para a contratação da hospedagem)",
+     en:"Add-ons and options (available with the stay)"},
   {k:"contact",    onde:"Menu · contracapa",     pt:"Contato", en:"Contact"}
 ];
 function rotulo(p, k, idi){ return ((p.labels||{})[k]||{})[idi] || ""; }
@@ -2284,6 +2327,11 @@ function drawItensApresentada(){
         oninput="PITEMS[${i}].choice_group=this.value.trim()||null"></div>
       <div><label>Fornecedor</label><input class="interno" value="${esc(r.supplier||"")}"
         placeholder="quem opera" oninput="PITEMS[${i}].supplier=this.value.trim()||null"></div>
+      <div><label>Grupo na proposta</label>
+        <select onchange="PITEMS[${i}].kind=this.value">
+          <option value="stay"${r.kind!=="extra"?" selected":""}>Hospedagem</option>
+          <option value="extra"${r.kind==="extra"?" selected":""}>Extra ou opcional</option>
+        </select></div>
       <div class="ck"><label>Opcional</label>
         <input type="checkbox"${r.optional?" checked":""} onchange="PITEMS[${i}].optional=this.checked"></div>
       <button class="iconbtn" onclick="PITEMS.splice(${i},1);drawQuoteItems()" title="Remover">\u00d7</button>
@@ -2313,13 +2361,33 @@ function drawItensApresentada(){
 
     <label style="margin-top:10px;">Fotos \u2014 um link por linha</label>
     <textarea rows="3" placeholder="https://\u2026"
-      oninput="PITEMS[${i}].photos=this.value.split('\\n').map(x=>x.trim()).filter(Boolean)"
-      >${esc((r.photos||[]).join("\\n"))}</textarea>
+      oninput="PITEMS[${i}].photos=this.value.split('\n').map(x=>x.trim()).filter(Boolean)"
+      >${esc((r.photos||[]).join("\n"))}</textarea>
 
     <label style="margin-top:10px;">Anexos \u2014 nome e link, um por linha, separados por |</label>
     <textarea rows="2" placeholder="Planimetria.pdf | https://\u2026"
-      oninput="PITEMS[${i}].attachments=this.value.split('\\n').map(x=>x.split('|')).filter(a=>a[1]).map(a=>({name:a[0].trim(),url:a[1].trim()}))"
-      >${esc((r.attachments||[]).map(a=>(a.name||"")+" | "+(a.url||"")).join("\\n"))}</textarea>
+      oninput="PITEMS[${i}].attachments=this.value.split('\n').map(x=>x.split('|')).filter(a=>a[1]).map(a=>({name:a[0].trim(),url:a[1].trim()}))"
+      >${esc((r.attachments||[]).map(a=>(a.name||"")+" | "+(a.url||"")).join("\n"))}</textarea>
+
+    <div class="extras-box">
+      <label style="margin-top:10px;">Acomoda\u00e7\u00f5es desta linha \u2014 cada uma com o seu valor</label>
+      <div class="hint" style="margin:0 0 7px;">Use quando o mesmo hotel manda mais de um tipo de
+        quarto. Marcada como <b>op\u00e7\u00e3o</b>, a acomoda\u00e7\u00e3o ganha caixinha e o cliente escolhe;
+        sem marcar, ela faz parte da hospedagem e entra sempre. Sem nenhuma linha aqui, vale o
+        Valor \u20ac l\u00e1 de cima.</div>
+      ${(r.units||[]).map((u,j)=>`<div class="extra-row unid-row">
+        <input value="${esc(u.label||"")}" placeholder="1 quarto Prestige \u00b7 2 pessoas"
+          oninput="PITEMS[${i}].units[${j}].label=this.value">
+        <input value="${esc(u.label_en||"")}" placeholder="Em ingl\u00eas"
+          oninput="PITEMS[${i}].units[${j}].label_en=this.value">
+        <input type="number" step="0.01" value="${Number(u.price)||0}" style="text-align:right;"
+          oninput="PITEMS[${i}].units[${j}].price=parseFloat(this.value)||0;sumQuote()">
+        <label class="mini"><input type="checkbox"${u.optional?" checked":""}
+          onchange="PITEMS[${i}].units[${j}].optional=this.checked">op\u00e7\u00e3o</label>
+        <button class="iconbtn" onclick="PITEMS[${i}].units.splice(${j},1);drawQuoteItems()">\u00d7</button>
+      </div>`).join("")}
+      <button class="btn ghost sm" style="margin-top:6px;" onclick="addUnidade(${i})">+ Acomoda\u00e7\u00e3o</button>
+    </div>
 
     <div class="extras-box">
       <label style="margin-top:10px;">Adicionais desta linha</label>
@@ -2349,6 +2417,13 @@ function addExtra(i){
   drawQuoteItems();
 }
 
+function addUnidade(i){
+  const usadas = (PITEMS[i].units||[]).map(u=>u.key);
+  let n = 1; while(usadas.includes("u"+n)) n++;
+  PITEMS[i].units = (PITEMS[i].units||[]).concat([{key:"u"+n,label:"",label_en:"",price:0,optional:false}]);
+  drawQuoteItems();
+}
+
 /* "Se levar tudo" nunca soma duas alternativas do mesmo grupo: pega a
    mais cara, que é o teto real daquela escolha. Somar as duas daria um
    número que nenhuma venda pode atingir. */
@@ -2356,7 +2431,9 @@ function sumQuote(){
   const vistos = {};
   let t = 0;
   PITEMS.forEach(r=>{
-    const v = (Number(r.price)||0) + (r.extras||[]).reduce((x,e)=>x+(Number(e.price)||0),0);
+    const v = (Number(r.price)||0)
+      + (r.units ||[]).reduce((x,u)=>x+(Number(u.price)||0),0)
+      + (r.extras||[]).reduce((x,e)=>x+(Number(e.price)||0),0);
     const g = (r.choice_group||"").trim();
     if(!g){ t += v; return; }
     vistos[g] = Math.max(vistos[g]||0, v);
@@ -2430,6 +2507,8 @@ async function saveProposal(){
       room_type:r.room_type||null, room_type_en:r.room_type_en||null,
       facilities:r.facilities||null, facilities_en:r.facilities_en||null,
       website:r.website||null, photos:r.photos||[], attachments:r.attachments||[],
+      kind:(r.kind==="extra"?"extra":"stay"),
+      units:(r.units||[]).filter(u=>(u.label||"").trim()),
       extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}))) : {};
   btn.disabled = false; btn.textContent = "Salvar";
   const err = e1||e2;
@@ -3352,27 +3431,35 @@ function renderSummary(){
 /*  tem, e cada extra é uma caixa à parte com preço próprio — a         */
 /*  mecânica do concierge. O total anda enquanto ele marca.             */
 /* ==================================================================== */
-let QT = null, QSEL = {items:{}, extras:{}};
+let QT = null, QSEL = {items:{}, extras:{}, units:{}};
 
 async function renderQuote(token){
   app.innerHTML = `<div class="done"><div class="muted">…</div></div>`;
   const {data,error} = await sb.rpc("tl_get_quote",{p_token:token});
   if(error || !data) return app.innerHTML = message(T.pt.notFound);
   QT = data; QT.token = token;
-  QSEL = {items:{}, extras:{}};
+  QSEL = {items:{}, extras:{}, units:{}};
   drawQuote();
 }
 
-function quoteTotal(){
-  const p = QT.proposal;
-  let t = 0;
-  (QT.items||[]).forEach(i=>{
-    if(!QSEL.items[i.id]) return;
-    t += Number(i.price)||0;
-    (i.extras||[]).forEach(e=>{
-      if((QSEL.extras[i.id]||[]).includes(e.key)) t += Number(e.price)||0;
-    });
+/* Uma unidade entra por fazer parte da hospedagem (optional=false) ou
+   por ter sido marcada. A conta é a mesma da tl_submit_quote, e é ela
+   que vale: aqui é só o que o cliente vê enquanto escolhe. */
+function unidadeDentro(i, u){
+  if(!u.optional) return true;
+  return (QSEL.units[i.id]||[]).includes(u.key);
+}
+function linhaTotal(i){
+  let t = Number(i.price)||0;
+  (i.units||[]).forEach(u=>{ if(unidadeDentro(i,u)) t += Number(u.price)||0; });
+  (i.extras||[]).forEach(e=>{
+    if((QSEL.extras[i.id]||[]).includes(e.key)) t += Number(e.price)||0;
   });
+  return t;
+}
+function quoteTotal(){
+  let t = 0;
+  (QT.items||[]).forEach(i=>{ if(QSEL.items[i.id]) t += linhaTotal(i); });
   return t;
 }
 
@@ -3399,10 +3486,30 @@ function marcaExtra(id, chave, on){
   QSEL.extras[id] = on ? atual.concat([chave]) : atual.filter(k=>k!==chave);
   drawQuote();
 }
+function marcaUnidade(id, chave, on){
+  const atual = QSEL.units[id] || [];
+  QSEL.units[id] = on ? atual.concat([chave]) : atual.filter(k=>k!==chave);
+  drawQuote();
+}
 
 /* Uma tabela por seção, com o título e a instrução em cima. Linha sem
    seção cai numa tabela final sem título — assim uma quote de transfer
    avulso não precisa de seção nenhuma para funcionar. */
+/* Na página da proposta o agrupamento não é por seção: seção é a etapa
+   da apresentação — "10 a 13 out", "13 a 17 out" são folhas do
+   documento, não categorias de venda. Aqui saem dois grupos:
+   hospedagem, e extras e opcionais válidos para a contratação dela. */
+function tabelasPorTipo(t, mostra, linha, p){
+  const itens = QT.items||[];
+  const cab = `<thead><tr><th style="width:100px;">${t.date}</th><th>${t.service}</th>
+      <th class="money">${mostra?t.price:""}</th></tr></thead>`;
+  const grupo = (titulo, lista) => !lista.length ? "" :
+    `<div class="blocktitle" style="margin-top:28px;">${esc(titulo)}</div>
+     <table class="svc">${cab}<tbody>${lista.map(linha).join("")}</tbody></table>`;
+  return grupo(rot(p,"stays_title",t.qStaysTitle),  itens.filter(i=>i.kind!=="extra"))
+       + grupo(rot(p,"extras_title",t.qExtrasTitle), itens.filter(i=>i.kind==="extra"));
+}
+
 function tabelasPorSecao(t, mostra, linha){
   const p = QT.proposal, itens = QT.items||[];
   const secs = (p.sections||[]);
@@ -3428,7 +3535,11 @@ function tabelasPorSecao(t, mostra, linha){
 /* O fecho é o mesmo nos dois layouts: o que o cliente escolheu, o que
    não está incluso, as condições e o bloco de envio. Escrito uma vez —
    duplicado, um ajuste feito num layout sumiria do outro. */
-function quoteFecho(p, t, mostra, respondida, comResumo){
+/* semRodape: na proposta apresentada o link dos termos e o rodapé com
+   os dados da empresa saem daqui. Não sumiram do documento — a
+   contracapa é a página de contato, e repetir a mesma assinatura duas
+   telas antes só polui a página onde ela quer o cliente escolhendo. */
+function quoteFecho(p, t, mostra, respondida, comResumo, semRodape){
   if(comResumo === undefined) comResumo = true;
   return `
     ${p.excluded?`<div class="naoinc">
@@ -3441,12 +3552,15 @@ function quoteFecho(p, t, mostra, respondida, comResumo){
       const escolhidos = (QT.items||[]).filter(i=>QSEL.items[i.id]);
       if(!escolhidos.length) return "";
       const linhaRes = i => {
+        const un = (i.units||[]).filter(u=>unidadeDentro(i,u));
         const ex = (i.extras||[]).filter(e=>(QSEL.extras[i.id]||[]).includes(e.key));
         return `<tr>
           <td class="date-cell">${esc(i.service_date||"")}</td>
           <td><div class="svc-title">${esc(i.title)}</div>
+            ${un.map(u=>`<div class="mais">· ${esc(u.label||"")}</div>`).join("")}
             ${ex.map(e=>`<div class="mais">+ ${esc(p.lang==="en"?(e.label_en||e.label_pt):e.label_pt)}</div>`).join("")}</td>
           <td class="money">${mostra?eur(Number(i.price)||0):""}
+            ${mostra?un.map(u=>`<div class="mais">${eur(u.price)}</div>`).join(""):""}
             ${mostra?ex.map(e=>`<div class="mais">${eur(e.price)}</div>`).join(""):""}</td>
         </tr>`;
       };
@@ -3468,13 +3582,14 @@ function quoteFecho(p, t, mostra, respondida, comResumo){
       <div class="condicoes">${fmtDoc(p.conditions)}</div>
     </div>`:""}
 
+    ${semRodape ? "" : `
     ${termsHref(p)?`<div class="terms-link" style="margin-top:26px;">${t.termsLinkLabel}
       <a href="${esc(termsHref(p))}" target="_blank" rel="noopener">${esc(termsHref(p))}</a></div>`:""}
 
     <div class="foot">
       <div class="co">TUSCAN LANDS TRAVEL</div>
       ${COMPANY.legal} · ${COMPANY.vat.replace(" · Pontassieve (FI), Italy","")} · ${COMPANY.email}
-    </div>`;
+    </div>`}`;
 }
 
 /* O bloco de envio fica fora da folha do documento: ele é formulário,
@@ -3520,15 +3635,20 @@ function apItem(i, t, p, mostra, respondida){
         <div>
           ${i.service_date?`<div class="ap-data">${esc(i.service_date)}</div>`:""}
           <div class="ap-nome">${esc(i.title)}</div>
-          ${i.room_type?`<div class="ap-quarto">${esc(i.room_type)}</div>`:""}
+          ${i.room_type && !(i.units||[]).length?`<div class="ap-quarto">${esc(i.room_type)}</div>`:""}
         </div>
-        ${mostra?`<div class="ap-preco">${eur(i.price)}</div>`:""}
+        ${mostra?`<div class="ap-preco">${eur(linhaTotal(i))}</div>`:""}
       </div>
+      ${(i.units||[]).length?`<div class="ap-unidades">
+        ${(i.units||[]).map(u=>`<div class="ap-unidade">
+          <span>${esc(u.label||"")}${u.optional?` <em>${t.qOptional}</em>`:""}</span>
+          ${mostra?`<b>${eur(u.price)}</b>`:""}</div>`).join("")}
+      </div>`:""}
       ${i.details?`<div class="ap-desc">${nl2br(i.details)}</div>`:""}
       ${i.included?`<div class="ap-estrutura">
-        <div class="k">${t.qIncluded}</div>${esc(i.included)}</div>`:""}
+        <div class="k">${t.qIncluded}</div>${fmtDoc(i.included)}</div>`:""}
       ${i.facilities?`<div class="ap-estrutura">
-        <div class="k">${t.qFacilities}</div>${esc(i.facilities)}</div>`:""}
+        <div class="k">${t.qFacilities}</div>${fmtDoc(i.facilities)}</div>`:""}
       ${i.website?`<div class="ap-link"><a href="${esc(i.website)}" target="_blank" rel="noopener">${t.qSite}</a></div>`:""}
       ${anexos.length?`<div class="ap-anexos">${anexos.map(a=>
         `<a href="${esc(a.url)}" target="_blank" rel="noopener" class="ap-anexo">${esc(a.name||"PDF")}</a>`).join("")}</div>`:""}
@@ -3570,9 +3690,14 @@ function drawQuoteApresentada(){
   const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
   const respondida = !!p.responded_at;
   const itens = QT.items||[];
-  const secs = (p.sections||[]).filter(sec=>itens.some(i=>i.section===sec.key));
+  /* O extra não vira etapa da apresentação. Ele existe para ser
+     contratado junto da hospedagem, e o lugar dele é a página da
+     proposta, no grupo dos extras — uma folha inteira de apresentação
+     para um transfer é uma folha que ninguém pediu. */
+  const daPeca = itens.filter(i=>i.kind!=="extra");
+  const secs = (p.sections||[]).filter(sec=>daPeca.some(i=>i.section===sec.key));
   const chaves = secs.map(x=>x.key);
-  const soltas = itens.filter(i=>!i.section || !chaves.includes(i.section));
+  const soltas = daPeca.filter(i=>!i.section || !chaves.includes(i.section));
   const dias = p.itinerary||[];
 
   /* Uma etapa por vez, com avançar e voltar. Rolagem contínua misturava
@@ -3609,7 +3734,7 @@ function drawQuoteApresentada(){
     </div>
   </section>`;
 
-  secs.forEach(sec=>passos.push({txt:sec.title||sec.key, html:bloco(sec, itens.filter(i=>i.section===sec.key))}));
+  secs.forEach(sec=>passos.push({txt:sec.title||sec.key, html:bloco(sec, daPeca.filter(i=>i.section===sec.key))}));
   if(soltas.length) passos.push({txt:t.qOthers, html:bloco(null, soltas)});
 
   if(dias.length) passos.push({txt:t.qItinerary, html:`
@@ -3639,14 +3764,15 @@ function drawQuoteApresentada(){
         <div class="ap-foto-txt">
           <div class="ap-ey">${esc(p.crm_code||"")}</div>
           <h2>${esc(rot(p,"prop_title",t.qResumo))}</h2>
-          <div class="ap-note">${esc(rot(p,"prop_lead",t.qResumoLead))}</div></div></div>
+          ${rot(p,"prop_lead",t.qResumoLead)?`<div class="ap-note">${esc(rot(p,"prop_lead",t.qResumoLead))}</div>`:""}
+          </div></div>
       <div class="ap-lista larga">
         <div class="doc" style="box-shadow:none;padding:0;background:transparent;">
-          ${tabelasPorSecao(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida))}
+          ${tabelasPorTipo(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida), p)}
           ${mostra?`<div class="total-row"><div class="total-box">
             <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
            :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
-          ${quoteFecho(p, t, mostra, respondida, false)}
+          ${quoteFecho(p, t, mostra, respondida, false, true)}
         </div>
         <div class="ap-aviso">${esc(rot(p,"notice",t.qNaoBloqueio))}</div>
         ${quoteConfirmar(t, respondida, p.payment_options, p)}
@@ -3709,6 +3835,18 @@ function quoteLinha(i, t, p, mostra, respondida){
           <input type="checkbox" id="qi-${esc(i.id)}"${QSEL.items[i.id]?" checked":""}
             onchange="marcaItem('${esc(i.id)}',this.checked)">
           <label for="qi-${esc(i.id)}">${t.qChoose}</label></div>`)}
+        ${(i.units||[]).length ? `<div class="unid-cli">
+          ${(i.units||[]).map(u=>u.optional && dentro && !respondida
+            ? `<div class="check unid"><span>
+                 <input type="checkbox" id="qu-${esc(i.id)}-${esc(u.key)}"
+                   ${((QSEL.units[i.id]||[]).includes(u.key))?" checked":""}
+                   onchange="marcaUnidade('${esc(i.id)}','${esc(u.key)}',this.checked)">
+                 <label for="qu-${esc(i.id)}-${esc(u.key)}">${esc(u.label||"")}</label></span>
+               ${mostra?`<b>${eur(u.price)}</b>`:""}</div>`
+            : `<div class="unid${(u.optional && !unidadeDentro(i,u))?" fora":""}"><span>${esc(u.label||"")}${
+                 u.optional?` <em>${t.qOptional}</em>`:""}</span>
+               ${mostra?`<b>${eur(u.price)}</b>`:""}</div>`).join("")}
+        </div>`:""}
         ${(i.extras||[]).length && dentro && !respondida ? `<div class="extras-cli">
           <div class="k">${t.qExtras}</div>
           ${(i.extras||[]).map(e=>`<div class="check" style="margin:0 0 6px;">
@@ -3720,8 +3858,8 @@ function quoteLinha(i, t, p, mostra, respondida){
           </div>`).join("")}
         </div>`:""}
       </td>
-      <td class="money">${mostra ? (dentro?eur(i.price)
-        :`<span class="fora">${eur(i.price)}</span>`) : ""}</td>
+      <td class="money">${mostra ? (dentro?eur(linhaTotal(i))
+        :`<span class="fora">${eur(linhaTotal(i))}</span>`) : ""}</td>
     </tr>`;
   }
 
@@ -3868,7 +4006,7 @@ async function submitQuote(){
     lead_name:nome, lead_email:el("qc-mail").value.trim(),
     lead_phone:"", remarks:el("qc-rem").value.trim(),
     payment_choice: pg ? pg.value : null,
-    items: escolhidos, extras: QSEL.extras, ack_conditions: true
+    items: escolhidos, extras: QSEL.extras, units: QSEL.units, ack_conditions: true
   }});
   if(error || !data || !data.ok){
     let txt = (error&&error.message)||(data&&data.error)||"erro";
@@ -3876,6 +4014,7 @@ async function submitQuote(){
     if(data && data.error==="missing_choice") txt = t.qNeedPick+" "+(data.missing||[]).join(" · ");
     if(data && data.error==="missing_ack") txt = t.qNeedAck;
     if(data && data.error==="missing_items") txt = t.qNeedItems;
+    if(data && data.error==="missing_units") txt = t.qNeedUnits+" "+(data.missing||[]).join(" · ");
     el("qc-msg").innerHTML = `<div class="msg">${esc(txt)}</div>`;
     btn.disabled = false; btn.textContent = t.qSend; return;
   }

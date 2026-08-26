@@ -124,6 +124,31 @@ objeto **campo a campo**, justamente para que coluna nova não vaze sozinha por 
 adicionada à tabela. O fornecedor desce para `ops_order_items.supplier` quando a proposta
 vira venda — é na operação, ao reconfirmar e pagar, que o dado serve.
 
+**A acomodação pode ter valor por unidade.** `ops_proposal_items.units` é do que a
+hospedagem é feita, com preço em cada linha: no Palazzo Ripetta são 1 quarto Prestige e
+2 apartamentos Luxury, e o valor sai separado, não como um número fechado. `optional=true`
+na unidade dá caixinha ao cliente — é o caso de oferecer duas opções de quarto no mesmo
+hotel; `optional=false` faz parte da hospedagem e entra sempre. Sem unidade nenhuma a
+linha continua com um valor só. **Unidade não é extra**: extra é o que se soma por fora,
+unidade é do que a hospedagem é feita. Havendo unidades, o campo Acomodação some do card —
+as duas coisas juntas repetiriam a mesma informação.
+
+**A página da proposta agrupa por tipo, não por seção.** `ops_proposal_items.kind` vale
+`stay` ou `extra`, e a página sai em "Hospedagens" e "Extras e opcionais (válidos para a
+contratação da hospedagem)" — os dois títulos editáveis por ela. Seção é a etapa da
+apresentação: "10 a 13 out" e "13 a 17 out" são folhas do documento, não categorias de
+venda, e uma coisa não serve para a outra. O `extra` **não vira etapa da apresentação**:
+uma folha inteira de capítulo para um transfer é folha que ninguém pediu.
+
+**Link dos termos e rodapé da empresa não saem na página da proposta.** A contracapa é a
+página de contato, e repetir a mesma assinatura duas telas antes polui justamente a
+página onde o cliente está escolhendo. Continuam saindo no documento da order e na quote
+simples, onde não há contracapa.
+
+**Incluso e Estrutura saem uma informação por linha.** Passam por `fmtDoc`, como o resto
+do texto que ela escreve: quebra de linha vale, `-` vira lista e `**negrito**` funciona.
+Amontoados num parágrafo só ninguém acha nada — foi assim que ela viu e reclamou.
+
 **Quote.** A proposta vira documento com token próprio. Linha `optional=false` é inclusa e não
 se desmarca; `true` o cliente escolhe. Cada linha carrega seus extras em jsonb — transporte,
 anfitrião, visita guiada — cada um com preço próprio e caixa à parte. `show_prices=false`
