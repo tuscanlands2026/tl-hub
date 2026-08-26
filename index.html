@@ -1633,12 +1633,13 @@ async function renderPainel(){
   </div></div>`;
   el("tb-out").onclick = async () => { await sb.auth.signOut(); renderLogin(); };
 
-  const [{data:board},{data:props},{data:ords}] = await Promise.all([
+  const [{data:board},{data:props},{data:ords},{data:cat}] = await Promise.all([
     sb.from("ops_opportunities_board").select("*"),
     sb.from("ops_proposals_box").select("situacao"),
-    sb.from("ops_orders").select("id,status")
+    sb.from("ops_orders").select("id,status"),
+    sb.from("ops_catalog").select("id,active")
   ]);
-  const b = board||[], pr = props||[], od = ords||[];
+  const b = board||[], pr = props||[], od = ords||[], ct = cat||[];
 
   const abertas    = b.filter(o=>o.outcome==="open").length;
   // Briefing pendente é oportunidade aberta sem briefing, ou com briefing
@@ -1661,10 +1662,17 @@ async function renderPainel(){
     + caixa("Propostas",     prAguarda,  pr.length, "Aguardando resposta da agência", "opportunities", true)
     + caixa("Orders",        odAguarda,  od.length, "Link enviado, esperando a agência", "orders", true)
     + caixa("Rascunhos",     odRascunho, null,      "Orders que você ainda não mandou", "orders")
+    /* O número aqui é o total, e não o que espera por ela: catálogo não
+       pede nada a ninguém — é o banco de onde ela puxa. */
+    + caixa("Catálogo",      ct.filter(c=>c.active!==false).length, null,
+            "Hospedagens, transfers e experiências", "catalogo")
     + caixa("Checklist",     "—",        null,      "Depois do checkout. Em breve", null);
 
   app.querySelectorAll(".caixa[data-ir]").forEach(c=>c.onclick=()=>{
-    if(c.dataset.ir==="orders") renderApp(); else renderOpportunities();
+    const ir = c.dataset.ir;
+    if(ir==="orders") renderApp();
+    else if(ir==="catalogo") renderCatalogo();
+    else renderOpportunities();
   });
 }
 
