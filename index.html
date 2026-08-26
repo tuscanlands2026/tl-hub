@@ -2675,8 +2675,18 @@ async function saveProposal(){
 function drawSelection(){
   const host = el("qsel-host");
   if(!PSEL){
+    /* Proposta marcada como aceita sem resposta e sem order é o que
+       sobra depois de apagar um teste: a etapa da oportunidade fica em
+       "Order" para sempre porque quem decide a etapa é o "aceita" da
+       proposta, e não a resposta do cliente. Aqui ela desfaz. */
+    const aceita = PROP && PROP.outcome === "accepted";
     host.innerHTML = `<div class="section-title">Resposta do cliente</div>
-      <div class="muted">Ainda não respondida.</div>`;
+      <div class="muted">Ainda não respondida.</div>
+      ${aceita?`<div class="hint" style="margin-top:12px;color:var(--brown);">
+        Esta proposta ainda consta como <b>aceita</b>, e por isso a oportunidade aparece na
+        etapa Order. Se a aceitação veio de um teste, desfaça aqui.</div>
+      <div style="margin-top:10px;"><button class="btn ghost sm" id="qs-reabrir">Desmarcar como aceita</button></div>`:""}`;
+    if(el("qs-reabrir")) el("qs-reabrir").onclick = reabrirProposta;
     return;
   }
   const linhas = (PSEL.lines||[]);
@@ -2720,15 +2730,42 @@ function drawSelection(){
    ser um rascunho e virou o documento que originou uma venda. */
 async function apagarResposta(){
   if(!confirm(`Apagar a resposta de ${PSEL.lead_name||"o cliente"}?\n\n`
-    + `A proposta volta a constar como não respondida e o link aceita um novo envio. `
+    + `A proposta volta a constar como não respondida e deixa de constar como aceita, `
+    + `e o link aceita um novo envio. `
     + `Isto não se desfaz.`)) return;
   const btn = el("qs-del"); btn.disabled = true; btn.textContent = "Apagando…";
   const {error:e1} = await sb.from("ops_proposal_selections").delete().eq("id", PSEL.id);
   if(e1){ btn.disabled=false; btn.textContent="Apagar esta resposta"; return alert(explicar(e1)); }
   const {error:e2} = await sb.from("ops_proposals")
-    .update({responded_at:null, updated_at:new Date().toISOString()}).eq("id", PROP.id);
+    .update({responded_at:null, outcome:null, updated_at:new Date().toISOString()}).eq("id", PROP.id);
   if(e2){ btn.disabled=false; btn.textContent="Apagar esta resposta"; return alert(explicar(e2)); }
-  PSEL = null; PROP.responded_at = null;
+  PSEL = null; PROP.responded_at = null; PROP.outcome = null;
+  drawSelection();
+}
+
+/* Desmarcar a aceitação é o que devolve a oportunidade para a etapa
+   Proposta: tl_opportunity_stage lê o "aceita" da proposta, não a
+   resposta do cliente. Só vale enquanto nenhuma order tiver nascido
+   dela — depois disso a aceitação virou fato, e não rascunho. */
+async function reabrirProposta(){
+  const btn = el("qs-reabrir"); btn.disabled = true; btn.textContent = "Conferindo…";
+  const {data:ords, error:e0} = await sb.from("ops_orders")
+    .select("id, order_ref").eq("opportunity_id", PROP.opportunity_id);
+  if(e0){ btn.disabled=false; btn.textContent="Desmarcar como aceita"; return alert(explicar(e0)); }
+  if((ords||[]).length){
+    btn.disabled=false; btn.textContent="Desmarcar como aceita";
+    return alert("Esta oportunidade já tem order gerada (" + ords.map(o=>o.order_ref||o.id).join(", ")
+      + "). A aceitação deixou de ser rascunho: apague a order antes, se ela também foi teste.");
+  }
+  if(!confirm("Desmarcar esta proposta como aceita?\n\n"
+    + "A oportunidade volta para a etapa Proposta.")) {
+    btn.disabled=false; btn.textContent="Desmarcar como aceita"; return; }
+  btn.textContent = "Desmarcando…";
+  const {error} = await sb.from("ops_proposals")
+    .update({outcome:null, responded_at:null, updated_at:new Date().toISOString()})
+    .eq("id", PROP.id);
+  if(error){ btn.disabled=false; btn.textContent="Desmarcar como aceita"; return alert(explicar(error)); }
+  PROP.outcome = null; PROP.responded_at = null;
   drawSelection();
 }
 

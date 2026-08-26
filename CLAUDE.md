@@ -209,6 +209,13 @@ Token: 32 caracteres hex, gerado no banco. Nunca usar o código TL no link.
 função que lê e na que grava. Quem deixou a página aberta desde antes da data não passa a
 poder enviar depois: tela se contorna com o console aberto, função não. Vazio é o normal.
 
+**Quem decide a etapa da oportunidade é o "aceita" da proposta**, não a resposta do
+cliente: `tl_opportunity_stage` olha `ops_proposals.outcome`. Por isso apagar a resposta
+também desmarca a aceitação — sem isso a oportunidade ficava presa na etapa Order depois
+de um teste. E por isso existe o botão de **desmarcar como aceita**, que aparece quando a
+proposta consta aceita sem resposta; ele confere antes se já nasceu order da oportunidade
+e se recusa quando nasceu: ali a aceitação deixou de ser rascunho.
+
 **Apagar a resposta do cliente** devolve a proposta ao estado de não respondida e o link
 volta a aceitar envio. Serve para o teste que ela faz antes de mandar e para a agência que
 respondeu errado. Some depois que a order foi gerada: ali a resposta deixou de ser
