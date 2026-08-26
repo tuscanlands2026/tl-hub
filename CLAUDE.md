@@ -141,6 +141,14 @@ linha continua com um valor só. **Unidade não é extra**: extra é o que se so
 unidade é do que a hospedagem é feita. Havendo unidades, o campo Acomodação some do card —
 as duas coisas juntas repetiriam a mesma informação.
 
+**A capa da folha da hospedagem tem plano B.** É a foto da seção; não tendo, vale a primeira
+foto da primeira hospedagem daquela folha. Melhor a foto do hotel do que uma faixa vazia, e
+tira a dependência de colar o mesmo link em dois lugares. Escolhendo uma na seção, a dela
+ganha.
+
+**"Sobre nós" vem logo depois da capa**, e não no fim — instrução dela em agosto/26: o
+cliente sabe com quem está falando antes de ver o que está sendo proposto.
+
 **A página da proposta agrupa por tipo, não por seção.** `ops_proposal_items.kind` vale
 `stay` ou `extra`, e a página sai em "Hospedagens" e "Extras e opcionais (válidos para a
 contratação da hospedagem)" — os dois títulos editáveis por ela. Seção é a etapa da

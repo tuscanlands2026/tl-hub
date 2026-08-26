@@ -4262,9 +4262,16 @@ function drawQuoteApresentada(){
       </div>
     </section>`});
 
+  /* A capa da folha é a foto da seção. Não tendo, vale a primeira foto
+     da primeira hospedagem daquela folha — melhor a foto do hotel do
+     que uma faixa vazia, e evita depender de ela colar o link em dois
+     lugares. Escolhendo uma na seção, a dela ganha. */
+  const capaDe = (sec, lista) => (sec && (sec.photo||"").trim())
+    || ((lista||[]).map(i=>(i.photos||[])[0]).find(u=>u && String(u).trim()) || "");
+
   const bloco = (sec, lista) => `<section class="ap-sec ap-passo" style="display:none;">
     <div class="ap-foto">
-      ${sec && sec.photo?`<img class="ap-fundo" src="${esc(sec.photo)}" alt="">`:""}
+      ${capaDe(sec,lista)?`<img class="ap-fundo" src="${esc(capaDe(sec,lista))}" alt="">`:""}
       <div class="ap-foto-txt">
         <h2>${esc(sec ? (sec.title||"") : t.qOthers)}</h2>
         ${sec && sec.note?`<div class="ap-note">${esc(sec.note)}</div>`:""}
@@ -4275,6 +4282,21 @@ function drawQuoteApresentada(){
       ${apNav(t)}
     </div>
   </section>`;
+
+  /* "Sobre nós" vem logo depois da capa, e não no fim: o cliente sabe
+     com quem está falando antes de ver o que está sendo proposto.
+     Instrução dela em agosto/26. */
+  if(p.about) passos.push({txt:rot(p,"about",t.qAbout), html:`
+    <section class="ap-sec ap-passo" style="display:none;">
+      <div class="ap-foto ap-foto-sobre">
+        ${p.about_img?`<img class="ap-fundo" src="${esc(p.about_img)}" alt="">`:""}
+        <div class="ap-foto-txt"><h2>${esc(rot(p,"about",t.qAbout))}</h2></div></div>
+      <div class="ap-lista">
+        <div class="ap-sobre-txt">${fmtDoc(p.about)}</div>
+        ${p.credentials?`<div class="ap-cred"><div class="k">${t.qCredentials}</div>${fmtDoc(p.credentials)}</div>`:""}
+        ${apNav(t)}
+      </div>
+    </section>`});
 
   secs.forEach(sec=>passos.push({txt:sec.title||sec.key, html:bloco(sec, daPeca.filter(i=>i.section===sec.key))}));
   if(soltas.length) passos.push({txt:t.qOthers, html:bloco(null, soltas)});
@@ -4289,17 +4311,7 @@ function drawQuoteApresentada(){
       </table>${apNav(t)}</div>
     </section>`});
 
-  if(p.about) passos.push({txt:rot(p,"about",t.qAbout), html:`
-    <section class="ap-sec ap-passo" style="display:none;">
-      <div class="ap-foto ap-foto-sobre">
-        ${p.about_img?`<img class="ap-fundo" src="${esc(p.about_img)}" alt="">`:""}
-        <div class="ap-foto-txt"><h2>${esc(rot(p,"about",t.qAbout))}</h2></div></div>
-      <div class="ap-lista">
-        <div class="ap-sobre-txt">${fmtDoc(p.about)}</div>
-        ${p.credentials?`<div class="ap-cred"><div class="k">${t.qCredentials}</div>${fmtDoc(p.credentials)}</div>`:""}
-        ${apNav(t)}
-      </div>
-    </section>`});
+
 
   passos.push({txt:rot(p,"prop_menu",t.qPropMenu), html:`
     <section class="ap-sec ap-fim ap-passo" style="display:none;">
