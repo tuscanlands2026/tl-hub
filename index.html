@@ -1673,15 +1673,22 @@ async function renderApp(){
       <button class="btn" id="n-go" style="margin-top:16px;">Criar order</button>
     </div>`);
 
+  /* O botão trava no primeiro clique. Sem isso, dois cliques — ou um
+     clique repetido numa conexão lenta, que é quando dá vontade de
+     clicar de novo — criam duas orders iguais. Duplicar e gerar order
+     já travavam; esta era a única porta aberta. */
   el("n-go").onclick = async () => {
+    const btn = el("n-go");
+    if(btn.disabled) return;
     const opp = el("n-opp").value.trim(), ref = el("n-ref").value.trim();
     if(!opp || !ref) return alert("Número da oportunidade e referência são obrigatórios.");
+    btn.disabled = true; btn.textContent = "Criando…";
     const {data,error} = await sb.from("ops_orders").insert({
       opportunity_code:opp, order_ref:ref, lang:el("n-lang").value,
       agency:el("n-agency").value.trim(), final_client:el("n-client").value.trim(),
       terms_url: DEFAULT_TERMS_URL
     }).select().single();
-    if(error) return alert(error.message);
+    if(error){ btn.disabled = false; btn.textContent = "Criar order"; return alert(error.message); }
     // A order nova nasce com os campos de sempre. Ela tira o que não se
     // aplica, que é mais rápido do que remontar a lista a cada venda.
     const padrao = standardFields();
