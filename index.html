@@ -2220,7 +2220,11 @@ function renderProposal(){
     ${p.layout==="apresentada"?`<div class="rotulos">
       <label>Textos das telas — em branco usa o padrão</label>
       <div class="hint" style="margin:0 0 8px;">O que aparece em cinza é o que sai se você deixar
-        vazio. Preenchendo, vale o seu — e só nesta proposta.</div>
+        vazio. Preenchendo, vale o seu — e só nesta proposta. É aqui que se mudam os nomes do
+        menu lateral da proposta; você está editando em
+        <b>${EDIOMA==="en"?"English":"português"}</b>, e o outro idioma se troca no alto da tela.
+        Os nomes das etapas de hospedagem são os <b>títulos das seções</b>, logo abaixo em
+        "Seções de serviço".</div>
       <table class="rows"><thead><tr>
         <th style="width:200px;">Onde</th><th>Texto</th></tr></thead>
       <tbody>${ROTULOS.map(r=>`<tr>
