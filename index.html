@@ -7,7 +7,7 @@
 <!-- Uma fonte só, seção 8 do plano. Variação por peso, tamanho e cor. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;500&family=Sorts+Mill+Goudy:ital@0;1&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* =====================================================================
@@ -294,10 +294,10 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .apres.na-capa .ap-indice{display:none;}
 .ap-indice{position:sticky;top:0;align-self:start;height:100vh;background:var(--sage);
   color:#fff;padding:26px 20px;display:flex;flex-direction:column;gap:16px;}
-.ap-logo{width:150px;max-width:100%;display:block;}
+.ap-logo{width:172px;max-width:100%;display:block;}
 /* A foto da capa é escolhida por ela e pode ser clara justo onde o logo
    cai. A sombra segura a leitura sem precisar escurecer a imagem toda. */
-.ap-logo-capa{width:190px;max-width:44vw;display:block;margin-bottom:22px;
+.ap-logo-capa{width:240px;max-width:52vw;display:block;margin-bottom:26px;
   filter:drop-shadow(0 1px 10px rgba(42,42,40,.65));}
 /* Proposta assinada pela agência: o logo é o dela, e logo escuro some
    na foto — a sombra não salva. Quem salva é o fundo branco atrás, que
@@ -375,7 +375,17 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-marca-capa{font-size:13px;letter-spacing:.26em;font-weight:500;margin-bottom:22px;}
 .ap-tag{font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:500;
   opacity:.9;margin-bottom:10px;}
-.ap-capa-in h1{font-size:44px;font-weight:300;line-height:1.1;letter-spacing:-.015em;}
+/* Sorts Mill Goudy volta, e SÓ nas linhas de exibição do documento do
+   cliente — capa, chamada de folha, título de faixa, nome da
+   hospedagem. Instrução dela em agosto/26: a serifada dá o ar de
+   sonho que a Libre Franklin não dá. Corpo de texto, rótulo, tabela,
+   overline, botão e a interface inteira continuam em Libre Franklin:
+   serifada em texto miúdo cansa, e a interface é ferramenta.
+   A família só tem peso 400 — daí o 400 no lugar do 300 daqui. */
+.apres .ap-capa-in h1,.apres .ap-foto-txt h2,.apres .ap-sobre-txt strong,
+.apres .ap-nome{font-family:"Sorts Mill Goudy",Georgia,"Times New Roman",serif;
+  font-weight:400;}
+.ap-capa-in h1{font-size:50px;font-weight:300;line-height:1.08;letter-spacing:-.01em;}
 .ap-datas{font-size:16px;font-weight:300;margin-top:10px;opacity:.95;}
 .ap-ref{font-size:10px;letter-spacing:.2em;text-transform:uppercase;margin-top:16px;opacity:.8;}
 
@@ -417,6 +427,19 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 /* Folha sem faixa de foto: a coluna da foto não existe, e sem isto ela
    continuaria reservada — sobrava um retângulo escuro do lado do texto. */
 .ap-sec.sem-foto{grid-template-columns:1fr;}
+/* A folha do convite leva a foto no ALTO, e não na coluna lateral. A
+   peça que ela escolheu é deitada, e coluna de 38% por folha inteira
+   recorta uma foto 4:3 até sobrar o meio dela. Faixa no alto é o mesmo
+   corte que essa folha já ganha no papel e no celular — o desenho fica
+   um só nas três saídas. `position:relative` é obrigatório aqui: em
+   static o <img> absoluto mede a tela, e não a faixa. */
+.ap-sec.faixa-topo{grid-template-columns:1fr;}
+.ap-sec.faixa-topo .ap-foto{position:relative;min-height:0;height:38vh;max-height:400px;
+  align-items:flex-end;}
+/* A camada escura existe para segurar texto branco sobre a foto. Sem
+   texto por cima ela só suja a imagem — e nesta folha o título é a
+   chamada, que está no texto. */
+.ap-foto.sem-tarja::after{display:none;}
 /* A foto das peças grandes é <img> e não fundo em CSS: fundo depende da
    caixinha "gráficos de fundo" da caixa de impressão, e por isso a capa
    e a contracapa saíam vazias no PDF. <img> sai sempre. */
@@ -426,7 +449,7 @@ table.rows tr.par td{border-top:none;padding-top:0;}
   display:flex;align-items:center;position:-webkit-sticky;overflow:hidden;}
 .ap-foto::after{content:"";position:absolute;inset:0;background:rgba(42,42,40,.42);z-index:1;}
 .ap-foto-txt{position:relative;z-index:2;color:#fff;padding:36px 34px;}
-.ap-foto-txt h2{font-size:30px;font-weight:300;line-height:1.15;letter-spacing:-.01em;}
+.ap-foto-txt h2{font-size:33px;font-weight:300;line-height:1.12;letter-spacing:-.005em;}
 .ap-note{font-size:13px;font-weight:300;margin-top:10px;opacity:.9;line-height:1.5;}
 .ap-lista{padding:44px 46px;display:flex;flex-direction:column;gap:26px;background:#fff;min-height:100vh;}
 .ap-lista.larga{padding:34px 40px;}
@@ -442,7 +465,7 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-topo{display:flex;justify-content:space-between;align-items:baseline;gap:18px;}
 .ap-data{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);
   font-weight:500;margin-bottom:5px;}
-.ap-nome{font-size:18px;font-weight:400;line-height:1.3;}
+.ap-nome{font-size:20px;font-weight:400;line-height:1.28;}
 .ap-quarto{font-size:12px;color:var(--copper);letter-spacing:.06em;margin-top:4px;
   white-space:pre-line;}
 .ap-preco{font-size:19px;font-weight:400;color:var(--sage);white-space:nowrap;
@@ -483,7 +506,7 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-foto-sobre{background:var(--ink);}
 .ap-sobre-txt{font-size:15px;font-weight:300;line-height:1.8;color:var(--ink);max-width:620px;}
 .ap-sobre-txt p{text-align:justify;margin-bottom:14px;}
-.ap-sobre-txt strong{display:block;font-size:24px;font-weight:300;line-height:1.2;
+.ap-sobre-txt strong{display:block;font-size:27px;font-weight:300;line-height:1.22;
   color:var(--sage);text-align:left;margin-bottom:16px;}
 .ap-cred{margin-top:26px;border-left:2px solid var(--copper);padding-left:14px;}
 .ap-cred .k{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);
@@ -525,7 +548,7 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
      de etapas e total ocupavam a tela inteira antes de cada etapa. */
   .ap-indice{position:static;height:auto;padding:11px 14px;gap:10px;overflow:hidden;
     flex-direction:row;align-items:center;justify-content:space-between;}
-  .ap-logo{width:112px;}
+  .ap-logo{width:130px;}
   .ap-indice nav,.ap-tot{display:none;}
   .ap-rodape-idx{margin-top:0;display:flex;align-items:center;}
   /* No celular o índice vira uma faixa horizontal: o botão de baixar
@@ -539,7 +562,10 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .ap-foto{position:relative;min-height:230px;}
   .ap-lista{padding:26px 20px;min-height:0;}
   .ap-capa-in{padding:30px 24px;}
-  .ap-capa-in h1{font-size:30px;}
+  /* No computador o logo maior dá presença; em 390px de tela o mesmo
+     tamanho vira metade da largura e engole a capa. */
+  .ap-logo-capa{width:200px;max-width:46vw;margin-bottom:20px;}
+  .ap-capa-in h1{font-size:32px;}
 }
 
 /* Bloco fiscal é endereço, não texto corrido: linhas juntas e sem
@@ -744,7 +770,7 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .ap-capa-in{padding:24mm 20mm;max-width:none;}
   .ap-capa-in h1{font-size:30pt;}
   .ap-datas{font-size:12pt;}
-  .ap-logo-capa{width:150px;filter:none;margin-bottom:14mm;}
+  .ap-logo-capa{width:185px;filter:none;margin-bottom:14mm;}
 
   /* No papel a contracapa não é flex: contêiner flex com altura de
      folha inteira fragmenta, e o Chrome abria uma folha em branco
@@ -4473,12 +4499,12 @@ function drawQuoteApresentada(){
      Em branco, a folha sai sem faixa. */
   const fotoAb   = daAgencia ? (p.assurance_img||"") : (p.about_img||"");
   if(abertura) passos.push({txt:rot(p,chaveAb,tituloAb), html:`
-    <section class="ap-sec ap-passo${fotoAb?"":" sem-foto"}" style="display:none;">
+    <section class="ap-sec ap-passo${fotoAb?" faixa-topo":" sem-foto"}" style="display:none;">
       ${/* Na folha da agência a faixa não leva título: a chamada em
             negrito do texto já é o título, e dois títulos na mesma
             folha disputam a leitura. É assim na peça que as agências
             já aprovaram. */""}
-      ${fotoAb?`<div class="ap-foto ap-foto-sobre">
+      ${fotoAb?`<div class="ap-foto ap-foto-sobre${daAgencia?" sem-tarja":""}">
         <img class="ap-fundo" src="${esc(fotoAb)}" alt="">
         ${daAgencia?"":`<div class="ap-foto-txt"><h2>${esc(rot(p,chaveAb,tituloAb))}</h2></div>`}</div>`:""}
       <div class="ap-lista">

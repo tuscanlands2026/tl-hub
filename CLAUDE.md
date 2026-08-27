@@ -377,8 +377,19 @@ Vale a seção 8 do `PLANO-HUB.md`, que substituiu a regra antiga deste arquivo.
 A versão anterior pedia Sorts Mill Goudy nos títulos; não é mais assim, e as duas
 instruções não podem conviver.
 
-**Uma fonte só: Libre Franklin.** Variação por peso, tamanho e cor. Sem serifada.
-300 para texto de documento, 400 para interface, 500 para labels, botões e títulos.
+**Libre Franklin em tudo, com uma exceção.** 300 para texto de documento, 400 para
+interface, 500 para labels, botões e títulos.
+
+**A exceção é Sorts Mill Goudy nas linhas de exibição da proposta apresentada** — instrução
+dela em agosto/26: a serifada dá o ar de sonho que a Libre Franklin não dá, e é a fonte de
+exibição da marca. Vale em quatro lugares, todos dentro de `.apres`: o nome grande da capa, a
+chamada da folha de abertura, o título sobre a faixa de foto e o nome da hospedagem. Corpo de
+texto, rótulo, tabela, overline, botão, e **a interface inteira**, continuam em Libre Franklin:
+serifada em texto miúdo cansa, e interface é ferramenta. A família só tem peso 400.
+
+Isto reverte, e só nesses quatro seletores, a regra que a seção 8 do plano tinha posto no lugar
+da instrução antiga de Sorts Mill Goudy. Não estender para o documento da order nem para o
+relatório de comissão sem instrução dela.
 
 **Cor — corrigido em agosto/26, por instrução da Maria Fernanda.**
 **Este módulo é todo sage `#595e49`**: interface, documento do cliente, resumo em PDF e
@@ -416,6 +427,12 @@ o fechamento da proposta, e sai com foto de fundo do tamanho da tela, como a cap
 dela em agosto/26. A foto mora em `ops_proposals.backcover_img`, com padrão da casa em
 `ops_text_defaults`, pelo mesmo motivo do `about_img`: trocar a foto de fechamento não pode
 mudar proposta já enviada. Proposta sem foto continua saindo em creme com o logo terracota.
+
+**A folha de abertura leva a foto no alto, e não na coluna lateral** (`.ap-sec.faixa-topo`).
+A peça que ela escolheu é deitada, e a coluna de 38% por folha inteira recorta uma foto 4:3 até
+sobrar o meio. Faixa no alto é o mesmo corte que essa folha já ganha no papel e no celular — o
+desenho fica um só nas três saídas. E sem texto por cima a camada escura sai (`.sem-tarja`):
+ela existe para segurar texto branco, e sozinha só suja a foto.
 
 **Toda foto grande da apresentação é `<img>`, e não fundo em CSS.** Capa, faixa de seção,
 "Sobre nós" e contracapa. Fundo em CSS só sai no papel se a pessoa marcar "gráficos de
