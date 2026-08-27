@@ -2296,17 +2296,6 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
       <div class="hint" style="margin:0 0 7px;">Vem preenchido com o texto da casa. O que você mudar
         aqui vale só para esta proposta.</div>
       <textarea rows="8" oninput="PROP.${campoP("about")}=this.value">${esc(p[campoP("about")]||"")}</textarea>
-      <label style="margin-top:12px;">Credenciais</label>
-      <div class="hint" style="margin:0 0 7px;">Saem embaixo do "Sobre nós" e da folha do convite.
-        Não são obrigatórias: em branco, o bloco não aparece. Apagar aqui só apaga este idioma,
-        e o outro continuaria saindo — por isso o botão, que limpa os dois de uma vez.</div>
-      <textarea id="q-cred" rows="4"
-        oninput="PROP.${campoP("credentials")}=this.value">${esc(p[campoP("credentials")]||"")}</textarea>
-      <div style="margin-top:7px;">
-        <button class="btn ghost sm" id="q-cred-tog">${
-          (p.credentials_pt||"").trim() || (p.credentials_en||"").trim()
-            ? "Tirar as credenciais desta proposta" : "Trazer as credenciais da casa"}</button>
-      </div>
       <label style="margin-top:12px;">Contracapa — contatos, última tela</label>
       <textarea rows="6" oninput="PROP.${campoP("backcover")}=this.value">${esc(p[campoP("backcover")]||"")}</textarea>
       <label style="margin-top:12px;">Foto de fundo da contracapa — link</label>
@@ -2393,7 +2382,6 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
   el("q-cond-std").onclick = trazerPadrao;
   el("q-cond-save").onclick = salvarPadrao;
   if(el("q-nota-dmc")) el("q-nota-dmc").onclick = incluirNotaDMC;
-  if(el("q-cred-tog")) el("q-cred-tog").onclick = alternarCredenciais;
   el("qs-add").onclick = () => {
     let n = 1; while(PSECS.some(x=>x.key==="sec"+n)) n++;
     PSECS.push({key:"sec"+n, title:"", note:""}); drawSections(); drawQuoteItems();
@@ -2442,25 +2430,6 @@ async function incluirNotaDMC(){
   if(!nota) return alert("O parágrafo padrão ainda não está no banco. Falta rodar a migração 0023.");
   if(atual.indexOf(nota) >= 0) return alert("Esse parágrafo já está na folha.");
   PROP[campo] = (atual.trim() ? atual.replace(/\s+$/,"") + "\n" : "") + nota;
-  renderProposal();
-}
-
-/* As credenciais são opcionais — instrução dela em agosto/26. O campo
-   é bilíngue, e apagar só o idioma que está na tela deixaria o outro
-   saindo: quem tira, tira os dois. Trazendo de volta, vem do padrão da
-   casa, e não de texto escrito no código. */
-async function alternarCredenciais(){
-  guardaCampos();
-  const tem = (PROP.credentials_pt||"").trim() || (PROP.credentials_en||"").trim();
-  if(tem){
-    if(!confirm("Tirar as credenciais desta proposta?\n\nO bloco deixa de sair nos dois idiomas. "
-      + "Você pode trazer de volta pelo mesmo botão.")) return;
-    PROP.credentials_pt = ""; PROP.credentials_en = "";
-  }else{
-    const {data} = await sb.from("ops_text_defaults").select("*").eq("key","credentials").maybeSingle();
-    if(!data) return alert("O texto padrão das credenciais não está no banco.");
-    PROP.credentials_pt = data.pt || ""; PROP.credentials_en = data.en || "";
-  }
   renderProposal();
 }
 
@@ -4557,7 +4526,13 @@ function drawQuoteApresentada(){
         ${daAgencia?"":`<div class="ap-foto-txt"><h2>${esc(rot(p,chaveAb,tituloAb))}</h2></div>`}</div>`:""}
       <div class="ap-lista">
         <div class="ap-sobre-txt">${fmtDoc(abertura)}</div>
-        ${p.credentials?`<div class="ap-cred"><div class="k">${t.qCredentials}</div>${fmtDoc(p.credentials)}</div>`:""}
+        ${/* As credenciais NÃO saem mais na folha. Instrução dela em
+              agosto/26, vendo a proposta da Jette Sette: a lista de
+              número de registro no meio de uma folha de abertura que
+              fala da Itália é ruído, e reivindica a venda justamente na
+              página em que a agência é quem assina. As colunas
+              continuam na proposta e no padrão da casa — o que sai é a
+              exibição. Não repor sem instrução dela. */""}
         ${apNav(t)}
       </div>
     </section>`});

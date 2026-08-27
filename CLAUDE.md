@@ -167,19 +167,19 @@ de contato da Tuscan Lands não sai, e o envio pede **travel agent** e **travel 
 chave seria deixar uma para ela esquecer de virar, e proposta meio white label é pior que
 nenhuma. Nasce desligada: proposta que já existe não muda de cara.
 
-**As credenciais são opcionais.** Saem embaixo do "Sobre nós" e da folha do convite, e em
-branco o bloco não aparece. O campo é bilíngue, então apagar só o idioma da tela deixaria o
-outro saindo: quem tira, tira os dois — é o que o botão do editor faz, e ele traz de volta do
-padrão da casa.
+**As credenciais não saem na proposta apresentada.** Instrução dela em agosto/26, olhando a
+proposta da agência: a lista de números de registro no meio de uma folha que fala da Itália é
+ruído, e reivindica a venda justamente na página em que quem assina é a agência. Antes ficavam
+embaixo do "Sobre nós" e da folha do convite. As colunas `credentials_pt/_en` continuam na
+proposta e no padrão da casa — o que saiu foi a exibição, e o campo saiu do editor junto.
+**Não repor sem instrução dela.**
 
 **A folha de abertura é a peça que as agências já aprovaram.** A primeira versão explicava a
 divisão de trabalho — quem desenha, quem opera. Ela apontou a proposta real: a folha que já
 rodou e foi aprovada é a "Transformando a Itália em histórias inesquecíveis", que fala da
 Itália e não de quem vende. Então é essa, palavra por palavra como está no texto da casa: a
 chamada e o parágrafo do destino, e mais nada. O que sai é a parte em que a Tuscan Lands se
-apresenta — oito anos, rede de parceiros, curadoria — que é o que tirava o foco da agência. As
-credenciais continuam embaixo: são os números de registro que dão segurança sem reivindicar a
-venda.
+apresenta — oito anos, rede de parceiros, curadoria — que é o que tirava o foco da agência. As credenciais saíram junto, por instrução dela.
 
 **O parágrafo da DMC licenciada é dela incluir ou não.** Tem agência que pede o respaldo escrito
 e tem agência que prefere sem. Fica em `ops_text_defaults` na chave `assurance_note` e entra na
