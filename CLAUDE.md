@@ -552,11 +552,24 @@ rótulo que escapa desse caminho volta a ser texto que só eu consigo mudar.
 Substituem o que está escrito na seção 9 do `PLANO-HUB.md`. Não reverter sem instrução
 explícita dela.
 
-**Nome e data de nascimento de todos os viajantes, criança inclusive.** A regra anterior
-era "idade de criança sim, nome de criança não". O motivo da mudança é operacional:
-bilhete de monumento é nominal, e a data de nascimento é o que decide meia-entrada ou
-gratuidade. Sem os dois a compra não sai. Quando `passport_names` está ligado, o
-documento avisa que o nome precisa bater com o passaporte.
+**Nome de todos os viajantes, criança inclusive.** A regra anterior era "idade de criança
+sim, nome de criança não". O motivo da mudança é operacional: bilhete de monumento é nominal.
+Quando `passport_names` está ligado, o documento avisa que o nome precisa bater com o
+passaporte. O nome é obrigatório sempre — sem ele não há reserva em fornecedor nenhum.
+
+**A data de nascimento é escolha dela, por order** (`checkout_config.dob`): `required` pede e
+exige, `optional` pede e aceita em branco, `off` não pergunta. Ela decide a data porque é ela
+que sabe se a venda tem bilhete nominal — aí o nascimento decide meia-entrada ou gratuidade e
+sem ele a compra não sai — ou se é só transfer, e aí é dado pessoal que ninguém vai usar e uma
+linha a mais para a agência travar. Instrução dela em agosto/26. O padrão é `required`: order
+que já existe não muda, e esquecer de configurar erra para o lado seguro. Com `off` a linha do
+viajante perde a coluna, senão sobraria um buraco ao lado do nome.
+
+**Data que o hub formata sai em `en-US` no documento em inglês**, e não em `en-GB`: o público
+é americano, e o britânico escreve 03/11 para 3 de novembro, igual ao português — o formato
+mudava de nome mas não de ordem. Vale para nascimento, data e hora do envio e prazo do link.
+**A data do serviço é texto que ela digita** e sai como ela escreveu: o hub não adivinha se
+"03/11" é 3 de novembro ou 11 de março.
 
 **A assinatura digitada saiu.** Ela repetia o nome do contato responsável, que já vem no
 bloco de contato, e duas caixas para o mesmo nome só produzem divergência entre elas. O

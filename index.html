@@ -643,6 +643,7 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .doc .voucher-note{margin-top:18px;font-size:13px;color:var(--muted);line-height:1.7;
   border-left:2px solid var(--copper);padding-left:12px;}
 .doc .pay-note{margin-top:10px;font-size:13px;line-height:1.7;color:var(--ink);white-space:pre-wrap;}
+.sem-dob .trav-head,.sem-dob .trav-row{grid-template-columns:1fr 30px;}
 .trav-head{display:grid;grid-template-columns:1fr 170px 30px;gap:7px;margin-bottom:5px;
   font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);font-weight:500;}
 .doc .terms{margin-top:32px;border-top:1px solid var(--cream);padding-top:20px;}
@@ -1011,8 +1012,22 @@ function clientLink(token){
   return base + "#/confirm/" + token;
 }
 
-const stamp = (iso,lang) => iso ? new Date(iso).toLocaleString(lang==="en"?"en-GB":"pt-BR",
+/* en-US, e não en-GB: o público do documento em inglês é americano, e
+   en-GB escreve 03/11 para 3 de novembro, igual ao português — o
+   formato mudava de nome mas não de ordem. Instrução dela em
+   agosto/26. Documento em português segue dd/mm.
+   Vale para o que o hub formata: nascimento, data e hora do envio,
+   prazo do link. A data do serviço é texto que ela digita, e sai como
+   ela escreveu — o hub não adivinha o que "03/11" quer dizer. */
+const stamp = (iso,lang) => iso ? new Date(iso).toLocaleString(lang==="en"?"en-US":"pt-BR",
   {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}) : "—";
+/* Só a data, sem hora: nascimento e vencimento. */
+const dia = (iso,lang) => {
+  if(!iso) return "";
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(iso) ? new Date(iso+"T12:00:00") : new Date(iso);
+  return isNaN(d) ? iso : d.toLocaleDateString(lang==="en"?"en-US":"pt-BR",
+    {day:"2-digit",month:"2-digit",year:"numeric"});
+};
 
 /* ------------------------------------------------------------ TEXTOS */
 const T = {
@@ -1385,6 +1400,13 @@ const blockMode = (o,k) => {
 };
 const travCount = o => Math.max(1, Math.min(30, parseInt((o.checkout_config||{}).travellers_count,10) || 2));
 const passportNames = o => (o.checkout_config||{}).passport_names !== false;
+/* required | optional | off. Padrão required: order que já existe não
+   muda de comportamento, e esquecer de configurar erra para o lado
+   seguro. O nome do viajante é sempre obrigatório. */
+const modoDob = o => {
+  const v = (o.checkout_config||{}).dob;
+  return v === "optional" || v === "off" ? v : "required";
+};
 const prefill = o => ((o.checkout_config||{}).prefill)||{};
 
 /* ==================================================================== */
@@ -1473,7 +1495,9 @@ const MIGRACOES = [
   {id:"0026-preco-no-catalogo-e-quantidade", arq:"0026-preco-no-catalogo-e-quantidade.sql",
    oque:"valor de referência no catálogo, quantidade na linha, e os transfers e tours que voltam sempre"},
   {id:"0027-acaba-o-grupo-de-escolha", arq:"0027-acaba-o-grupo-de-escolha.sql",
-   oque:"acaba o \"escolha uma opção\": toda linha fica aberta, e o cliente aprova as que quiser"}
+   oque:"acaba o \"escolha uma opção\": toda linha fica aberta, e o cliente aprova as que quiser"},
+  {id:"0028-nascimento-opcional",     arq:"0028-nascimento-opcional.sql",
+   oque:"a data de nascimento do viajante passa a ser escolha sua, por order"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -3427,7 +3451,7 @@ async function openOrder(id){
   ORDER = o; ITEMS = it||[]; PAYS = pg||[]; CONFS = cf||[]; CONF = CONFS[0]||null; FIELDS = fl||[];
   CFG = {
     lead: blockMode(o,"lead"), travellers: blockMode(o,"travellers"),
-    travellers_count: travCount(o), passport_names: passportNames(o),
+    travellers_count: travCount(o), passport_names: passportNames(o), dob: modoDob(o),
     ack_vehicle: blockMode(o,"ack_vehicle"), remarks: blockMode(o,"remarks"),
     prefill: Object.assign({lead_name:"",lead_email:"",lead_phone:"",travellers:[]}, prefill(o))
   };
@@ -3735,6 +3759,17 @@ function travOptions(){
           <option value="nao"${!CFG.passport_names?" selected":""}>Não — nome usual basta</option>
         </select></div>
     </div>
+    <div style="margin-top:12px;">
+      <label>Data de nascimento</label>
+      <select onchange="CFG.dob=this.value;drawConfig()">
+        <option value="required"${CFG.dob!=="optional"&&CFG.dob!=="off"?" selected":""}>Pede e exige — bilhete nominal, meia-entrada</option>
+        <option value="optional"${CFG.dob==="optional"?" selected":""}>Pede, sem exigir</option>
+        <option value="off"${CFG.dob==="off"?" selected":""}>Não pergunta — a venda não precisa</option>
+      </select>
+      <div class="hint" style="margin-top:5px;">Numa venda só de transfer, o nascimento é dado
+        pessoal que ninguém vai usar e uma linha a mais para a agência travar. O nome continua
+        obrigatório sempre.</div>
+    </div>
   </div></div>`;
 }
 
@@ -3854,7 +3889,7 @@ function drawConfirmation(){
   const t = T.pt;
   const tv = (CONF.travellers||[]);
   const pax = tv.length
-    ? tv.map(x=>`${esc(x.name||"—")} · ${esc(x.dob||"—")}`).join("<br>")
+    ? tv.map(x=>`${esc(x.name||"—")}${(x.dob||"").trim()?" · "+esc(dia(x.dob,"pt")):""}`).join("<br>")
     : ((CONF.adults||[]).map(a=>esc(a)).join("<br>") || "—");
   const fl = (CONF.fields||[]);
   host.innerHTML = `<div class="section-title">Confirmação recebida</div>
@@ -3933,6 +3968,7 @@ function cfgToJson(){
     lead: CFG.lead, travellers: CFG.travellers,
     travellers_count: CFG.travellers_count,
     passport_names: !!CFG.passport_names,
+    dob: CFG.dob === "optional" || CFG.dob === "off" ? CFG.dob : "required",
     ack_vehicle: CFG.ack_vehicle !== "off",
     remarks: CFG.remarks !== "off",
     prefill: {}
@@ -4111,7 +4147,7 @@ function renderSummary(){
   // adulto e idades de criança. As duas precisam continuar legíveis.
   const trav = (c.travellers||[]);
   const viajantes = trav.length
-    ? trav.map(x=>linha(esc(x.name||"—"), esc(x.dob||"—"))).join("")
+    ? trav.map(x=>linha(esc(x.name||"—"), (x.dob||"").trim()?esc(dia(x.dob, o.lang||"pt")):"—")).join("")
     : ((c.adults||[]).length
         ? (c.adults||[]).map(a=>linha(esc(a), "—")).join("")
           + ((c.children||[]).map(x=>linha("—", esc(x.age)+" "+t.years)).join(""))
@@ -5148,10 +5184,15 @@ function drawPublic(){
 function drawPax(){
   const t = T[PUB.order.lang||"pt"], host = el("tv-host");
   if(!host) return;
-  host.innerHTML = `<div class="trav-head"><span>${t.travName}</span><span>${t.travDob}</span><span></span></div>` +
+  /* Sem nascimento a linha perde uma coluna: campo de data escondido e
+     coluna reservada deixariam um buraco do lado do nome. */
+  const md = modoDob(PUB.order);
+  host.className = md === "off" ? "sem-dob" : "";
+  host.innerHTML = `<div class="trav-head"><span>${t.travName} <span class="req">*</span></span>
+      ${md==="off"?"":`<span>${t.travDob}${md==="required"?` <span class="req">*</span>`:""}</span>`}<span></span></div>` +
     PAX.map((tv,i)=>`<div class="trav-row">
       <input value="${esc(tv.name)}" placeholder="${t.travName}" oninput="PAX[${i}].name=this.value">
-      <input type="date" value="${esc(tv.dob)}" oninput="PAX[${i}].dob=this.value">
+      ${md==="off"?"":`<input type="date" value="${esc(tv.dob)}" oninput="PAX[${i}].dob=this.value">`}
       ${PAX.length>1?`<button class="iconbtn" onclick="PAX.splice(${i},1);drawPax()">×</button>`:`<span></span>`}
     </div>`).join("");
 }
@@ -5181,7 +5222,8 @@ async function submitConfirmation(){
     if(!payload.travellers.length) falta.push(t.miss.travellers);
     PAX.forEach((tv,i)=>{
       if(!(tv.name||"").trim()) falta.push(`${t.travName} ${i+1}`);
-      if(!(tv.dob ||"").trim()) falta.push(`${t.travDob} ${i+1}`);
+      if(modoDob(PUB.order) === "required" && !(tv.dob||"").trim())
+        falta.push(`${t.travDob} ${i+1}`);
     });
   }
   (PUB.fields||[]).forEach(f=>{
