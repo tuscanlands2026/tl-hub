@@ -4563,7 +4563,7 @@ function drawQuoteApresentada(){
         <img class="ap-logo-fim" src="${p.backcover_img?LOGO_BRANCO:LOGO}" alt="Tuscan Lands"
              onerror="this.style.display='none';">
         <div class="ap-back">${fmtDoc(p.backcover)}</div>
-        ${apNav(t, true)}
+        ${apNav(t)}
       </div>
     </section>`});
 
@@ -4581,6 +4581,18 @@ function drawQuoteApresentada(){
     </aside>
     <main class="ap-main">${passos.map(x=>x.html).join("")}</main>
   </div>`;
+
+  /* A última etapa não leva "avançar". Qual é a última muda de proposta
+     para proposta — a contracapa não sai na da agência, e a folha de
+     abertura só existe se tiver texto —, então isso se decide aqui,
+     contando as etapas desenhadas, e não com uma marca fixa na etapa
+     que um dia foi a última. */
+  const etapas = [...app.querySelectorAll(".ap-passo")];
+  const ultima = etapas[etapas.length - 1];
+  if(ultima){
+    const avancar = ultima.querySelector(".ap-nav .ap-btn:not(.ghost)");
+    if(avancar) avancar.remove();
+  }
 
   if(!respondida && el("qc-go")) el("qc-go").onclick = submitQuote;
   precarregarFotos(p, itens);
