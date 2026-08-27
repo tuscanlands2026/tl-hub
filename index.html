@@ -414,6 +414,9 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-estrutura li{margin-bottom:2px;}
 
 .ap-sec{display:grid;grid-template-columns:38% 1fr;align-items:start;border-top:1px solid var(--cream);}
+/* Folha sem faixa de foto: a coluna da foto não existe, e sem isto ela
+   continuaria reservada — sobrava um retângulo escuro do lado do texto. */
+.ap-sec.sem-foto{grid-template-columns:1fr;}
 /* A foto das peças grandes é <img> e não fundo em CSS: fundo depende da
    caixinha "gráficos de fundo" da caixa de impressão, e por isso a capa
    e a contracapa saíam vazias no PDF. <img> sai sempre. */
@@ -1046,6 +1049,8 @@ const T = {
     qOthers:"Outros serviços", qItinerary:"Roteiro dia a dia", qHighlights:"Destaques",
     qExtrasDisp:"Adicionais disponíveis", qFacilities:"Estrutura", qIncluded:"Incluso", qAbout:"Sobre nós", qCredentials:"Credenciais",
     qAssurance:"Convite", qAgent:"Travel agent", qDesigner:"Travel designer",
+    qInterest:"Confirmo interesse nos serviços selecionados",
+    qInterestAck:"Confirmo interesse nos serviços que selecionei acima.",
     qResumoLead:"",
     qStaysTitle:"Hospedagens", qExtrasTitle:"Extras e opcionais (válidos para a contratação da hospedagem)",
     qNeedUnits:"Escolha pelo menos uma acomodação em:",
@@ -1136,6 +1141,8 @@ const T = {
     qOthers:"Other services", qItinerary:"Day by day", qHighlights:"Highlights",
     qExtrasDisp:"Available add-ons", qFacilities:"Facilities", qIncluded:"Included", qAbout:"About us", qCredentials:"Credentials",
     qAssurance:"Invitation", qAgent:"Travel agent", qDesigner:"Travel designer",
+    qInterest:"I confirm my interest in the selected services",
+    qInterestAck:"I confirm my interest in the services I selected above.",
     qResumoLead:"",
     qStaysTitle:"Stays", qExtrasTitle:"Add-ons and options (available with the stay)",
     qNeedUnits:"Choose at least one room at:",
@@ -1410,7 +1417,9 @@ const MIGRACOES = [
   {id:"0022-abertura-da-agencia",   arq:"0022-abertura-da-agencia.sql",
    oque:"a folha de abertura da proposta da agência passa a ser a que as agências já aprovaram"},
   {id:"0023-folha-em-duas-partes",  arq:"0023-folha-em-duas-partes.sql",
-   oque:"a folha fica só com a chamada e o destino; o parágrafo da Tuscan Lands você inclui ou não"}
+   oque:"a folha fica só com a chamada e o destino; o parágrafo da Tuscan Lands você inclui ou não"},
+  {id:"0024-escolhas-da-capa-e-do-envio", arq:"0024-escolhas-da-capa-e-do-envio.sql",
+   oque:"nome da capa escrito por você, foto da folha do convite, e o envio em bloco simples"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2134,6 +2143,20 @@ function renderProposal(){
       <div style="grid-column:span 2;"><label>Imagem da capa — link</label>
         <input id="q-cover" value="${esc(p.cover_img||"")}" placeholder="https://…"></div>
     </div>
+    ${p.layout==="apresentada"?`<div class="grid2">
+      <div><label>Nome grande da capa</label>
+        <input id="q-covertitle" value="${esc(p.cover_title != null ? p.cover_title
+                                            : (OPP.final_client || OPP.agency || ""))}">
+        <div class="hint" style="margin-top:5px;">Escreva o que quiser. Apagando, a capa sai sem
+          nome — só a tarja, as datas e o número.</div></div>
+      <div><label>Bloco de envio</label>
+        <select id="q-confirm">
+          <option value="full"${p.confirm_mode==="simple"?"":" selected"}>Completo — nome, e-mail, pagamento e observações</option>
+          <option value="simple"${p.confirm_mode==="simple"?" selected":""}>Simples — só a confirmação de interesse</option>
+        </select>
+        <div class="hint" style="margin-top:5px;">No simples sai uma caixinha só, com o aviso de
+          que enviar não bloqueia nem reserva nada.</div></div>
+    </div>`:""}
 
     ${/* Uma chave só, e não uma para cada peça: as cinco se movem
           juntas, e chave separada seria uma para esquecer de virar.
@@ -2165,6 +2188,12 @@ function renderProposal(){
       ${p.agency_logo?`<div style="margin-top:10px;background:var(--sage);padding:14px;display:inline-block;">
         <img src="${esc(p.agency_logo)}" alt="" style="max-width:200px;max-height:80px;display:block;
           ${p.agency_logo_bg?"background:#fff;padding:10px;":""}" onerror="this.style.display='none';"></div>`:""}
+      <div style="margin-top:12px;">
+        <label>Foto da folha do convite — link</label>
+        <div class="hint" style="margin:0 0 7px;">Em branco, a folha sai sem faixa de foto.</div>
+        <input id="q-assuranceimg" value="${esc(p.assurance_img||"")}" placeholder="https://…">
+      </div>
+
       <div style="margin-top:12px;">
         <label>Página de abertura — no lugar do "Sobre nós"</label>
         <div class="hint" style="margin:0 0 7px;">Vem preenchida com a folha que as agências já
@@ -2461,6 +2490,12 @@ const ROTULOS = [
   {k:"extras_title", onde:"Proposta · grupo dos extras",
      pt:"Extras e opcionais (válidos para a contratação da hospedagem)",
      en:"Add-ons and options (available with the stay)"},
+  {k:"interest",     onde:"Envio simples · título",
+     pt:"Confirmo interesse nos serviços selecionados",
+     en:"I confirm my interest in the selected services"},
+  {k:"interest_ack", onde:"Envio simples · caixinha",
+     pt:"Confirmo interesse nos serviços que selecionei acima.",
+     en:"I confirm my interest in the services I selected above."},
   {k:"contact",    onde:"Menu · contracapa",     pt:"Contato", en:"Contact"}
 ];
 function rotulo(p, k, idi){ return ((p.labels||{})[k]||{})[idi] || ""; }
@@ -2999,6 +3034,12 @@ function guardaCampos(){
     ? new Date(el("q-exp").value + "T23:59:59").toISOString() : null;
   if(el("q-cover"))    PROP.cover_img = el("q-cover").value.trim() || null;
   if(el("q-wl"))         PROP.white_label = el("q-wl").value === "agencia";
+  if(el("q-confirm"))    PROP.confirm_mode = el("q-confirm").value;
+  // Sem "|| null": vazio aqui quer dizer capa sem nome, e não "usa o
+  // de antes". Quem diz "usa o de antes" é o nulo, que só existe
+  // enquanto ela não salvou a proposta nenhuma vez.
+  if(el("q-covertitle")) PROP.cover_title = el("q-covertitle").value.trim();
+  if(el("q-assuranceimg")) PROP.assurance_img = el("q-assuranceimg").value.trim() || null;
   if(el("q-agencylogo")) PROP.agency_logo = el("q-agencylogo").value.trim() || null;
   if(el("q-agencybg"))   PROP.agency_logo_bg = el("q-agencybg").value === "sim";
   if(el("q-aboutimg")) PROP.about_img = el("q-aboutimg").value.trim() || null;
@@ -3019,6 +3060,8 @@ async function saveProposal(){
     show_prices: PROP.show_prices, terms_url: PROP.terms_url,
     intro: PROP.intro, payment_note: PROP.payment_note,
     layout: PROP.layout || "tabela", cover_img: PROP.cover_img,
+    confirm_mode: PROP.confirm_mode === "simple" ? "simple" : "full",
+    cover_title: PROP.cover_title, assurance_img: PROP.assurance_img || null,
     white_label: !!PROP.white_label, agency_logo: PROP.agency_logo || null,
     agency_logo_bg: !!PROP.agency_logo_bg,
     assurance_pt: PROP.assurance_pt, assurance_en: PROP.assurance_en,
@@ -3086,7 +3129,10 @@ function drawSelection(){
   const linhas = (PSEL.lines||[]);
   host.innerHTML = `<div class="section-title">Resposta do cliente</div>
     <div class="grid3">
-      <div><label>Quem respondeu</label><div class="muted">${esc(PSEL.lead_name||"—")}
+      <div><label>Quem respondeu</label><div class="muted">${
+        PSEL.confirm_mode==="simple"
+          ? `${esc(OPP.agency||"—")}<br><span style="color:var(--copper);">confirmação de interesse</span>`
+          : esc(PSEL.lead_name||"—")}
         ${PSEL.designer_name?`<br>Travel designer: ${esc(PSEL.designer_name)}`:""}
         <br>${esc(PSEL.lead_email||"")}<br>${esc(PSEL.lead_phone||"")}</div></div>
       <div><label>Quando</label><div class="muted">${stamp(PSEL.submitted_at,"pt")}</div></div>
@@ -4220,6 +4266,18 @@ function quoteFecho(p, t, mostra, respondida, comResumo, semRodape){
 function quoteConfirmar(t, respondida, pagamentos, p){
   const pgs = pagamentos || [];
   const L = (k,d)=>esc(rot(p||{}, k, d));
+  /* Bloco simples: uma caixinha só. Não pede nome, e-mail, pagamento
+     nem observações — o aviso de que enviar não bloqueia nada continua
+     logo acima, que é o que sustenta essa tela mais curta. */
+  if(!respondida && (p||{}).confirm_mode === "simple") return `
+  <div class="confirm-block">
+    <h2>${L("interest", t.qInterest)}</h2>
+    <div class="rule"></div>
+    <div class="check" style="margin-top:16px;"><input type="checkbox" id="qc-ack">
+      <label for="qc-ack">${L("interest_ack", t.qInterestAck)} <span class="req">*</span></label></div>
+    <div id="qc-msg" style="margin-top:14px;"></div>
+    <button class="btn" id="qc-go" style="margin-top:16px;">${t.qSend}</button>
+  </div>`;
   return `
   ${respondida?"":`
   <div class="confirm-block">
@@ -4361,7 +4419,11 @@ function drawQuoteApresentada(){
                onerror="this.style.display='none';this.nextElementSibling.style.display='block';">`:""}
           <div class="ap-marca-capa" style="display:${logoCapa?"none":"block"};">${esc(marcaCapa)}</div>
           ${p.cover_tag?`<div class="ap-tag">${esc(p.cover_tag)}</div>`:""}
-          <h1>${esc(p.final_client||p.agency||"")}</h1>
+          ${/* Era sempre o cliente final ou a agência. Virou texto
+                dela, e em branco a capa sai sem nome nenhum — o banco
+                resolve o nulo para o de antes, então proposta que já
+                existe não muda sozinha. */""}
+          ${(p.cover_title||"").trim()?`<h1>${esc(p.cover_title)}</h1>`:""}
           <div class="ap-datas">${esc(p.travel_window||"")}</div>
           ${p.crm_code?`<div class="ap-ref">${esc(p.crm_code)}</div>`:""}
           <button class="ap-cta" onclick="apAnda(1)">${esc(rot(p,"cta",t.qStart))}</button>
@@ -4402,19 +4464,19 @@ function drawQuoteApresentada(){
   const abertura = daAgencia ? (p.assurance||"") : (p.about||"");
   const chaveAb  = daAgencia ? "assurance" : "about";
   const tituloAb = daAgencia ? t.qAssurance : t.qAbout;
-  /* A foto do "Sobre nós" é o retrato da fundadora. Numa proposta que
-     não é da Tuscan Lands ela contradiz a própria folha: sai a foto da
-     primeira hospedagem, e na falta dela a da capa. */
-  const fotoAb   = daAgencia ? (capaDe(null, daPeca) || p.cover_img || "") : (p.about_img||"");
+  /* A foto da folha do convite é campo dela, e não herança da primeira
+     hospedagem: a faixa aparecia com uma foto que ela não escolheu.
+     Em branco, a folha sai sem faixa. */
+  const fotoAb   = daAgencia ? (p.assurance_img||"") : (p.about_img||"");
   if(abertura) passos.push({txt:rot(p,chaveAb,tituloAb), html:`
-    <section class="ap-sec ap-passo" style="display:none;">
+    <section class="ap-sec ap-passo${fotoAb?"":" sem-foto"}" style="display:none;">
       ${/* Na folha da agência a faixa não leva título: a chamada em
             negrito do texto já é o título, e dois títulos na mesma
             folha disputam a leitura. É assim na peça que as agências
             já aprovaram. */""}
-      <div class="ap-foto ap-foto-sobre">
-        ${fotoAb?`<img class="ap-fundo" src="${esc(fotoAb)}" alt="">`:""}
-        ${daAgencia?"":`<div class="ap-foto-txt"><h2>${esc(rot(p,chaveAb,tituloAb))}</h2></div>`}</div>
+      ${fotoAb?`<div class="ap-foto ap-foto-sobre">
+        <img class="ap-fundo" src="${esc(fotoAb)}" alt="">
+        ${daAgencia?"":`<div class="ap-foto-txt"><h2>${esc(rot(p,chaveAb,tituloAb))}</h2></div>`}</div>`:""}
       <div class="ap-lista">
         <div class="ap-sobre-txt">${fmtDoc(abertura)}</div>
         ${p.credentials?`<div class="ap-cred"><div class="k">${t.qCredentials}</div>${fmtDoc(p.credentials)}</div>`:""}
@@ -4738,8 +4800,8 @@ function drawQuote(){
 
 async function submitQuote(){
   const p = QT.proposal, t = T[p.lang||"pt"];
-  const nome = el("qc-name").value.trim();
-  if(!nome){ el("qc-msg").innerHTML = `<div class="msg">${t.qNeedName}</div>`; return; }
+  const nome = el("qc-name") ? el("qc-name").value.trim() : "";
+  if(el("qc-name") && !nome){ el("qc-msg").innerHTML = `<div class="msg">${t.qNeedName}</div>`; return; }
   // Mesma regra do banco, só que respondida na hora: grupo sem escolha
   // é pergunta sem resposta.
   const grupos = [...new Set((QT.items||[]).map(i=>i.choice_group).filter(Boolean))];
@@ -4762,9 +4824,9 @@ async function submitQuote(){
   const escolhidos = Object.keys(QSEL.items).filter(k=>QSEL.items[k]);
   const pg = document.querySelector("input[name=qc-pay]:checked");
   const {data,error} = await sb.rpc("tl_submit_quote",{p_token:QT.token, p_payload:{
-    lead_name:nome, lead_email:el("qc-mail").value.trim(),
+    lead_name:nome, lead_email: el("qc-mail") ? el("qc-mail").value.trim() : "",
     designer_name: el("qc-designer") ? el("qc-designer").value.trim() : "",
-    lead_phone:"", remarks:el("qc-rem").value.trim(),
+    lead_phone:"", remarks: el("qc-rem") ? el("qc-rem").value.trim() : "",
     payment_choice: pg ? pg.value : null,
     items: escolhidos, extras: QSEL.extras, units: QSEL.units, ack_conditions: true
   }});

@@ -195,6 +195,29 @@ título e dois títulos na mesma folha disputam a leitura.
 `designer_name` fica em `ops_proposal_selections`, não é obrigatório — quem responde muitas
 vezes é a mesma pessoa — e sai no e-mail e no editor quando vem preenchido.
 
+**O bloco de envio tem dois tamanhos.** O completo é o de sempre. O simples é uma caixinha só —
+"confirmo interesse nos serviços" — e mais nada: nem nome, nem e-mail, nem forma de pagamento.
+`ops_proposals.confirm_mode` escolhe, por proposta. O que sustenta a tela mais curta é o aviso
+que já estava logo acima dela, o de que enviar não bloqueia nem reserva nada.
+
+No simples o nome deixa de ser exigido **no banco também**, e não só na tela: pedir nome numa
+tela sem campo de nome travaria o envio. Quem respondeu continua sabido, porque o link é da
+proposta e a proposta é da oportunidade, que tem a agência. A caixinha continua obrigatória nos
+dois casos, e a resposta guarda em `ops_proposal_selections.confirm_mode` **o que foi
+perguntado** — sem isso, confirmação de interesse ficaria gravada com a mesma cara de quem
+aceitou as condições comerciais, e não é a mesma coisa.
+
+**O nome grande da capa é texto dela.** Era sempre o cliente final, ou a agência. Agora é
+`ops_proposals.cover_title`: ela escreve o que quiser, e apagando a capa sai sem nome — só a
+tarja, as datas e o número. Nulo continua caindo no comportamento antigo, resolvido em
+`tl_get_quote`, para proposta que já existe não mudar sozinha; vazio é vazio de propósito, e
+por isso esse campo é o único que **não** vira `null` ao ser salvo em branco.
+
+**A folha do convite tem foto própria**, `assurance_img`, e em branco sai sem faixa de foto —
+a folha vira texto na largura inteira. Antes ela herdava a foto da primeira hospedagem, que
+ela não tinha escolhido. Folha sem foto precisa de `.ap-sec.sem-foto`: sem isso a coluna da
+foto continua reservada na grade e sobra um retângulo escuro ao lado do texto.
+
 **Link dos termos e rodapé da empresa não saem na página da proposta.** A contracapa é a
 página de contato, e repetir a mesma assinatura duas telas antes polui justamente a
 página onde o cliente está escolhendo. Continuam saindo no documento da order e na quote
@@ -384,7 +407,8 @@ painel. **Só no insert e sempre cópia**: mudar o padrão depois não reescreve
 enviada, e o que ela escreveu na proposta ganha do padrão.
 
 **As fotos do "Sobre nós" e da contracapa são fixas** — instrução dela em agosto/26,
-"sempre essa foto". Ficam no padrão da casa e descem para toda proposta nova. O campo
+"sempre essa foto". A do "Sobre nós" é a peça institucional
+(`i.postimg.cc/HsV7Z2fq`), e não mais o retrato da fundadora. Ficam no padrão da casa e descem para toda proposta nova. O campo
 continua no editor para o caso de uma proposta pedir outra, e a troca vale só ali.
 
 **Capa e contracapa são as duas peças de foto cheia.** A última página — a de contato — é
