@@ -306,6 +306,11 @@ table.rows tr.par td{border-top:none;padding-top:0;}
    monta ele sai sempre, porque lá o fundo é pedido pela função. */
 .ap-logo-capa.com-fundo,.ap-logo.com-fundo{background:#fff;padding:12px 16px;
   filter:none;box-sizing:content-box;}
+/* A sombra é do logo BRANCO da Tuscan Lands sobre foto: sem ela, branco
+   em foto clara some. O logo da agência é arquivo dela, quase sempre
+   escuro, e a sombra só o suja. Quem precisa de contraste ali tem o
+   fundo branco, que é escolha dela. */
+.ap-logo-capa.da-agencia{filter:none;}
 .ap-capa-in h1,.ap-tag,.ap-datas,.ap-ref{text-shadow:0 1px 12px rgba(42,42,40,.5);}
 .ap-marca{font-size:12px;letter-spacing:.24em;font-weight:500;opacity:.95;}
 .ap-indice nav{display:flex;flex-direction:column;gap:2px;overflow:auto;}
@@ -4486,7 +4491,7 @@ function drawQuoteApresentada(){
               lá embaixo: instrução dela em agosto/26, para dar presença
               a quem assina. O bloco de texto continua no pé. */""}
         <div class="ap-capa-topo">
-          ${logoCapa?`<img class="ap-logo-capa${fundoLogo}" src="${esc(logoCapa)}" alt="${esc(marcaCapa)}"
+          ${logoCapa?`<img class="ap-logo-capa${fundoLogo}${daAgencia?" da-agencia":""}" src="${esc(logoCapa)}" alt="${esc(marcaCapa)}"
                onerror="this.style.display='none';this.nextElementSibling.style.display='block';">`:""}
           <div class="ap-marca-capa" style="display:${logoCapa?"none":"block"};">${esc(marcaCapa)}</div>
         </div>
