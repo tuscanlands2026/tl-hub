@@ -4271,13 +4271,18 @@ function marcaItem(id, on){
 
 /* Escolher uma alternativa desmarca as irmãs, e leva junto os extras
    delas: extra de hotel que ele não vai usar somando no total é a conta
-   errada que só aparece na fatura. */
-function marcaEscolha(grupo, id){
+   errada que só aparece na fatura.
+   Desmarcando, some só ela: o grupo pode ficar sem nenhuma marcada, e
+   quem cobra a escolha é o envio — na tela e no banco. */
+function marcaEscolha(grupo, id, on){
   (QT.items||[]).forEach(i=>{
-    if(i.choice_group === grupo){
-      QSEL.items[i.id] = (i.id === id);
-      if(i.id !== id) delete QSEL.extras[i.id];
+    if(i.choice_group !== grupo) return;
+    if(on === false){
+      if(i.id === id){ delete QSEL.items[i.id]; delete QSEL.extras[i.id]; }
+      return;
     }
+    QSEL.items[i.id] = (i.id === id);
+    if(i.id !== id) delete QSEL.extras[i.id];
   });
   drawQuote();
 }
@@ -4818,15 +4823,19 @@ function quoteLinha(i, t, p, mostra, respondida){
           ${i.choice_group?`<span class="tag" style="margin-left:6px;">${t.qPick}</span>`:""}</div>
         ${qtdLinha(i,mostra)?`<div class="svc-qtd">${qtdLinha(i,mostra)}</div>`:""}
         ${i.details?`<div class="svc-sub">${fmtDoc(i.details)}</div>`:""}
-        ${respondida ? "" : (i.choice_group ? `<div class="check" style="margin:8px 0 0;">
-          <input type="radio" name="cg-${esc(i.choice_group)}" id="qi-${esc(i.id)}"
-            ${QSEL.items[i.id]?" checked":""}
-            onchange="marcaEscolha('${esc(i.choice_group)}','${esc(i.id)}')">
-          <label for="qi-${esc(i.id)}">${t.qPickOne}</label></div>`
-        : `<div class="check" style="margin:8px 0 0;">
+        ${/* CAIXINHA EM TODA LINHA, inclusive nas de um grupo de
+              escolha. Instrução dela em agosto/26: o rádio não desmarca
+              — é o que ele é —, e ela clicava sem querer e ficava presa
+              com o serviço dentro da proposta. A exclusividade do grupo
+              passa a ser o comportamento da marcação, e não o tipo do
+              controle: marcar uma continua desmarcando as irmãs, mas
+              agora dá para desmarcar todas. */""}
+        ${respondida ? "" : `<div class="check" style="margin:8px 0 0;">
           <input type="checkbox" id="qi-${esc(i.id)}"${QSEL.items[i.id]?" checked":""}
-            onchange="marcaItem('${esc(i.id)}',this.checked)">
-          <label for="qi-${esc(i.id)}">${t.qChoose}</label></div>`)}
+            onchange="${i.choice_group
+              ? `marcaEscolha('${esc(i.choice_group)}','${esc(i.id)}',this.checked)`
+              : `marcaItem('${esc(i.id)}',this.checked)`}">
+          <label for="qi-${esc(i.id)}">${i.choice_group?t.qPickOne:t.qChoose}</label></div>`}
         ${(i.units||[]).length ? `<div class="unid-cli">
           ${(i.units||[]).map(u=>u.optional && dentro && !respondida
             ? `<div class="check unid"><span>

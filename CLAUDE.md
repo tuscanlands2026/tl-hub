@@ -106,6 +106,12 @@ Linha sem seção cai numa tabela final sem título: transfer avulso não precis
 O preço aparece em **toda** linha, inclusive na que não foi escolhida — apagado, porque
 não está somando. Traço no lugar do valor escondia do cliente o preço do que ele não levou.
 
+**Toda linha tem caixinha QUADRADA, e o grupo de escolha também.** O rádio não desmarca — é o
+que ele é —, e ela clicava sem querer e ficava presa com o serviço dentro da proposta.
+Instrução dela em agosto/26. A exclusividade do grupo virou comportamento da marcação e não
+tipo de controle: marcar uma continua desmarcando as irmãs e apagando os extras delas, e agora
+dá para desmarcar todas. Quem cobra a escolha é o envio, na tela e no banco (`missing_choice`).
+
 **Toda linha tem caixinha.** Não existe serviço que entre sozinho: a proposta manda duas
 hospedagens na Umbria, duas em Florença e os serviços terrestres, e quem monta a viagem é o
 cliente. Envio sem nenhum serviço marcado é recusado na tela e no banco (`missing_items`) —
