@@ -1,0 +1,14 @@
+# O hub continua sendo um arquivo só, servido da raiz. O que entra aqui
+# é uma função à parte, que só existe para desenhar o PDF da proposta.
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# O Chromium é pesado e não pode ser empacotado junto: vem do pacote
+# externo, que a própria função baixa na primeira chamada.
+[functions."proposta-pdf"]
+  external_node_modules = ["@sparticuz/chromium-min", "puppeteer-core"]
+  included_files = []

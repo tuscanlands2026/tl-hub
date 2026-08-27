@@ -257,10 +257,19 @@ login. É a mesma exposição do documento que o anexo acompanha. O balde se cri
 painel do Supabase (Storage → New bucket → `ops-anexos` → Public); se não existir, o hub
 explica o passo em vez de mostrar erro cru.
 
-**Baixar em PDF é a caixa de impressão do navegador**, e não uma biblioteca. O "Salvar em
-PDF" do Chrome é vetorial: o texto não perde qualidade e as fotos vão na resolução do
-arquivo. Um PDF gerado por biblioteca seria rasterizado e, pior, um segundo desenho para
-manter, divergindo deste no primeiro ajuste.
+**Baixar a proposta é DOWNLOAD, e não a caixa de impressão.** Instrução dela em agosto/26,
+apontando o voucher do CRM, que já faz assim. A função `netlify/functions/proposta-pdf.js`
+abre a própria página pública num Chromium sem tela e devolve o arquivo. O texto sai
+vetorial e o desenho é o da folha de impressão que já está aprovada: **não existe um
+segundo layout para manter**, e nada vira imagem. Biblioteca de PDF no navegador foi
+descartada por ela — rasteriza o texto.
+
+Não estando a função no ar, o botão cai na caixa de impressão em vez de deixar a pessoa
+sem saída. Antes de imprimir, espera as fotos e as fontes: imprimir com imagem chegando é
+o que produz arquivo que não abre depois.
+
+O `netlify.toml` e o `package.json` existem **só** para essa função. O hub continua sendo
+um arquivo só, servido da raiz, sem build.
 
 **A proposta apresentada sai em uma folha A4 por etapa.** Capa e contracapa sangram até a
 borda; cada hospedagem tem a sua folha, com a faixa da foto da seção e o card inteiro;
@@ -462,11 +471,6 @@ Os dois blocos de texto do relatório — dados fiscais e como emitir a nota —
 `ops_text_defaults`, editáveis sem mexer em código. `commission_pct` não sai em
 `tl_get_order`.
 
-- **Baixar a proposta em um clique, sem a caixa de impressão.** Pedido dela em agosto/26.
-  Hoje o botão abre o "Salvar em PDF" do navegador, que é vetorial e monta o documento
-  certo. Um clique só exige desenhar o PDF por fora: biblioteca no navegador rasteriza o
-  texto e vira um segundo desenho para manter; um serviço que renderize a página no
-  servidor resolve sem perder qualidade. É o caminho a seguir quando for a vez disto.
 - Busca, histórico e filtro por data, cliente e tipo de serviço.
 - Exportação para alimentar o faturamento no CRM, com o hub como fonte de verdade.
 
