@@ -1408,7 +1408,9 @@ const MIGRACOES = [
   {id:"0021-proposta-da-agencia",   arq:"0021-proposta-da-agencia.sql",
    oque:"proposta assinada pela agência: logo dela, página de respaldo e os dois nomes no envio"},
   {id:"0022-abertura-da-agencia",   arq:"0022-abertura-da-agencia.sql",
-   oque:"a folha de abertura da proposta da agência passa a ser a que as agências já aprovaram"}
+   oque:"a folha de abertura da proposta da agência passa a ser a que as agências já aprovaram"},
+  {id:"0023-folha-em-duas-partes",  arq:"0023-folha-em-duas-partes.sql",
+   oque:"a folha fica só com a chamada e o destino; o parágrafo da Tuscan Lands você inclui ou não"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2165,10 +2167,16 @@ function renderProposal(){
           ${p.agency_logo_bg?"background:#fff;padding:10px;":""}" onerror="this.style.display='none';"></div>`:""}
       <div style="margin-top:12px;">
         <label>Página de abertura — no lugar do "Sobre nós"</label>
-        <div class="hint" style="margin:0 0 7px;">Vem preenchida com o texto padrão da casa.
-          Onde estiver <b>{agencia}</b> entra o nome da agência da oportunidade. As credenciais
-          continuam saindo embaixo, e são elas que dão segurança ao cliente.</div>
-        <textarea rows="8" oninput="PROP.${campoP("assurance")}=this.value">${esc(p[campoP("assurance")]||"")}</textarea>
+        <div class="hint" style="margin:0 0 7px;">Vem preenchida com a folha que as agências já
+          aprovaram: a chamada e o parágrafo do destino. Onde estiver <b>{agencia}</b> entra o
+          nome da agência da oportunidade. As credenciais continuam saindo embaixo.</div>
+        <textarea id="q-assurance" rows="8"
+          oninput="PROP.${campoP("assurance")}=this.value">${esc(p[campoP("assurance")]||"")}</textarea>
+        ${/* O parágrafo da DMC licenciada não vem grudado: ela inclui
+              conforme a agência. Incluir é um clique, tirar é apagar. */""}
+        <div style="margin-top:7px;">
+          <button class="btn ghost sm" id="q-nota-dmc">Incluir o parágrafo da Tuscan Lands</button>
+        </div>
       </div>`:""}
     </div>
     ${p.layout==="apresentada"?`<div>
@@ -2302,6 +2310,7 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
     drawQuoteItems(); };
   el("q-cond-std").onclick = trazerPadrao;
   el("q-cond-save").onclick = salvarPadrao;
+  if(el("q-nota-dmc")) el("q-nota-dmc").onclick = incluirNotaDMC;
   el("qs-add").onclick = () => {
     let n = 1; while(PSECS.some(x=>x.key==="sec"+n)) n++;
     PSECS.push({key:"sec"+n, title:"", note:""}); drawSections(); drawQuoteItems();
@@ -2338,6 +2347,21 @@ async function trazerPadrao(){
   PROP.conditions_pt = d.pt||""; PROP.conditions_en = d.en||"";
   renderProposal();
 }
+/* O parágrafo que diz que a Tuscan Lands é DMC licenciada e opera em
+   colaboração com a agência. Fica guardado no padrão da casa e entra na
+   folha de abertura quando ela quiser — tem agência que pede, e tem
+   agência que prefere sem. Já estando lá, não entra duas vezes. */
+async function incluirNotaDMC(){
+  const campo = campoP("assurance");
+  const atual = (el("q-assurance") ? el("q-assurance").value : (PROP[campo]||""));
+  const {data} = await sb.from("ops_text_defaults").select("*").eq("key","assurance_note").maybeSingle();
+  const nota = ((data||{})[EDIOMA==="en"?"en":"pt"] || "").trim();
+  if(!nota) return alert("O parágrafo padrão ainda não está no banco. Falta rodar a migração 0023.");
+  if(atual.indexOf(nota) >= 0) return alert("Esse parágrafo já está na folha.");
+  PROP[campo] = (atual.trim() ? atual.replace(/\s+$/,"") + "\n" : "") + nota;
+  renderProposal();
+}
+
 async function salvarPadrao(){
   guardaCampos();
   if(!confirm("Guardar este texto como padrão da casa? Toda proposta nova passa a nascer com ele. "

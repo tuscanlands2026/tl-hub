@@ -170,11 +170,16 @@ nenhuma. Nasce desligada: proposta que já existe não muda de cara.
 **A folha de abertura é a peça que as agências já aprovaram.** A primeira versão explicava a
 divisão de trabalho — quem desenha, quem opera. Ela apontou a proposta real: a folha que já
 rodou e foi aprovada é a "Transformando a Itália em histórias inesquecíveis", que fala da
-Itália e não de quem vende. Então é essa, palavra por palavra como está no texto da casa, com
-um parágrafo curto no fim dizendo que a Tuscan Lands é DMC licenciada e opera em colaboração
-com a agência. O que sai é a parte em que a Tuscan Lands se apresenta — oito anos, rede de
-parceiros, curadoria — que é o que tirava o foco da agência. As credenciais continuam embaixo:
-são os números de registro que dão segurança sem reivindicar a venda.
+Itália e não de quem vende. Então é essa, palavra por palavra como está no texto da casa: a
+chamada e o parágrafo do destino, e mais nada. O que sai é a parte em que a Tuscan Lands se
+apresenta — oito anos, rede de parceiros, curadoria — que é o que tirava o foco da agência. As
+credenciais continuam embaixo: são os números de registro que dão segurança sem reivindicar a
+venda.
+
+**O parágrafo da DMC licenciada é dela incluir ou não.** Tem agência que pede o respaldo escrito
+e tem agência que prefere sem. Fica em `ops_text_defaults` na chave `assurance_note` e entra na
+folha por um botão no editor: incluir é um clique, tirar é apagar. Não virou coluna própria
+porque não tem lugar próprio no desenho da folha — ele entra no fim do mesmo texto corrido.
 
 Padrão da casa em `ops_text_defaults`, cópia em `ops_proposals.assurance_pt/_en`, como todo
 texto daqui. Onde estiver `{agencia}` entra o nome da agência da oportunidade, **resolvido em
