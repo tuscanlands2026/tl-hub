@@ -4403,7 +4403,23 @@ function paginaSemMargem(){
    desenho para manter, ou um serviço que renderize a página no
    servidor. Ficou registrado como pendência; o que sai daqui é
    vetorial e não perde qualidade. */
-function baixarProposta(){ window.print(); }
+async function baixarProposta(){
+  const btn = document.querySelector(".ap-baixar");
+  const rot = btn ? btn.textContent : "";
+  if(btn){ btn.disabled = true; btn.textContent = "Preparando…"; }
+  // Espera as fotos antes de abrir a caixa de impressão. Mandar
+  // imprimir com imagem ainda chegando é onde o arquivo salvo sai
+  // incompleto — e um PDF incompleto não abre depois.
+  const imgs = [...document.querySelectorAll(".apres img")].filter(i=>!i.complete);
+  await Promise.all(imgs.map(i=>new Promise(ok=>{
+    const fim = ()=>ok(); i.addEventListener("load", fim, {once:true});
+    i.addEventListener("error", fim, {once:true}); setTimeout(fim, 8000);
+  })));
+  if(document.fonts && document.fonts.ready){ try{ await document.fonts.ready; }catch(e){} }
+  await new Promise(r=>setTimeout(r, 120));
+  if(btn){ btn.disabled = false; btn.textContent = rot; }
+  window.print();
+}
 
 /* Avançar e voltar em toda etapa: o cliente revisa a proposta inteira
    sem sair dela e sem depender do botão do navegador. */
