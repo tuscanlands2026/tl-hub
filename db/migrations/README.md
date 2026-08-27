@@ -45,3 +45,4 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0022 | `0022-abertura-da-agencia.sql` | a folha de abertura da proposta da agência passa a ser a peça que as agências já aprovaram |
 | 0023 | `0023-folha-em-duas-partes.sql` | a folha de abertura fica só com a chamada e o destino; o parágrafo da DMC vira texto à parte, incluído por botão |
 | 0024 | `0024-escolhas-da-capa-e-do-envio.sql` | nome da capa escrito por ela, foto própria na folha do convite, bloco de envio simples e a foto institucional no "Sobre nós" |
+| 0025 | `0025-conserta-a-folha-do-convite.sql` | preenche o inglês e a foto da folha do convite nas propostas que já existiam |
