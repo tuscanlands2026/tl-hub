@@ -77,9 +77,6 @@ export default async (req) => {
       headers: {
         "Content-Type": "application/pdf",
         /* attachment é o que manda o navegador BAIXAR em vez de abrir
-           no visualizador. O filename* repete o nome em UTF-8, para o
-           acento sobreviver em qualquer navegador. */
-        /* attachment é o que manda o navegador BAIXAR em vez de abrir
            no visualizador de PDF. */
         "Content-Disposition": `attachment; filename="${nome}.pdf"`,
         "Cache-Control": "no-store"
