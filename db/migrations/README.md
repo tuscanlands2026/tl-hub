@@ -32,3 +32,13 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0009 | `0009-textos-da-casa.sql` | as páginas que ela diagramou e a contracapa com os contatos |
 | 0010 | `0010-ajustes-da-proposta.sql` | incluso por linha, forma de pagamento e a foto do sobre nós |
 | 0011 | `0011-textos-editaveis.sql` | títulos e chamadas da proposta editáveis por ela |
+| 0012 | `0012-hotel-em-roma.sql` | Palazzo Ripetta no catálogo e a hospedagem de Roma na TL-045-26 |
+| 0013 | `0013-contracapa-com-foto.sql` | contracapa com foto de fundo do tamanho da tela |
+| 0014 | `0014-unidades-e-extras.sql` | valor por acomodação, extras em grupo próprio, aviso no booking |
+| 0015 | `0015-proposta-nasce-preenchida.sql` | proposta nova nasce com o texto e as fotos da casa |
+| 0016 | `0016-prazo-do-link.sql` | prazo de validade do link da proposta, conferido nas duas pontas |
+| 0017 | `0017-poggio-paradiso.sql` | Poggio Paradiso Resort & Spa no catálogo |
+| 0018 | `0018-capa-no-catalogo.sql` | foto de capa no cadastro do catálogo |
+| 0019 | `0019-capa-do-poggio.sql` | grava a capa sem depender da ordem das migrações |
+| 0020 | `0020-poggio-completo.sql` | o Poggio com a capa, em um arquivo só |
+| 0021 | `0021-proposta-da-agencia.sql` | proposta assinada pela agência: logo dela, página de respaldo, travel agent e travel designer no envio |

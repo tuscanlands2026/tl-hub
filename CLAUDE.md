@@ -156,6 +156,33 @@ apresentação: "10 a 13 out" e "13 a 17 out" são folhas do documento, não cat
 venda, e uma coisa não serve para a outra. O `extra` **não vira etapa da apresentação**:
 uma folha inteira de capítulo para um transfer é folha que ninguém pediu.
 
+**A proposta pode sair assinada pela agência.** Instrução dela em agosto/26, depois de uma
+agência reclamar que a peça estava personalizada demais da Tuscan Lands. Numa venda em que a
+agência é a dona do cliente, quem assina é a agência: `ops_proposals.white_label` liga, e com
+ele o logo da capa é o de `agency_logo` (com `agency_logo_bg` para o fundo branco atrás do logo
+escuro), a folha de abertura passa a ser o texto de respaldo em vez do "Sobre nós", a contracapa
+de contato da Tuscan Lands não sai, e o envio pede **travel agent** e **travel designer**.
+
+**É uma chave só, e não cinco.** As cinco peças se movem juntas — deixar cada uma com a sua
+chave seria deixar uma para ela esquecer de virar, e proposta meio white label é pior que
+nenhuma. Nasce desligada: proposta que já existe não muda de cara.
+
+O texto de respaldo diz o que dá segurança ao cliente sem tirar o foco da agência — a agência
+desenha, a DMC licenciada opera — e as credenciais continuam saindo embaixo dele, que é onde os
+números de registro fazem efeito. Padrão da casa em `ops_text_defaults`, cópia em
+`ops_proposals.assurance_pt/_en`, como todo texto daqui. Onde estiver `{agencia}` entra o nome
+da agência da oportunidade, **resolvido em `tl_get_quote`** e não na tela, para valer igual na
+página, no PDF e no e-mail.
+
+Duas coisas que essa folha herdaria erradas se ninguém olhasse: a foto é a do retrato da
+fundadora, que numa proposta da agência contradiz a própria página — sai a foto da primeira
+hospedagem, e na falta dela a da capa; e o negrito ali é a chamada grande, em bloco próprio, de
+modo que `**` no meio da frase parte o parágrafo em três. Por isso o texto padrão só tem negrito
+na primeira linha.
+
+`designer_name` fica em `ops_proposal_selections`, não é obrigatório — quem responde muitas
+vezes é a mesma pessoa — e sai no e-mail e no editor quando vem preenchido.
+
 **Link dos termos e rodapé da empresa não saem na página da proposta.** A contracapa é a
 página de contato, e repetir a mesma assinatura duas telas antes polui justamente a
 página onde o cliente está escolhendo. Continuam saindo no documento da order e na quote

@@ -299,6 +299,13 @@ table.rows tr.par td{border-top:none;padding-top:0;}
    cai. A sombra segura a leitura sem precisar escurecer a imagem toda. */
 .ap-logo-capa{width:190px;max-width:44vw;display:block;margin-bottom:22px;
   filter:drop-shadow(0 1px 10px rgba(42,42,40,.65));}
+/* Proposta assinada pela agência: o logo é o dela, e logo escuro some
+   na foto — a sombra não salva. Quem salva é o fundo branco atrás, que
+   ela liga no editor caso a caso. Como todo fundo em CSS, ele só sai no
+   papel com "gráficos de fundo" marcado; no arquivo que o botão Baixar
+   monta ele sai sempre, porque lá o fundo é pedido pela função. */
+.ap-logo-capa.com-fundo,.ap-logo.com-fundo{background:#fff;padding:12px 16px;
+  filter:none;box-sizing:content-box;}
 .ap-capa-in h1,.ap-tag,.ap-datas,.ap-ref{text-shadow:0 1px 12px rgba(42,42,40,.5);}
 .ap-marca{font-size:12px;letter-spacing:.24em;font-weight:500;opacity:.95;}
 .ap-indice nav{display:flex;flex-direction:column;gap:2px;overflow:auto;}
@@ -1038,6 +1045,7 @@ const T = {
     qSite:"Ver o site da propriedade →", qSelected:"Selecionado",
     qOthers:"Outros serviços", qItinerary:"Roteiro dia a dia", qHighlights:"Destaques",
     qExtrasDisp:"Adicionais disponíveis", qFacilities:"Estrutura", qIncluded:"Incluso", qAbout:"Sobre nós", qCredentials:"Credenciais",
+    qAssurance:"Curadoria e operação", qAgent:"Travel agent", qDesigner:"Travel designer",
     qResumoLead:"",
     qStaysTitle:"Hospedagens", qExtrasTitle:"Extras e opcionais (válidos para a contratação da hospedagem)",
     qNeedUnits:"Escolha pelo menos uma acomodação em:",
@@ -1127,6 +1135,7 @@ const T = {
     qSite:"Visit the property website →", qSelected:"Selected",
     qOthers:"Other services", qItinerary:"Day by day", qHighlights:"Highlights",
     qExtrasDisp:"Available add-ons", qFacilities:"Facilities", qIncluded:"Included", qAbout:"About us", qCredentials:"Credentials",
+    qAssurance:"Curation and delivery", qAgent:"Travel agent", qDesigner:"Travel designer",
     qResumoLead:"",
     qStaysTitle:"Stays", qExtrasTitle:"Add-ons and options (available with the stay)",
     qNeedUnits:"Choose at least one room at:",
@@ -1395,7 +1404,9 @@ const MIGRACOES = [
   {id:"0019-capa-do-poggio",        arq:"0019-capa-do-poggio.sql",
    oque:"grava a capa dos hotéis sem depender da ordem das migrações"},
   {id:"0020-poggio-completo",       arq:"0020-poggio-completo.sql",
-   oque:"o Poggio Paradiso com a capa, em um arquivo só"}
+   oque:"o Poggio Paradiso com a capa, em um arquivo só"},
+  {id:"0021-proposta-da-agencia",   arq:"0021-proposta-da-agencia.sql",
+   oque:"proposta assinada pela agência: logo dela, página de respaldo e os dois nomes no envio"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2119,6 +2130,45 @@ function renderProposal(){
       <div style="grid-column:span 2;"><label>Imagem da capa — link</label>
         <input id="q-cover" value="${esc(p.cover_img||"")}" placeholder="https://…"></div>
     </div>
+
+    ${/* Uma chave só, e não uma para cada peça: as cinco se movem
+          juntas, e chave separada seria uma para esquecer de virar.
+          Desligada por padrão — proposta que já existe não muda. */""}
+    <div style="border-left:2px solid var(--copper);padding-left:12px;">
+      <label style="color:var(--copper);">Quem assina esta proposta</label>
+      <select id="q-wl" onchange="guardaCampos();PROP.white_label=this.value==='agencia';renderProposal();">
+        <option value="tl"${p.white_label?"":" selected"}>Tuscan Lands</option>
+        <option value="agencia"${p.white_label?" selected":""}>A agência — proposta em nome dela</option>
+      </select>
+      <div class="hint" style="margin-top:6px;">Em nome da agência, a capa sai com o logo dela,
+        a página de abertura fala da agência em vez de "Sobre nós", a contracapa de contato da
+        Tuscan Lands não sai, e no envio são pedidos o travel agent e o travel designer.
+        Vale só nesta proposta.</div>
+      ${p.white_label?`
+      <div class="grid2" style="margin-top:12px;">
+        <div><label>Logo da agência — link</label>
+          <input id="q-agencylogo" value="${esc(p.agency_logo||"")}" placeholder="https://…">
+          <div class="hint" style="margin-top:5px;">Sem logo, a capa sai com o nome da agência
+            em texto. O logo da Tuscan Lands não entra aqui.</div></div>
+        <div><label>Fundo do logo</label>
+          <select id="q-agencybg">
+            <option value="nao"${p.agency_logo_bg?"":" selected"}>Sem fundo — o logo sai direto na foto</option>
+            <option value="sim"${p.agency_logo_bg?" selected":""}>Fundo branco atrás do logo</option>
+          </select>
+          <div class="hint" style="margin-top:5px;">Ligue quando o logo for escuro e sumir na foto
+            da capa.</div></div>
+      </div>
+      ${p.agency_logo?`<div style="margin-top:10px;background:var(--sage);padding:14px;display:inline-block;">
+        <img src="${esc(p.agency_logo)}" alt="" style="max-width:200px;max-height:80px;display:block;
+          ${p.agency_logo_bg?"background:#fff;padding:10px;":""}" onerror="this.style.display='none';"></div>`:""}
+      <div style="margin-top:12px;">
+        <label>Página de abertura — no lugar do "Sobre nós"</label>
+        <div class="hint" style="margin:0 0 7px;">Vem preenchida com o texto padrão da casa.
+          Onde estiver <b>{agencia}</b> entra o nome da agência da oportunidade. As credenciais
+          continuam saindo embaixo, e são elas que dão segurança ao cliente.</div>
+        <textarea rows="8" oninput="PROP.${campoP("assurance")}=this.value">${esc(p[campoP("assurance")]||"")}</textarea>
+      </div>`:""}
+    </div>
     ${p.layout==="apresentada"?`<div>
       <label>Tarja da capa</label>
       <input value="${esc(p[campoP("cover_tag")]||"")}" placeholder="Selected Stays · Toscana"
@@ -2345,7 +2395,8 @@ const PARES = {
   credentials: ["credentials_pt", "credentials_en"],
   excluded:    ["excluded_pt",    "excluded_en"],
   conditions:  ["conditions_pt",  "conditions_en"],
-  backcover:   ["backcover_pt",   "backcover_en"]
+  backcover:   ["backcover_pt",   "backcover_en"],
+  assurance:   ["assurance_pt",   "assurance_en"]
 };
 const PARES_ITEM = {
   title:      ["title",       "title_en"],
@@ -2363,6 +2414,10 @@ const ROTULOS = [
   {k:"cover_menu", onde:"Menu · capa",           pt:"Capa", en:"Cover"},
   {k:"cta",        onde:"Botão da capa",         pt:"Ver a proposta →", en:"View the proposal →"},
   {k:"about",      onde:"Menu e título · sobre", pt:"Sobre nós", en:"About us"},
+  {k:"assurance",  onde:"Menu e título · respaldo (proposta da agência)",
+     pt:"Curadoria e operação", en:"Curation and delivery"},
+  {k:"agent_name",    onde:"Envio · nome do travel agent",    pt:"Travel agent", en:"Travel agent"},
+  {k:"designer_name", onde:"Envio · nome do travel designer", pt:"Travel designer", en:"Travel designer"},
   {k:"prop_menu",  onde:"Menu · proposta",       pt:"Proposta", en:"Proposal"},
   {k:"prop_title", onde:"Título da proposta",    pt:"Proposta e condições comerciais",
                                                  en:"Commercial proposal and conditions"},
@@ -2917,6 +2972,9 @@ function guardaCampos(){
   if(el("q-exp")) PROP.token_expires_at = el("q-exp").value
     ? new Date(el("q-exp").value + "T23:59:59").toISOString() : null;
   if(el("q-cover"))    PROP.cover_img = el("q-cover").value.trim() || null;
+  if(el("q-wl"))         PROP.white_label = el("q-wl").value === "agencia";
+  if(el("q-agencylogo")) PROP.agency_logo = el("q-agencylogo").value.trim() || null;
+  if(el("q-agencybg"))   PROP.agency_logo_bg = el("q-agencybg").value === "sim";
   if(el("q-aboutimg")) PROP.about_img = el("q-aboutimg").value.trim() || null;
   if(el("q-backimg"))  PROP.backcover_img = el("q-backimg").value.trim() || null;
   if(el("q-pgs")) PROP.payment_options = el("q-pgs").value.split("\n")
@@ -2935,6 +2993,9 @@ async function saveProposal(){
     show_prices: PROP.show_prices, terms_url: PROP.terms_url,
     intro: PROP.intro, payment_note: PROP.payment_note,
     layout: PROP.layout || "tabela", cover_img: PROP.cover_img,
+    white_label: !!PROP.white_label, agency_logo: PROP.agency_logo || null,
+    agency_logo_bg: !!PROP.agency_logo_bg,
+    assurance_pt: PROP.assurance_pt, assurance_en: PROP.assurance_en,
     cover_tag_pt: PROP.cover_tag_pt, cover_tag_en: PROP.cover_tag_en,
     backcover_pt: PROP.backcover_pt, backcover_en: PROP.backcover_en,
     token_expires_at: PROP.token_expires_at || null,
@@ -2999,7 +3060,9 @@ function drawSelection(){
   const linhas = (PSEL.lines||[]);
   host.innerHTML = `<div class="section-title">Resposta do cliente</div>
     <div class="grid3">
-      <div><label>Quem respondeu</label><div class="muted">${esc(PSEL.lead_name||"—")}<br>${esc(PSEL.lead_email||"")}<br>${esc(PSEL.lead_phone||"")}</div></div>
+      <div><label>Quem respondeu</label><div class="muted">${esc(PSEL.lead_name||"—")}
+        ${PSEL.designer_name?`<br>Travel designer: ${esc(PSEL.designer_name)}`:""}
+        <br>${esc(PSEL.lead_email||"")}<br>${esc(PSEL.lead_phone||"")}</div></div>
       <div><label>Quando</label><div class="muted">${stamp(PSEL.submitted_at,"pt")}</div></div>
       <div><label>Total escolhido</label><div class="muted">${PROP.show_prices===false?"proposta sem preços":eur(PSEL.total)}</div></div>
     </div>
@@ -4136,10 +4199,20 @@ function quoteConfirmar(t, respondida, pagamentos, p){
   <div class="confirm-block">
     <h2>${L("confirm",t.qConfirmar)}</h2>
     <div class="rule"></div>
+    ${/* Na proposta da agência quem responde é a agência, e são duas
+          pessoas: quem vende ao cliente e quem desenhou a viagem. O
+          nome do designer não é exigido — muitas vezes é a mesma
+          pessoa, e cobrar os dois travaria o envio à toa. */""}
+    ${(p||{}).white_label?`
+    <div class="grid3 fieldrow" style="margin-bottom:18px;">
+      <div><label>${L("agent_name",t.qAgent)} <span class="req">*</span></label><input id="qc-name"></div>
+      <div><label>${L("designer_name",t.qDesigner)}</label><input id="qc-designer"></div>
+      <div><label>${t.leadEmail}</label><input id="qc-mail" type="email"></div>
+    </div>`:`
     <div class="grid2 fieldrow" style="margin-bottom:18px;">
       <div><label>${t.leadName} <span class="req">*</span></label><input id="qc-name"></div>
       <div><label>${t.leadEmail}</label><input id="qc-mail" type="email"></div>
-    </div>
+    </div>`}
     ${pgs.length?`<div class="pagto">
       <label>${L("pay",t.qPayHow)} <span class="req">*</span></label>
       ${pgs.map((o,k)=>`<div class="check"><input type="radio" name="qc-pay" id="qc-pay-${k}"
@@ -4244,15 +4317,23 @@ function drawQuoteApresentada(){
      as seções e — pior — o índice mudava o endereço da página, o que o
      hub lia como "trocar de tela" e jogava de volta no Painel. Aqui
      ninguém mexe no endereço: a navegação é só troca de etapa. */
+  /* Proposta assinada pela agência: quem aparece na capa é ela, e não a
+     Tuscan Lands. Sem logo dela no cadastro, sai o nome da agência em
+     texto — o logo da casa aqui contradiria a própria chave. */
+  const daAgencia = !!p.white_label;
+  const logoCapa  = daAgencia ? (p.agency_logo||"") : LOGO_BRANCO;
+  const marcaCapa = daAgencia ? (p.agency||"") : "TUSCAN LANDS TRAVEL";
+  const fundoLogo = daAgencia && p.agency_logo_bg ? " com-fundo" : "";
+
   const passos = [];
   passos.push({txt:rot(p,"cover_menu",t.qCover), html:`
     <section class="ap-capa-sec ap-passo">
       <div class="ap-capa">
         ${p.cover_img?`<img class="ap-fundo" src="${esc(p.cover_img)}" alt="">`:""}
         <div class="ap-capa-in">
-          <img class="ap-logo-capa" src="${LOGO_BRANCO}" alt="Tuscan Lands"
-               onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-          <div class="ap-marca-capa" style="display:none;">TUSCAN LANDS TRAVEL</div>
+          ${logoCapa?`<img class="ap-logo-capa${fundoLogo}" src="${esc(logoCapa)}" alt="${esc(marcaCapa)}"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='block';">`:""}
+          <div class="ap-marca-capa" style="display:${logoCapa?"none":"block"};">${esc(marcaCapa)}</div>
           ${p.cover_tag?`<div class="ap-tag">${esc(p.cover_tag)}</div>`:""}
           <h1>${esc(p.final_client||p.agency||"")}</h1>
           <div class="ap-datas">${esc(p.travel_window||"")}</div>
@@ -4285,14 +4366,27 @@ function drawQuoteApresentada(){
 
   /* "Sobre nós" vem logo depois da capa, e não no fim: o cliente sabe
      com quem está falando antes de ver o que está sendo proposto.
-     Instrução dela em agosto/26. */
-  if(p.about) passos.push({txt:rot(p,"about",t.qAbout), html:`
+     Instrução dela em agosto/26.
+
+     Na proposta da agência esta mesma folha muda de assunto: o foco é a
+     agência, e não a Tuscan Lands. Sai o texto de respaldo — a agência
+     desenha, a DMC licenciada opera — com as credenciais embaixo, que
+     são justamente o que dá segurança ao cliente. Uma folha só, porque
+     duas apresentações seguidas disputariam a atenção. */
+  const abertura = daAgencia ? (p.assurance||"") : (p.about||"");
+  const chaveAb  = daAgencia ? "assurance" : "about";
+  const tituloAb = daAgencia ? t.qAssurance : t.qAbout;
+  /* A foto do "Sobre nós" é o retrato da fundadora. Numa proposta que
+     não é da Tuscan Lands ela contradiz a própria folha: sai a foto da
+     primeira hospedagem, e na falta dela a da capa. */
+  const fotoAb   = daAgencia ? (capaDe(null, daPeca) || p.cover_img || "") : (p.about_img||"");
+  if(abertura) passos.push({txt:rot(p,chaveAb,tituloAb), html:`
     <section class="ap-sec ap-passo" style="display:none;">
       <div class="ap-foto ap-foto-sobre">
-        ${p.about_img?`<img class="ap-fundo" src="${esc(p.about_img)}" alt="">`:""}
-        <div class="ap-foto-txt"><h2>${esc(rot(p,"about",t.qAbout))}</h2></div></div>
+        ${fotoAb?`<img class="ap-fundo" src="${esc(fotoAb)}" alt="">`:""}
+        <div class="ap-foto-txt"><h2>${esc(rot(p,chaveAb,tituloAb))}</h2></div></div>
       <div class="ap-lista">
-        <div class="ap-sobre-txt">${fmtDoc(p.about)}</div>
+        <div class="ap-sobre-txt">${fmtDoc(abertura)}</div>
         ${p.credentials?`<div class="ap-cred"><div class="k">${t.qCredentials}</div>${fmtDoc(p.credentials)}</div>`:""}
         ${apNav(t)}
       </div>
@@ -4336,7 +4430,11 @@ function drawQuoteApresentada(){
       </div>
     </section>`});
 
-  if(p.backcover) passos.push({txt:rot(p,"contact",t.qContact), html:`
+  /* A contracapa é a página de contato da Tuscan Lands. Na proposta da
+     agência ela não sai: seria mandar o cliente falar direto com a
+     operação, por cima de quem vendeu. Ali a última folha é a proposta
+     comercial mesmo. */
+  if(p.backcover && !daAgencia) passos.push({txt:rot(p,"contact",t.qContact), html:`
     <section class="ap-sec ap-passo ap-contracapa${p.backcover_img?" com-foto":""}" style="display:none;">
       ${p.backcover_img?`<img class="ap-fundo" src="${esc(p.backcover_img)}" alt="">`:""}
       <div class="ap-lista larga">
@@ -4350,9 +4448,9 @@ function drawQuoteApresentada(){
   app.innerHTML = `
   <div class="apres">
     <aside class="ap-indice noprint">
-      <img class="ap-logo" src="${LOGO_BRANCO}" alt="Tuscan Lands"
-           onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-      <div class="ap-marca" style="display:none;">TUSCAN LANDS TRAVEL</div>
+      ${logoCapa?`<img class="ap-logo${fundoLogo}" src="${esc(logoCapa)}" alt="${esc(marcaCapa)}"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block';">`:""}
+      <div class="ap-marca" style="display:${logoCapa?"none":"block"};">${esc(marcaCapa)}</div>
       <nav>${passos.map((x,k)=>`<button onclick="apIr(${k})" class="${k===0?"on":""}">${esc(x.txt)}</button>`).join("")}</nav>
       <div class="ap-rodape-idx">
         ${mostra?`<div class="ap-tot"><span>${t.qYourTotal}</span><b id="ap-total">${eur(quoteTotal())}</b></div>`:""}
@@ -4635,6 +4733,7 @@ async function submitQuote(){
   const pg = document.querySelector("input[name=qc-pay]:checked");
   const {data,error} = await sb.rpc("tl_submit_quote",{p_token:QT.token, p_payload:{
     lead_name:nome, lead_email:el("qc-mail").value.trim(),
+    designer_name: el("qc-designer") ? el("qc-designer").value.trim() : "",
     lead_phone:"", remarks:el("qc-rem").value.trim(),
     payment_choice: pg ? pg.value : null,
     items: escolhidos, extras: QSEL.extras, units: QSEL.units, ack_conditions: true
