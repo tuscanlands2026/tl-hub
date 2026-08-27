@@ -264,9 +264,16 @@ vetorial e o desenho é o da folha de impressão que já está aprovada: **não 
 segundo layout para manter**, e nada vira imagem. Biblioteca de PDF no navegador foi
 descartada por ela — rasteriza o texto.
 
-Não estando a função no ar, o botão cai na caixa de impressão em vez de deixar a pessoa
-sem saída. Antes de imprimir, espera as fotos e as fontes: imprimir com imagem chegando é
-o que produz arquivo que não abre depois.
+**O botão nunca abre a caixa de impressão.** Instrução dela, depois de a impressão voltar a
+aparecer: falhando, ele diz o que aconteceu, e não abre a impressão no lugar — cair na
+impressão escondia o problema. No celular, quando o navegador ignora o atributo `download`
+em blob, o arquivo vai para o menu de compartilhar do sistema; não havendo, abre em aba
+nova e o navegador oferece salvar.
+
+Três tropeços na hora de pôr a função de pé, todos só visíveis contra o site no ar:
+o pacote `@sparticuz/chromium-min` sobe o binário sem as bibliotecas dele; o formato antigo
+de função devolve o corpo em base64 e estoura no limite de 6 MB — a proposta com fotos tem
+quase 17; e o runtime precisa ser fixado, senão o binário procura as libs no lugar errado.
 
 O `netlify.toml` e o `package.json` existem **só** para essa função. O hub continua sendo
 um arquivo só, servido da raiz, sem build.

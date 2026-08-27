@@ -4413,41 +4413,51 @@ function paginaSemMargem(){
    vez de deixar ela sem saída. */
 async function baixarProposta(){
   const btn = document.querySelector(".ap-baixar");
-  const rot = btn ? btn.textContent : "";
+  const rot = btn ? btn.getAttribute("data-rot") || btn.textContent : "";
+  if(btn) btn.setAttribute("data-rot", rot);
   const diz = t => { if(btn) btn.textContent = t; };
   if(btn) btn.disabled = true;
   diz("Montando o PDF…");
   const nome = (QT.proposal.crm_code || QT.proposal.title || "proposta")
-    .replace(/[^\w.-]+/g,"-");
+    .replace(/[^\w.-]+/g,"-") || "proposta";
   try{
-    const r = await fetch("/api/proposta-pdf?token="
-      + encodeURIComponent(QT.token) + "&nome=" + encodeURIComponent(nome));
-    if(!r.ok) throw new Error(await r.text());
+    const r = await fetch("/api/proposta-pdf?token=" + encodeURIComponent(QT.token)
+      + "&nome=" + encodeURIComponent(nome), {cache:"no-store"});
+    if(!r.ok) throw new Error("o servidor respondeu " + r.status + ": " + (await r.text()).slice(0,200));
     const blob = await r.blob();
-    if(blob.type.indexOf("pdf") < 0 || blob.size < 5000) throw new Error("arquivo vazio");
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = nome + ".pdf";
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url), 6000);
+    if(blob.size < 5000) throw new Error("o arquivo veio vazio");
+    entregarArquivo(blob, nome + ".pdf");
   }catch(e){
-    diz("Abrindo a impressão…");
-    await esperarFotos();
-    window.print();
+    /* Sem cair na impressão: ela pediu download, e abrir a caixa de
+       impressão no lugar esconde o problema em vez de mostrar. */
+    alert("Não consegui baixar o PDF.\n\n" + (e && e.message ? e.message : e)
+      + "\n\nSe isto se repetir, me mande esta mensagem.");
   }
   if(btn){ btn.disabled = false; diz(rot); }
 }
 
-/* Imprimir com foto ainda chegando é onde o arquivo salvo sai
-   incompleto — e PDF incompleto não abre depois. */
-async function esperarFotos(){
-  const imgs = [...document.querySelectorAll(".apres img")].filter(i=>!i.complete);
-  await Promise.all(imgs.map(i=>new Promise(ok=>{
-    const fim = ()=>ok(); i.addEventListener("load", fim, {once:true});
-    i.addEventListener("error", fim, {once:true}); setTimeout(fim, 8000);
-  })));
-  if(document.fonts && document.fonts.ready){ try{ await document.fonts.ready; }catch(e){} }
-  await new Promise(r=>setTimeout(r, 120));
+/* No computador o link com "download" resolve. No celular nem sempre:
+   alguns navegadores ignoram o atributo em blob e não fazem nada. Aí o
+   caminho é abrir o arquivo, e o próprio navegador oferece salvar ou
+   compartilhar. */
+function entregarArquivo(blob, nome){
+  const arq = new File([blob], nome, {type:"application/pdf"});
+  if(navigator.canShare && navigator.canShare({files:[arq]})){
+    navigator.share({files:[arq], title:nome}).catch(()=>abrirBlob(blob, nome));
+    return;
+  }
+  abrirBlob(blob, nome);
+}
+function abrirBlob(blob, nome){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const podeBaixar = "download" in a;
+  a.href = url;
+  if(podeBaixar) a.download = nome; else a.target = "_blank";
+  a.rel = "noopener";
+  document.body.appendChild(a); a.click(); a.remove();
+  if(!podeBaixar) window.open(url, "_blank");
+  setTimeout(()=>URL.revokeObjectURL(url), 20000);
 }
 
 /* Avançar e voltar em toda etapa: o cliente revisa a proposta inteira
