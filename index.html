@@ -367,6 +367,10 @@ table.rows tr.par td{border-top:none;padding-top:0;}
   display:flex;flex-direction:column;gap:3px;}
 .ap-tot span{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;opacity:.8;}
 .ap-tot b{font-size:20px;font-weight:400;font-variant-numeric:tabular-nums;}
+.baixar-linha{max-width:900px;margin:0 auto 10px;text-align:right;}
+.baixar-linha .ap-baixar{width:auto;margin:0;border-color:var(--sage);color:var(--sage);
+  background:none;padding:7px 14px;}
+.baixar-linha .ap-baixar:hover{background:rgba(89,94,73,.08);}
 .ap-baixar{margin-top:14px;width:100%;background:none;border:1px solid rgba(255,255,255,.45);
   color:#fff;padding:9px 12px;font-family:inherit;font-size:10px;letter-spacing:.18em;
   text-transform:uppercase;font-weight:500;cursor:pointer;}
@@ -4876,63 +4880,11 @@ function drawQuote(){
 
   app.innerHTML = `
   <div class="docpad" style="padding:24px 12px;background:var(--cream);">
-  <div class="doc">
-    ${cabeca}
-
-    <h1 class="doctitle">${t.qTitle}${p.title?` · ${esc(p.title)}`:""}</h1>
-    <div class="intro" style="text-align:left;">${respondida?t.qAlready:t.qLead}</div>
-
-    <div class="meta">
-      <div class="cell"><div class="k">${t.to}</div><div class="v">${esc(p.final_client||p.agency||"—")}</div></div>
-      <div class="cell"><div class="k">${t.pax}</div><div class="v">${esc(p.pax_summary||"—")}</div></div>
-      <div class="cell"><div class="k">${t.period}</div><div class="v">${esc(p.travel_window||"—")}</div></div>
-      <div class="cell"><div class="k">${t.qTitle}</div><div class="v">v${p.version}</div></div>
-    </div>
-
-    ${p.intro?`<div class="intro">${fmtDoc(p.intro)}</div>`:""}
-
-    ${tabelasPorSecao(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida))}
-
-    ${mostra?`<div class="total-row"><div class="total-box">
-      <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
-     :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
-
-    ${p.payment_note?`<div class="pay-note">${nl2br(p.payment_note)}</div>`:""}
-
-    ${quoteFecho(p, t, mostra, respondida)}
-  </div>
-  ${quoteConfirmar(t, respondida, p.payment_options, p)}
-  </div>`;
-
-  if(!respondida) el("qc-go").onclick = submitQuote;
-}
-
-function drawQuote(){
-  const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
-  const respondida = !!p.responded_at;
-
-  // A proposta apresentada troca só o corpo: capa, índice e blocos de
-  // hospedagem no lugar das tabelas. Resumo, condições e envio são os
-  // mesmos — é a mesma proposta, com outra roupa.
-  if(p.layout === "apresentada") return drawQuoteApresentada();
-
-  const cabeca = `
-    <div class="head">
-      <div class="brand">
-        <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div class="logo-text" style="display:none;">TUSCAN LANDS TRAVEL</div>
-        <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
-      </div>
-      <div class="to">
-        <div class="lbl">${t.to}</div>
-        <div class="val">${esc(p.final_client||p.agency||"")}</div>
-        ${p.crm_code?`<div class="lbl">${t.ref}</div><div class="val">${esc(p.crm_code)}</div>`:""}
-      </div>
-    </div>`;
-
-  app.innerHTML = `
-  <div class="docpad" style="padding:24px 12px;background:var(--cream);">
+  ${/* A quote simples é o documento que ela manda por e-mail: na maioria
+        das vezes o arquivo, e não o link. O botão é o mesmo da proposta
+        apresentada — mesma função, mesmo download. */""}
+  <div class="baixar-linha noprint"><button class="btn ghost sm ap-baixar"
+    onclick="baixarProposta()">${t.qDownload}</button></div>
   <div class="doc">
     ${cabeca}
 

@@ -47,7 +47,10 @@ export default async (req) => {
     });
     const page = await browser.newPage();
     await page.goto(alvo, { waitUntil: "networkidle0", timeout: 45000 });
-    await page.waitForSelector(".apres", { timeout: 20000 });
+    // .apres é a proposta apresentada; .doc é a quote simples, que sai
+    // com a mesma cara do documento da order. As duas baixam pelo mesmo
+    // botão, então esperar só por uma delas dava timeout na outra.
+    await page.waitForSelector(".apres, .doc", { timeout: 20000 });
 
     // As etapas ficam escondidas até a pessoa chegar nelas, e imagem de
     // etapa escondida pode não ter sido buscada. A folha de impressão
