@@ -47,3 +47,4 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0024 | `0024-escolhas-da-capa-e-do-envio.sql` | nome da capa escrito por ela, foto própria na folha do convite, bloco de envio simples e a foto institucional no "Sobre nós" |
 | 0025 | `0025-conserta-a-folha-do-convite.sql` | preenche o inglês e a foto da folha do convite nas propostas que já existiam |
 | 0026 | `0026-preco-no-catalogo-e-quantidade.sql` | valor de referência no catálogo, qtd × valor unitário na linha, e os transfers e tours padrão |
+| 0027 | `0027-acaba-o-grupo-de-escolha.sql` | acaba o "escolha uma opção": toda linha fica aberta, e sai a conferência do grupo no banco |

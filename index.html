@@ -1074,7 +1074,7 @@ const T = {
     brOpp:"Oportunidade",
     qTitle:"Proposta", qIntro:"Confira os serviços e escolha o que quer levar.",
     qIncluded:"Incluso", qOptional:"Opcional", qExtras:"Adicionais",
-    qChoose:"Aprovado", qYourTotal:"Seu total",
+    qChoose:"Selecione para aprovar este serviço", qYourTotal:"Seu total",
     qNeedItems:"Selecione ao menos um serviço para enviar.",
     qWho:"Quem está respondendo", qSend:"Enviar",
     qDone:"",
@@ -1166,7 +1166,7 @@ const T = {
     brOpp:"Opportunity",
     qTitle:"Proposal", qIntro:"Review the services and choose what you would like to include.",
     qIncluded:"Included", qOptional:"Optional", qExtras:"Add-ons",
-    qChoose:"Approved", qYourTotal:"Your total",
+    qChoose:"Select to approve this service", qYourTotal:"Your total",
     qNeedItems:"Please select at least one service before sending.",
     qWho:"Who is answering", qSend:"Send",
     qDone:"",
@@ -1471,7 +1471,9 @@ const MIGRACOES = [
   {id:"0025-conserta-a-folha-do-convite", arq:"0025-conserta-a-folha-do-convite.sql",
    oque:"a folha do convite passa a sair em inglês e com a foto, nas propostas que já existem"},
   {id:"0026-preco-no-catalogo-e-quantidade", arq:"0026-preco-no-catalogo-e-quantidade.sql",
-   oque:"valor de referência no catálogo, quantidade na linha, e os transfers e tours que voltam sempre"}
+   oque:"valor de referência no catálogo, quantidade na linha, e os transfers e tours que voltam sempre"},
+  {id:"0027-acaba-o-grupo-de-escolha", arq:"0027-acaba-o-grupo-de-escolha.sql",
+   oque:"acaba o \"escolha uma opção\": toda linha fica aberta, e o cliente aprova as que quiser"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2544,6 +2546,8 @@ const ROTULOS = [
   {k:"extras_title", onde:"Proposta · grupo dos extras",
      pt:"Extras e opcionais (válidos para a contratação da hospedagem)",
      en:"Add-ons and options (available with the stay)"},
+  {k:"approve",      onde:"Caixinha de cada serviço",
+     pt:"Selecione para aprovar este serviço", en:"Select to approve this service"},
   {k:"interest",     onde:"Envio simples · título",
      pt:"Confirmo interesse nos serviços selecionados",
      en:"I confirm my interest in the selected services"},
@@ -2592,7 +2596,7 @@ function drawQuoteItems(){
   if(PROP.layout === "apresentada"){ return drawItensApresentada(); }
   el("qi-host").innerHTML = `<table class="rows">
     <thead><tr><th style="width:96px;">Data</th><th>Serviço</th><th style="width:100px;">Valor €</th>
-      <th style="width:70px;">Opcional</th><th style="width:110px;">Escolha</th>
+      <th style="width:70px;">Opcional</th>
       <th style="width:120px;">Seção</th><th style="width:120px;">Fornecedor</th>
       <th class="x"></th></tr></thead>
     <tbody>${PITEMS.map((r,i)=>`<tr>
@@ -2644,8 +2648,6 @@ function drawQuoteItems(){
       <input type="number" step="0.01" value="${Number(r.price)||0}" style="text-align:right;margin-top:4px;"
         title="Total da linha" oninput="PITEMS[${i}].price=parseFloat(this.value)||0;sumQuote()"></td>
       <td style="text-align:center;padding-top:8px;"><input type="checkbox" style="width:auto;"${r.optional?" checked":""} onchange="PITEMS[${i}].optional=this.checked"></td>
-      <td><input value="${esc(r.choice_group||"")}" placeholder="ex.: hotel_umbria"
-        oninput="PITEMS[${i}].choice_group=this.value.trim()||null"></td>
       <td><select onchange="PITEMS[${i}].section=this.value||null;capaDaSecao(${i})">
         <option value="">— fora de seção</option>
         ${PSECS.map(sec=>`<option value="${esc(sec.key)}"${r.section===sec.key?" selected":""}>${esc(sec.title||sec.key)}</option>`).join("")}
@@ -2953,8 +2955,6 @@ function drawItensApresentada(){
         <option value="">\u2014 fora de se\u00e7\u00e3o</option>
         ${PSECS.map(sec=>`<option value="${esc(sec.key)}"${r.section===sec.key?" selected":""}>${esc(sec.title||sec.key)}</option>`).join("")}
       </select></div>
-      <div><label>Escolha</label><input value="${esc(r.choice_group||"")}" placeholder="uma destas"
-        oninput="PITEMS[${i}].choice_group=this.value.trim()||null"></div>
       <div><label>Fornecedor</label><input class="interno" value="${esc(r.supplier||"")}"
         placeholder="quem opera" oninput="PITEMS[${i}].supplier=this.value.trim()||null"></div>
       <div><label>Grupo na proposta</label>
@@ -3136,17 +3136,13 @@ function addUnidade(i){
    mais cara, que é o teto real daquela escolha. Somar as duas daria um
    número que nenhuma venda pode atingir. */
 function sumQuote(){
-  const vistos = {};
-  let t = 0;
-  PITEMS.forEach(r=>{
-    const v = (Number(r.price)||0)
-      + (r.units ||[]).reduce((x,u)=>x+(Number(u.price)||0),0)
-      + (r.extras||[]).reduce((x,e)=>x+(Number(e.price)||0),0);
-    const g = (r.choice_group||"").trim();
-    if(!g){ t += v; return; }
-    vistos[g] = Math.max(vistos[g]||0, v);
-  });
-  Object.values(vistos).forEach(v=>t+=v);
+  /* Soma reta: nenhuma linha exclui outra. Antes o grupo de escolha
+     entrava só com a mais cara dele, porque só uma podia ir junto —
+     com a exclusividade fora, isso passaria a esconder linha da conta. */
+  const t = PITEMS.reduce((x,r)=> x
+    + (Number(r.price)||0)
+    + (r.units ||[]).reduce((y,u)=>y+(Number(u.price)||0),0)
+    + (r.extras||[]).reduce((y,e)=>y+(Number(e.price)||0),0), 0);
   el("qi-total").textContent = eur(t);
 }
 
@@ -3225,7 +3221,7 @@ async function saveProposal(){
     PITEMS.map((r,i)=>({proposal_id:PROP.id, sort:i, service_date:r.service_date,
       title:r.title, details:r.details, price:r.price, optional:!!r.optional,
       qty: Number(r.qty)||1, unit_price: r.unit_price != null ? Number(r.unit_price) : null,
-      choice_group:(r.choice_group||"").trim()||null, section:r.section||null,
+      choice_group: null, section:r.section||null,
       supplier:(r.supplier||"").trim()||null,
       catalog_id:r.catalog_id||null,
       included_pt:r.included_pt||null, included_en:r.included_en||null,
@@ -4269,23 +4265,6 @@ function marcaItem(id, on){
   redesenharEscolha();
 }
 
-/* Escolher uma alternativa desmarca as irmãs, e leva junto os extras
-   delas: extra de hotel que ele não vai usar somando no total é a conta
-   errada que só aparece na fatura.
-   Desmarcando, some só ela: o grupo pode ficar sem nenhuma marcada, e
-   quem cobra a escolha é o envio — na tela e no banco. */
-function marcaEscolha(grupo, id, on){
-  (QT.items||[]).forEach(i=>{
-    if(i.choice_group !== grupo) return;
-    if(on === false){
-      if(i.id === id){ delete QSEL.items[i.id]; delete QSEL.extras[i.id]; }
-      return;
-    }
-    QSEL.items[i.id] = (i.id === id);
-    if(i.id !== id) delete QSEL.extras[i.id];
-  });
-  drawQuote();
-}
 function marcaExtra(id, chave, on){
   const atual = QSEL.extras[id] || [];
   QSEL.extras[id] = on ? atual.concat([chave]) : atual.filter(k=>k!==chave);
@@ -4819,23 +4798,20 @@ function quoteLinha(i, t, p, mostra, respondida){
     return `<tr>
       <td class="date-cell">${esc(i.service_date||"")}</td>
       <td>
-        <div class="svc-title">${esc(i.title)}
-          ${i.choice_group?`<span class="tag" style="margin-left:6px;">${t.qPick}</span>`:""}</div>
+        <div class="svc-title">${esc(i.title)}</div>
         ${qtdLinha(i,mostra)?`<div class="svc-qtd">${qtdLinha(i,mostra)}</div>`:""}
         ${i.details?`<div class="svc-sub">${fmtDoc(i.details)}</div>`:""}
-        ${/* CAIXINHA EM TODA LINHA, inclusive nas de um grupo de
-              escolha. Instrução dela em agosto/26: o rádio não desmarca
-              — é o que ele é —, e ela clicava sem querer e ficava presa
-              com o serviço dentro da proposta. A exclusividade do grupo
-              passa a ser o comportamento da marcação, e não o tipo do
-              controle: marcar uma continua desmarcando as irmãs, mas
-              agora dá para desmarcar todas. */""}
+        ${/* UMA CAIXINHA "APROVADO" EM TODA LINHA, e nada se exclui.
+              Instrução dela em agosto/26. Existia um grupo de escolha,
+              em que marcar uma desmarcava as irmãs; ela apontou que na
+              venda real não é assim — o cliente aprova este serviço E
+              aqueles outros, e cada linha tem de ficar aberta. Etiqueta
+              "escolha uma opção" e exclusividade saíram das duas
+              pontas: da tela e da conferência do banco. */""}
         ${respondida ? "" : `<div class="check" style="margin:8px 0 0;">
           <input type="checkbox" id="qi-${esc(i.id)}"${QSEL.items[i.id]?" checked":""}
-            onchange="${i.choice_group
-              ? `marcaEscolha('${esc(i.choice_group)}','${esc(i.id)}',this.checked)`
-              : `marcaItem('${esc(i.id)}',this.checked)`}">
-          <label for="qi-${esc(i.id)}">${i.choice_group?t.qPickOne:t.qChoose}</label></div>`}
+            onchange="marcaItem('${esc(i.id)}',this.checked)">
+          <label for="qi-${esc(i.id)}">${esc(rot(p,"approve",t.qChoose))}</label></div>`}
         ${(i.units||[]).length ? `<div class="unid-cli">
           ${(i.units||[]).map(u=>u.optional && dentro && !respondida
             ? `<div class="check unid"><span>
@@ -4929,15 +4905,6 @@ async function submitQuote(){
   const p = QT.proposal, t = T[p.lang||"pt"];
   const nome = el("qc-name") ? el("qc-name").value.trim() : "";
   if(el("qc-name") && !nome){ el("qc-msg").innerHTML = `<div class="msg">${t.qNeedName}</div>`; return; }
-  // Mesma regra do banco, só que respondida na hora: grupo sem escolha
-  // é pergunta sem resposta.
-  const grupos = [...new Set((QT.items||[]).map(i=>i.choice_group).filter(Boolean))];
-  const semEscolha = grupos.filter(g =>
-    !(QT.items||[]).some(i=>i.choice_group===g && QSEL.items[i.id]));
-  if(semEscolha.length){
-    el("qc-msg").innerHTML = `<div class="msg">${t.qNeedPick} ${esc(semEscolha.join(" · "))}</div>`;
-    return;
-  }
   if(!el("qc-ack").checked){
     el("qc-msg").innerHTML = `<div class="msg">${t.qNeedAck}</div>`; return;
   }

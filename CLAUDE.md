@@ -106,18 +106,26 @@ Linha sem seção cai numa tabela final sem título: transfer avulso não precis
 O preço aparece em **toda** linha, inclusive na que não foi escolhida — apagado, porque
 não está somando. Traço no lugar do valor escondia do cliente o preço do que ele não levou.
 
-**Toda linha tem caixinha QUADRADA, e o grupo de escolha também.** O rádio não desmarca — é o
-que ele é —, e ela clicava sem querer e ficava presa com o serviço dentro da proposta.
-Instrução dela em agosto/26. A exclusividade do grupo virou comportamento da marcação e não
-tipo de controle: marcar uma continua desmarcando as irmãs e apagando os extras delas, e agora
-dá para desmarcar todas. Quem cobra a escolha é o envio, na tela e no banco (`missing_choice`).
+**Toda linha tem uma caixinha quadrada, e nenhuma exclui outra.** Instrução dela em
+agosto/26, em duas etapas. Primeiro o rádio saiu, porque rádio não desmarca — ela clicava sem
+querer e ficava presa com o serviço dentro da proposta. Depois acabou a própria exclusividade:
+na venda real o cliente aprova este serviço **e** aqueles outros, e cada linha tem de ficar
+aberta. A etiqueta "escolha uma opção" e o grupo saíram das duas pontas — da tela e da
+conferência do banco. Deixar só a do banco seria o pior dos mundos: a tela não fala de grupo
+nenhum, e o cliente levaria um "falta escolher em: hotel_umbria" sem ter como entender.
 
-**Toda linha tem caixinha.** Não existe serviço que entre sozinho: a proposta manda duas
-hospedagens na Umbria, duas em Florença e os serviços terrestres, e quem monta a viagem é o
-cliente. Envio sem nenhum serviço marcado é recusado na tela e no banco (`missing_items`) —
-viraria order vazia depois. `choice_group` continua existindo para o caso de "uma destas
-duas e só uma", mas não é mais o normal. O extra é subitem de uma linha — assistente em
-português, contratação fora do horário — e só conta se a linha dele foi escolhida.
+`choice_group` continua na tabela e nas respostas já gravadas, sem uso — resposta antiga não
+se reescreve. O campo saiu do editor, e o total do editor voltou a ser soma reta: antes o grupo
+entrava só com a linha mais cara dele, o que agora esconderia linha da conta.
+
+A caixinha diz **"Selecione para aprovar este serviço"**, rótulo dela, editável em `ROTULOS`
+pela chave `approve`.
+
+**Não existe serviço que entre sozinho.** A proposta manda duas hospedagens na Umbria, duas em
+Florença e os serviços terrestres, e quem monta a viagem é o cliente. Envio sem nenhum serviço
+marcado é recusado na tela e no banco (`missing_items`) — viraria order vazia depois. O extra é
+subitem de uma linha — assistente em português, contratação fora do horário — e só conta se a
+linha dele foi aprovada.
 
 **A parte fixa depois das tabelas, em duas camadas.** É fixa no sentido de que toda proposta
 tem de ter, e variável no sentido de que o texto muda de uma para outra. `ops_text_defaults`
@@ -498,7 +506,7 @@ Documento que sai é outra coisa: peso 300, respiração ampla, texto justificad
 obrigatório leva um asterisco em brown ao lado do rótulo — a palavra "obrigatório" repetida
 em cada linha do formulário pesa mais que o formulário. E "opcional" não se escreve em
 lugar nenhum: com caixinha em toda linha da proposta, a etiqueta OPCIONAL não distinguia
-mais nada. A etiqueta de **escolha** — "uma destas" — continua, porque essa informa.
+mais nada. A etiqueta de escolha — "uma destas" — também saiu, junto com o grupo.
 
 **Texto justificado em toda a proposta, na tela e no papel, e sem hifenização em lugar
 nenhum.** A hifenização estava ligada no corpo de texto para justificar sem abrir rios de
