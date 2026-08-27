@@ -33,10 +33,24 @@ exports.handler = async (event) => {
 
   let browser;
   try {
+    /* Sem a parte gráfica: o PDF não precisa de swiftshader, e é ela
+       que puxa metade das bibliotecas. */
+    chromium.setGraphicsMode = false;
+    const exe = await chromium.executablePath();
+
+    /* O pacote descompacta as bibliotecas junto do binário e aponta o
+       LD_LIBRARY_PATH — mas se o runtime da Netlify não for o que ele
+       espera, o binário sobe sem achar libnspr4. Apontar à mão os
+       caminhos possíveis custa nada e cobre os dois casos. */
+    const libs = ["/tmp/al2023/lib", "/tmp/al2/lib", "/tmp/lib"];
+    process.env.LD_LIBRARY_PATH = [process.env.LD_LIBRARY_PATH || "", ...libs]
+      .filter(Boolean).join(":");
+    process.env.FONTCONFIG_PATH = process.env.FONTCONFIG_PATH || "/tmp/fonts";
+
     browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath(),
-      headless: true,
+      args: [...chromium.args, "--font-render-hinting=none"],
+      executablePath: exe,
+      headless: chromium.headless,
       defaultViewport: { width: 1280, height: 900 }
     });
     const page = await browser.newPage();

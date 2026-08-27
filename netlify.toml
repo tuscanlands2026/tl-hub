@@ -4,6 +4,13 @@
   publish = "."
   functions = "netlify/functions"
 
+# O pacote do Chromium é montado para o runtime novo da Lambda. Sem
+# fixar aqui, a função pode subir num runtime antigo e o binário não
+# acha as bibliotecas dele.
+[build.environment]
+  NODE_VERSION = "20"
+  AWS_LAMBDA_JS_RUNTIME = "nodejs20.x"
+
 [functions]
   node_bundler = "esbuild"
 
