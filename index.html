@@ -4420,7 +4420,7 @@ async function baixarProposta(){
   const nome = (QT.proposal.crm_code || QT.proposal.title || "proposta")
     .replace(/[^\w.-]+/g,"-");
   try{
-    const r = await fetch("/.netlify/functions/proposta-pdf?token="
+    const r = await fetch("/api/proposta-pdf?token="
       + encodeURIComponent(QT.token) + "&nome=" + encodeURIComponent(nome));
     if(!r.ok) throw new Error(await r.text());
     const blob = await r.blob();
