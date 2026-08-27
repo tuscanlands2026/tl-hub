@@ -264,6 +264,12 @@ vetorial e o desenho é o da folha de impressão que já está aprovada: **não 
 segundo layout para manter**, e nada vira imagem. Biblioteca de PDF no navegador foi
 descartada por ela — rasteriza o texto.
 
+**O arquivo não passa por dentro da página.** Buscar o PDF por `fetch` e entregar por blob
+faz o Chrome abrir o visualizador e só depois oferecer salvar — que é justamente o que ela
+não quer. Quem baixa é o NAVEGADOR indo ao endereço: a função responde
+`Content-Disposition: attachment` com o nome do arquivo, e o navegador faz o que faz com
+qualquer arquivo da internet.
+
 **O botão nunca abre a caixa de impressão.** Instrução dela, depois de a impressão voltar a
 aparecer: falhando, ele diz o que aconteceu, e não abre a impressão no lugar — cair na
 impressão escondia o problema. No celular, quando o navegador ignora o atributo `download`
