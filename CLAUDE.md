@@ -67,6 +67,28 @@ cadastrava por SQL, o que na prática queria dizer que só eu cadastrava — e e
 montar o banco dos transfers e dos extras que voltam sempre. Apagar do catálogo não mexe em
 proposta nenhuma, porque a linha é cópia.
 
+**O catálogo guarda preço de referência, e diz de quando é.** Pedido dela em agosto/26 para a
+quote simples: transfer e tour se repetem, e redigitar nome, descrição e valor a cada proposta
+é onde o erro entra. `ops_catalog.price` desce para a linha como **ponto de partida**, com
+`price_unit` (por veículo, pessoa, grupo ou dia — sem isso 450 não quer dizer nada),
+`price_note` ("até 3 pax") e `price_updated_at`. A data não é enfeite: preço velho puxado em
+silêncio é o risco real, e ela aparece no cadastro e no aviso ao puxar. A data só se move
+quando o valor se move — salvar o cadastro para corrigir uma vírgula não pode fazer um preço
+de três meses atrás parecer conferido hoje.
+
+Isto **não** revoga "valor é desta venda": o preço continua sendo dela na linha, e mudar a
+linha não volta para o cadastro. O que mudou é que conferir um número na tela erra menos que
+digitar de cabeça.
+
+**A linha tem quantidade e valor unitário, mas quem soma é `price`.** `qty × unit_price`
+alimenta `price`, que continua sendo o **total da linha** e a única coisa que soma no hub
+inteiro — total da proposta, e-mail, order gerada, relatório de comissão. Se a quantidade
+virasse um segundo fator a multiplicar em cada um desses lugares, bastaria esquecer de um para
+a proposta e a order divergirem. Mexeu na quantidade ou no unitário, o total recalcula; mexeu
+no total, o total é dela. Sem unitário lançado a quantidade não multiplica nada — a linha é um
+valor fechado, como sempre foi. No documento sai "2 × € 480,00" embaixo do título, só com
+quantidade acima de um e só quando a proposta leva valores.
+
 Já cadastrados: Villa Ghirlandaio (`db/catalogo-villa-ghirlandaio.sql`), Palazzo Ripetta em
 Roma (migração 0012) e Poggio Paradiso Resort & Spa na Val d'Orcia (0017). Dado de hotel se
 escreve do que está publicado, e não de memória: a metragem da Ghirlandaio veio da

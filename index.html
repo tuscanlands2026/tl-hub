@@ -518,6 +518,12 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-sobre-txt p{text-align:justify;margin-bottom:14px;}
 .ap-sobre-txt strong{display:block;font-size:27px;font-weight:300;line-height:1.22;
   color:var(--sage);text-align:left;margin-bottom:16px;}
+.svc-qtd{font-size:12px;color:var(--muted);margin-top:3px;}
+.ap-qtd{display:block;font-size:11.5px;font-weight:300;color:var(--muted);
+  letter-spacing:0;margin-top:3px;}
+.qtd-box{display:grid;grid-template-columns:1fr auto 1.4fr;align-items:center;gap:4px;}
+.qtd-box span{color:var(--muted);font-size:12px;}
+.qtd-box input{padding:5px 6px;font-size:12.5px;}
 .ap-cred{margin-top:26px;border-left:2px solid var(--copper);padding-left:14px;}
 .ap-cred .k{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);
   font-weight:500;margin-bottom:7px;}
@@ -1459,7 +1465,9 @@ const MIGRACOES = [
   {id:"0024-escolhas-da-capa-e-do-envio", arq:"0024-escolhas-da-capa-e-do-envio.sql",
    oque:"nome da capa escrito por você, foto da folha do convite, e o envio em bloco simples"},
   {id:"0025-conserta-a-folha-do-convite", arq:"0025-conserta-a-folha-do-convite.sql",
-   oque:"a folha do convite passa a sair em inglês e com a foto, nas propostas que já existem"}
+   oque:"a folha do convite passa a sair em inglês e com a foto, nas propostas que já existem"},
+  {id:"0026-preco-no-catalogo-e-quantidade", arq:"0026-preco-no-catalogo-e-quantidade.sql",
+   oque:"valor de referência no catálogo, quantidade na linha, e os transfers e tours que voltam sempre"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2621,7 +2629,16 @@ function drawQuoteItems(){
           <button class="btn ghost sm" style="margin-top:6px;" onclick="addExtra(${i})">+ Extra</button>
         </div>
       </td>
-      <td><input type="number" step="0.01" value="${Number(r.price)||0}" style="text-align:right;" oninput="PITEMS[${i}].price=parseFloat(this.value)||0;sumQuote()"></td>
+      <td><div class="qtd-box">
+        <input type="number" step="0.5" min="0" title="Quantos" style="text-align:right;"
+          value="${Number(r.qty)||1}" onchange="mexeQtd(${i}, this.value)">
+        <span>×</span>
+        <input type="number" step="0.01" title="Valor de um" style="text-align:right;"
+          placeholder="unit." value="${r.unit_price != null ? Number(r.unit_price) : ""}"
+          onchange="mexeUnit(${i}, this.value)">
+      </div>
+      <input type="number" step="0.01" value="${Number(r.price)||0}" style="text-align:right;margin-top:4px;"
+        title="Total da linha" oninput="PITEMS[${i}].price=parseFloat(this.value)||0;sumQuote()"></td>
       <td style="text-align:center;padding-top:8px;"><input type="checkbox" style="width:auto;"${r.optional?" checked":""} onchange="PITEMS[${i}].optional=this.checked"></td>
       <td><input value="${esc(r.choice_group||"")}" placeholder="ex.: hotel_umbria"
         oninput="PITEMS[${i}].choice_group=this.value.trim()||null"></td>
@@ -2639,6 +2656,26 @@ function drawQuoteItems(){
   sumQuote();
 }
 
+/* qty x unit_price = price. price continua sendo o TOTAL da linha e a
+   única coisa que soma no hub inteiro — total da proposta, e-mail,
+   order, comissão. Mexeu na quantidade ou no unitário, o total
+   recalcula; mexeu no total, o total é dela e fica.
+   Sem unitário lançado, quantidade não multiplica nada: a linha é um
+   valor fechado, como sempre foi. */
+function recalcLinha(i){
+  const r = PITEMS[i]; if(!r) return;
+  if(r.unit_price == null || r.unit_price === "") return;
+  r.price = Math.round((Number(r.qty||1) * Number(r.unit_price||0)) * 100) / 100;
+}
+function mexeQtd(i, v){
+  PITEMS[i].qty = parseFloat(v) || 1;
+  recalcLinha(i); drawQuoteItems();
+}
+function mexeUnit(i, v){
+  PITEMS[i].unit_price = v === "" ? null : (parseFloat(v)||0);
+  recalcLinha(i); drawQuoteItems();
+}
+
 /* Busca por nome, não lista de caixinhas: com três registros a lista
    serve, com sessenta ela atrapalha. O registro escolhido é COPIADO
    para a linha — dali em diante ela edita o valor, a descrição, o que
@@ -2654,6 +2691,9 @@ let CATTIMER = null;
    reescreve proposta já enviada.
    =================================================================== */
 const TIPOS = {stay:"Hospedagem", transfer:"Transfer", experience:"Experiência"};
+/* Do que o valor é. Sem isto, 450 no cadastro não quer dizer nada: por
+   veículo, por pessoa e por dia são três propostas diferentes. */
+const UNIDADES = {vehicle:"veículo", person:"pessoa", group:"grupo", day:"dia"};
 let CAT = [], CATFILTRO = "", CATBUSCA = "", CATEDIT = null;
 
 async function renderCatalogo(){
@@ -2725,6 +2765,28 @@ function editarCatalogo(id){
       <div><label>Região</label><input value="${esc(c.region||"")}" placeholder="Toscana · Val d'Orcia"
         oninput="CATEDIT.region=this.value"></div>
     </div>
+    ${/* O preço do catálogo é REFERÊNCIA. Vem com a data em que ela o
+          conferiu, porque valor velho puxado em silêncio é o risco de
+          verdade — e com a unidade, porque 450 sozinho não diz nada. */""}
+    <div class="grid3" style="border-left:2px solid var(--copper);padding-left:12px;margin-top:14px;">
+      <div><label style="color:var(--copper);">Valor de referência €</label>
+        <input type="number" step="0.01" style="text-align:right;"
+          value="${c.price != null ? Number(c.price) : ""}" placeholder="—"
+          oninput="CATEDIT.price = this.value === '' ? null : (parseFloat(this.value)||0)">
+        ${c.price_updated_at?`<div class="hint" style="margin-top:5px;">Conferido em ${stamp(c.price_updated_at,"pt").slice(0,10)}</div>`:""}</div>
+      <div><label>Valor por</label>
+        <select onchange="CATEDIT.price_unit=this.value||null">
+          ${Object.entries(UNIDADES).map(([k,v])=>
+            `<option value="${k}"${(c.price_unit||"vehicle")===k?" selected":""}>${v}</option>`).join("")}
+        </select></div>
+      <div><label>Condição do valor</label>
+        <input value="${esc(c.price_note||"")}" placeholder="até 3 pax · 8h de serviço"
+          oninput="CATEDIT.price_note=this.value.trim()||null"></div>
+    </div>
+    <div class="hint" style="margin:6px 0 0;">O valor desce para a proposta como ponto de partida
+      e você muda lá — mudar na proposta não mexe aqui, e mudar aqui não mexe em proposta
+      nenhuma que já existe.</div>
+
     ${campo("Site","website","https://…")}
     ${campo("Acomodação ou o que a linha entrega","accommodation","Van privativa até 8 pessoas · motorista falante de inglês",2)}
     ${campo("Em inglês","accommodation_en","",2)}
@@ -2771,8 +2833,17 @@ async function salvarCatalogo(id){
     descr: CATEDIT.descr||null, descr_en: CATEDIT.descr_en||null,
     cover_img: CATEDIT.cover_img||null,
     photos: CATEDIT.photos||[], internal_notes: CATEDIT.internal_notes||null,
+    price: CATEDIT.price != null ? CATEDIT.price : null,
+    price_unit: CATEDIT.price != null ? (CATEDIT.price_unit||"vehicle") : null,
+    price_note: CATEDIT.price_note||null,
     active: CATEDIT.active !== false, updated_at: new Date().toISOString()
   };
+  /* A data do valor só se mexe quando o valor mexe: salvar o cadastro
+     para corrigir uma vírgula na descrição não pode fazer um preço de
+     três meses atrás parecer conferido hoje. */
+  const antes = id ? (CAT.find(x=>x.id===id)||{}) : {};
+  if(linha.price != null && Number(antes.price) !== Number(linha.price))
+    linha.price_updated_at = new Date().toISOString();
   const {error} = id
     ? await sb.from("ops_catalog").update(linha).eq("id", id)
     : await sb.from("ops_catalog").insert(linha);
@@ -2834,7 +2905,9 @@ function puxarDoCatalogo(id){
     room_type: c.accommodation, room_type_en: c.accommodation_en,
     facilities: c.facilities, facilities_en: c.facilities_en,
     website: c.website, photos: (c.photos||[]).slice(), attachments: (c.attachments||[]).slice(),
-    price: 0, optional: false, extras: [], sort: PITEMS.length,
+    qty: 1, unit_price: c.price != null ? Number(c.price) : null,
+    price: c.price != null ? Number(c.price) : 0,
+    optional: false, extras: [], sort: PITEMS.length,
     section: (PSECS[0] && PSECS[0].key) || null,
     // guardada só na tela, para preencher a capa da seção; não vai ao banco
     _capa: c.cover_img || null
@@ -2842,8 +2915,15 @@ function puxarDoCatalogo(id){
   capaDaSecao(PITEMS.length-1);
   el("cat-busca").value = ""; el("cat-res").innerHTML = "";
   drawQuoteItems();
-  alert(c.name + " entrou na proposta. O valor vem zerado de propósito: preço é desta venda, "
-    + "não do catálogo. Ajuste o valor e o que mais precisar — nada disso volta para o cadastro.");
+  alert(c.name + " entrou na proposta."
+    + (c.price != null
+        ? "\n\nValor de referência: " + eur(c.price)
+          + (c.price_unit ? " por " + (UNIDADES[c.price_unit]||c.price_unit) : "")
+          + (c.price_note ? " · " + c.price_note : "")
+          + (c.price_updated_at ? "\nConferido em " + stamp(c.price_updated_at,"pt").slice(0,10) : "")
+          + "\n\nÉ ponto de partida, e não o preço desta venda. Confira antes de mandar."
+        : "\n\nEste cadastro está sem valor de referência. Lance o valor na linha.")
+    + "\n\nO que você mudar aqui não volta para o cadastro.");
 }
 
 /* Na proposta apresentada cada serviço é um bloco, não uma linha de
@@ -2855,7 +2935,15 @@ function drawItensApresentada(){
     <div class="item-topo">
       <div><label>Data</label><input value="${esc(r.service_date||"")}"
         oninput="PITEMS[${i}].service_date=this.value"></div>
-      <div><label>Valor \u20ac</label><input type="number" step="0.01" style="text-align:right;"
+      <div><label>Qtd \u00d7 valor de um</label><div class="qtd-box">
+        <input type="number" step="0.5" min="0" style="text-align:right;"
+          value="${Number(r.qty)||1}" onchange="mexeQtd(${i}, this.value)">
+        <span>\u00d7</span>
+        <input type="number" step="0.01" style="text-align:right;" placeholder="unit."
+          value="${r.unit_price != null ? Number(r.unit_price) : ""}"
+          onchange="mexeUnit(${i}, this.value)">
+      </div></div>
+      <div><label>Total \u20ac</label><input type="number" step="0.01" style="text-align:right;"
         value="${Number(r.price)||0}" oninput="PITEMS[${i}].price=parseFloat(this.value)||0;sumQuote()"></div>
       <div><label>Se\u00e7\u00e3o</label><select onchange="PITEMS[${i}].section=this.value||null;capaDaSecao(${i})">
         <option value="">\u2014 fora de se\u00e7\u00e3o</option>
@@ -3132,6 +3220,7 @@ async function saveProposal(){
   const {error:e2} = PITEMS.length ? await sb.from("ops_proposal_items").insert(
     PITEMS.map((r,i)=>({proposal_id:PROP.id, sort:i, service_date:r.service_date,
       title:r.title, details:r.details, price:r.price, optional:!!r.optional,
+      qty: Number(r.qty)||1, unit_price: r.unit_price != null ? Number(r.unit_price) : null,
       choice_group:(r.choice_group||"").trim()||null, section:r.section||null,
       supplier:(r.supplier||"").trim()||null,
       catalog_id:r.catalog_id||null,
@@ -4352,6 +4441,16 @@ function quoteConfirmar(t, respondida, pagamentos, p){
   </div>`}`;
 }
 
+/* "2 × € 450,00" embaixo do título: a agência entende de onde saiu o
+   número sem ter de perguntar. Só com quantidade acima de um, e só
+   quando a proposta sai com valores — a linha carrega um preço. */
+function qtdLinha(i, mostra){
+  const q = Number(i.qty)||1, u = i.unit_price;
+  if(!mostra || q <= 1 || u == null) return "";
+  const n = q % 1 === 0 ? String(q) : String(q).replace(".", ",");
+  return `${n} × ${eur(u)}`;
+}
+
 function apItem(i, t, p, mostra, respondida){
   const fotos = (i.photos||[]).filter(u=>u&&u.trim()).slice(0,3);
   const anexos = (i.attachments||[]).filter(a=>a&&a.url);
@@ -4370,7 +4469,8 @@ function apItem(i, t, p, mostra, respondida){
           <div class="ap-nome">${esc(i.title)}</div>
           ${i.room_type && !(i.units||[]).length?`<div class="ap-quarto">${esc(i.room_type)}</div>`:""}
         </div>
-        ${mostra?`<div class="ap-preco">${eur(linhaTotal(i))}</div>`:""}
+        ${mostra?`<div class="ap-preco">${eur(linhaTotal(i))}
+          ${qtdLinha(i,mostra)?`<span class="ap-qtd">${qtdLinha(i,mostra)}</span>`:""}</div>`:""}
       </div>
       ${(i.units||[]).length?`<div class="ap-unidades">
         ${(i.units||[]).map(u=>`<div class="ap-unidade">
@@ -4712,6 +4812,7 @@ function quoteLinha(i, t, p, mostra, respondida){
       <td>
         <div class="svc-title">${esc(i.title)}
           ${i.choice_group?`<span class="tag" style="margin-left:6px;">${t.qPick}</span>`:""}</div>
+        ${qtdLinha(i,mostra)?`<div class="svc-qtd">${qtdLinha(i,mostra)}</div>`:""}
         ${i.details?`<div class="svc-sub">${fmtDoc(i.details)}</div>`:""}
         ${respondida ? "" : (i.choice_group ? `<div class="check" style="margin:8px 0 0;">
           <input type="radio" name="cg-${esc(i.choice_group)}" id="qi-${esc(i.id)}"
