@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Hub de vendas e operacoes da Tuscan Lands Travel. O app e o index.html, sem build; estas dependencias sao so da funcao que desenha o PDF da proposta.",
   "dependencies": {
-    "@sparticuz/chromium-min": "^131.0.0",
-    "puppeteer-core": "^23.9.0"
+    "@sparticuz/chromium": "131.0.1",
+    "puppeteer-core": "23.10.4"
   }
 }

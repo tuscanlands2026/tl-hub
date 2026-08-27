@@ -10,5 +10,5 @@
 # O Chromium é pesado e não pode ser empacotado junto: vem do pacote
 # externo, que a própria função baixa na primeira chamada.
 [functions."proposta-pdf"]
-  external_node_modules = ["@sparticuz/chromium-min", "puppeteer-core"]
+  external_node_modules = ["@sparticuz/chromium", "puppeteer-core"]
   included_files = []

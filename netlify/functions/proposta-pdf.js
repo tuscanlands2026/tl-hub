@@ -12,12 +12,13 @@
    o link público já mostra: quem tem o link vê a proposta de qualquer
    jeito.
    ===================================================================== */
-const chromium = require("@sparticuz/chromium-min");
+const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
 
-// Pacote do Chromium compatível com a versão do @sparticuz acima.
-const CHROMIUM =
-  "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar";
+/* O pacote completo, e não o -min: ele traz o Chromium E as bibliotecas
+   que o binário precisa, e aponta o LD_LIBRARY_PATH sozinho. Com o -min
+   e o pacote remoto o binário descompactava mas subia sem as libs —
+   "libnspr4.so: cannot open shared object file". */
 
 exports.handler = async (event) => {
   const token = (event.queryStringParameters || {}).token || "";
@@ -34,7 +35,7 @@ exports.handler = async (event) => {
   try {
     browser = await puppeteer.launch({
       args: chromium.args,
-      executablePath: await chromium.executablePath(CHROMIUM),
+      executablePath: await chromium.executablePath(),
       headless: true,
       defaultViewport: { width: 1280, height: 900 }
     });
