@@ -167,6 +167,11 @@ de contato da Tuscan Lands não sai, e o envio pede **travel agent** e **travel 
 chave seria deixar uma para ela esquecer de virar, e proposta meio white label é pior que
 nenhuma. Nasce desligada: proposta que já existe não muda de cara.
 
+**As credenciais são opcionais.** Saem embaixo do "Sobre nós" e da folha do convite, e em
+branco o bloco não aparece. O campo é bilíngue, então apagar só o idioma da tela deixaria o
+outro saindo: quem tira, tira os dois — é o que o botão do editor faz, e ele traz de volta do
+padrão da casa.
+
 **A folha de abertura é a peça que as agências já aprovaram.** A primeira versão explicava a
 divisão de trabalho — quem desenha, quem opera. Ela apontou a proposta real: a folha que já
 rodou e foi aprovada é a "Transformando a Itália em histórias inesquecíveis", que fala da
@@ -373,9 +378,8 @@ efeito perverso — quando não cabe, o navegador joga adiante e deixa a folha a
 vazia. Quem se protege é o miolo: a fita de fotos, o bloco do Incluso, a linha da tabela.
 
 ## Identidade visual — obrigatória em qualquer tela nova
-Vale a seção 8 do `PLANO-HUB.md`, que substituiu a regra antiga deste arquivo.
-A versão anterior pedia Sorts Mill Goudy nos títulos; não é mais assim, e as duas
-instruções não podem conviver.
+Vale a seção 8 do `PLANO-HUB.md`, com as correções registradas aqui, que são dela e são
+posteriores. Onde as duas divergirem, vale o que está escrito abaixo.
 
 **Libre Franklin em tudo, com uma exceção.** 300 para texto de documento, 400 para
 interface, 500 para labels, botões e títulos.
@@ -468,9 +472,12 @@ em cada linha do formulário pesa mais que o formulário. E "opcional" não se e
 lugar nenhum: com caixinha em toda linha da proposta, a etiqueta OPCIONAL não distinguia
 mais nada. A etiqueta de **escolha** — "uma destas" — continua, porque essa informa.
 
-**Texto justificado em toda a proposta, na tela e no papel**, com hifenização junto: em
-coluna estreita, justificar sem poder partir palavra abre rios de espaço. A contracapa é
-exceção — é bloco de contato centrado, não texto corrido.
+**Texto justificado em toda a proposta, na tela e no papel, e sem hifenização em lugar
+nenhum.** A hifenização estava ligada no corpo de texto para justificar sem abrir rios de
+espaço em coluna estreita; ela viu "small mo-ments" partido na folha do convite e mandou tirar,
+em agosto/26. Palavra que não cabe desce inteira para a linha de baixo, e o rio de espaço é o
+preço — é ela que escolhe. A contracapa é exceção do justificado: é bloco de contato centrado,
+não texto corrido.
 
 **Título não se parte.** Justificar e hifenizar valem para texto corrido; numa linha de
 título a palavra quebrada no meio salta aos olhos. Título, chamada e rótulo saem inteiros
@@ -522,6 +529,10 @@ resumo em PDF diz "Confirmado por", com o nome do contato. As colunas `signature
 das confirmações antigas continuam onde estão e continuam sendo exibidas.
 
 ## Pendente
+- **Duas caras de proposta da agência**, pedido dela em agosto/26: a de **colaboração**, em que
+  as duas marcas aparecem, e a **100% white label**, em que só a agência aparece. Hoje existe
+  uma chave só, `white_label`, que é o segundo caso. Falta a especificação do primeiro — onde
+  entra cada logo, e o que o texto de respaldo diz quando as duas assinam.
 - A relação dos campos por tipo de serviço em `FIELD_LIB` (`index.html`). Os marcados
   `std:true` entram sozinhos em toda order nova e voltam pelo botão "Campos padrão":
   restrições alimentares, mobilidade e saúde, voo de chegada e voo de retorno. O resto da

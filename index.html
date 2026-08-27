@@ -254,7 +254,7 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .doc .date-cell{font-weight:500;color:var(--sage);white-space:nowrap;}
 .doc .svc-title{font-weight:400;}
 .doc .svc-sub{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6;
-  text-align:justify;hyphens:auto;-webkit-hyphens:auto;}
+  text-align:justify;hyphens:none;-webkit-hyphens:none;}
 /* fmtDoc devolve um <p> por linha: aqui eles são linhas do mesmo bloco,
    e não parágrafos soltos. */
 .doc .svc-sub p{margin:0 0 3px;}
@@ -473,10 +473,14 @@ table.rows tr.par td{border-top:none;padding-top:0;}
   font-variant-numeric:tabular-nums;}
 .ap-desc{font-size:13.5px;font-weight:300;line-height:1.65;margin-top:12px;color:var(--ink);}
 /* Justificado em toda a proposta, na tela e no papel — instrução dela.
-   A hifenização entra junto: em coluna estreita, justificar sem poder
-   partir palavra abre rios de espaço no meio do parágrafo. */
+   SEM HIFENIZAÇÃO, em lugar nenhum. Foi instrução dela em agosto/26,
+   depois de ver "small mo-ments" partido na folha do convite: palavra
+   quebrada no meio fica feia, e a palavra inteira desce para a linha
+   de baixo. Antes a hifenização estava ligada aqui, para justificar sem
+   abrir rios de espaço em coluna estreita — o rio é o preço, e é ela
+   que escolhe. */
 .ap-desc,.ap-estrutura,.ap-back,.condicoes,.ap-sobre-txt p{
-  text-align:justify;hyphens:auto;-webkit-hyphens:auto;}
+  text-align:justify;hyphens:none;-webkit-hyphens:none;}
 /* A contracapa é bloco de contato centrado, não texto corrido. */
 .ap-sec.ap-contracapa .ap-back{text-align:center;hyphens:none;}
 /* TÍTULO NÃO SE PARTE. Justificar e hifenizar é para texto corrido:
@@ -2288,7 +2292,16 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
         aqui vale só para esta proposta.</div>
       <textarea rows="8" oninput="PROP.${campoP("about")}=this.value">${esc(p[campoP("about")]||"")}</textarea>
       <label style="margin-top:12px;">Credenciais</label>
-      <textarea rows="4" oninput="PROP.${campoP("credentials")}=this.value">${esc(p[campoP("credentials")]||"")}</textarea>
+      <div class="hint" style="margin:0 0 7px;">Saem embaixo do "Sobre nós" e da folha do convite.
+        Não são obrigatórias: em branco, o bloco não aparece. Apagar aqui só apaga este idioma,
+        e o outro continuaria saindo — por isso o botão, que limpa os dois de uma vez.</div>
+      <textarea id="q-cred" rows="4"
+        oninput="PROP.${campoP("credentials")}=this.value">${esc(p[campoP("credentials")]||"")}</textarea>
+      <div style="margin-top:7px;">
+        <button class="btn ghost sm" id="q-cred-tog">${
+          (p.credentials_pt||"").trim() || (p.credentials_en||"").trim()
+            ? "Tirar as credenciais desta proposta" : "Trazer as credenciais da casa"}</button>
+      </div>
       <label style="margin-top:12px;">Contracapa — contatos, última tela</label>
       <textarea rows="6" oninput="PROP.${campoP("backcover")}=this.value">${esc(p[campoP("backcover")]||"")}</textarea>
       <label style="margin-top:12px;">Foto de fundo da contracapa — link</label>
@@ -2375,6 +2388,7 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
   el("q-cond-std").onclick = trazerPadrao;
   el("q-cond-save").onclick = salvarPadrao;
   if(el("q-nota-dmc")) el("q-nota-dmc").onclick = incluirNotaDMC;
+  if(el("q-cred-tog")) el("q-cred-tog").onclick = alternarCredenciais;
   el("qs-add").onclick = () => {
     let n = 1; while(PSECS.some(x=>x.key==="sec"+n)) n++;
     PSECS.push({key:"sec"+n, title:"", note:""}); drawSections(); drawQuoteItems();
@@ -2423,6 +2437,25 @@ async function incluirNotaDMC(){
   if(!nota) return alert("O parágrafo padrão ainda não está no banco. Falta rodar a migração 0023.");
   if(atual.indexOf(nota) >= 0) return alert("Esse parágrafo já está na folha.");
   PROP[campo] = (atual.trim() ? atual.replace(/\s+$/,"") + "\n" : "") + nota;
+  renderProposal();
+}
+
+/* As credenciais são opcionais — instrução dela em agosto/26. O campo
+   é bilíngue, e apagar só o idioma que está na tela deixaria o outro
+   saindo: quem tira, tira os dois. Trazendo de volta, vem do padrão da
+   casa, e não de texto escrito no código. */
+async function alternarCredenciais(){
+  guardaCampos();
+  const tem = (PROP.credentials_pt||"").trim() || (PROP.credentials_en||"").trim();
+  if(tem){
+    if(!confirm("Tirar as credenciais desta proposta?\n\nO bloco deixa de sair nos dois idiomas. "
+      + "Você pode trazer de volta pelo mesmo botão.")) return;
+    PROP.credentials_pt = ""; PROP.credentials_en = "";
+  }else{
+    const {data} = await sb.from("ops_text_defaults").select("*").eq("key","credentials").maybeSingle();
+    if(!data) return alert("O texto padrão das credenciais não está no banco.");
+    PROP.credentials_pt = data.pt || ""; PROP.credentials_en = data.en || "";
+  }
   renderProposal();
 }
 
