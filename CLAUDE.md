@@ -167,18 +167,25 @@ de contato da Tuscan Lands não sai, e o envio pede **travel agent** e **travel 
 chave seria deixar uma para ela esquecer de virar, e proposta meio white label é pior que
 nenhuma. Nasce desligada: proposta que já existe não muda de cara.
 
-O texto de respaldo diz o que dá segurança ao cliente sem tirar o foco da agência — a agência
-desenha, a DMC licenciada opera — e as credenciais continuam saindo embaixo dele, que é onde os
-números de registro fazem efeito. Padrão da casa em `ops_text_defaults`, cópia em
-`ops_proposals.assurance_pt/_en`, como todo texto daqui. Onde estiver `{agencia}` entra o nome
-da agência da oportunidade, **resolvido em `tl_get_quote`** e não na tela, para valer igual na
-página, no PDF e no e-mail.
+**A folha de abertura é a peça que as agências já aprovaram.** A primeira versão explicava a
+divisão de trabalho — quem desenha, quem opera. Ela apontou a proposta real: a folha que já
+rodou e foi aprovada é a "Transformando a Itália em histórias inesquecíveis", que fala da
+Itália e não de quem vende. Então é essa, palavra por palavra como está no texto da casa, com
+um parágrafo curto no fim dizendo que a Tuscan Lands é DMC licenciada e opera em colaboração
+com a agência. O que sai é a parte em que a Tuscan Lands se apresenta — oito anos, rede de
+parceiros, curadoria — que é o que tirava o foco da agência. As credenciais continuam embaixo:
+são os números de registro que dão segurança sem reivindicar a venda.
 
-Duas coisas que essa folha herdaria erradas se ninguém olhasse: a foto é a do retrato da
+Padrão da casa em `ops_text_defaults`, cópia em `ops_proposals.assurance_pt/_en`, como todo
+texto daqui. Onde estiver `{agencia}` entra o nome da agência da oportunidade, **resolvido em
+`tl_get_quote`** e não na tela, para valer igual na página, no PDF e no e-mail.
+
+Três coisas que essa folha herdaria erradas se ninguém olhasse: a foto é a do retrato da
 fundadora, que numa proposta da agência contradiz a própria página — sai a foto da primeira
-hospedagem, e na falta dela a da capa; e o negrito ali é a chamada grande, em bloco próprio, de
-modo que `**` no meio da frase parte o parágrafo em três. Por isso o texto padrão só tem negrito
-na primeira linha.
+hospedagem, e na falta dela a da capa; o negrito ali é a chamada grande, em bloco próprio, de
+modo que `**` no meio da frase parte o parágrafo em três, e por isso o texto padrão só tem
+negrito na primeira linha; e a faixa da foto não leva título, porque a chamada do texto já é o
+título e dois títulos na mesma folha disputam a leitura.
 
 `designer_name` fica em `ops_proposal_selections`, não é obrigatório — quem responde muitas
 vezes é a mesma pessoa — e sai no e-mail e no editor quando vem preenchido.

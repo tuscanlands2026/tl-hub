@@ -1045,7 +1045,7 @@ const T = {
     qSite:"Ver o site da propriedade →", qSelected:"Selecionado",
     qOthers:"Outros serviços", qItinerary:"Roteiro dia a dia", qHighlights:"Destaques",
     qExtrasDisp:"Adicionais disponíveis", qFacilities:"Estrutura", qIncluded:"Incluso", qAbout:"Sobre nós", qCredentials:"Credenciais",
-    qAssurance:"Curadoria e operação", qAgent:"Travel agent", qDesigner:"Travel designer",
+    qAssurance:"Convite", qAgent:"Travel agent", qDesigner:"Travel designer",
     qResumoLead:"",
     qStaysTitle:"Hospedagens", qExtrasTitle:"Extras e opcionais (válidos para a contratação da hospedagem)",
     qNeedUnits:"Escolha pelo menos uma acomodação em:",
@@ -1135,7 +1135,7 @@ const T = {
     qSite:"Visit the property website →", qSelected:"Selected",
     qOthers:"Other services", qItinerary:"Day by day", qHighlights:"Highlights",
     qExtrasDisp:"Available add-ons", qFacilities:"Facilities", qIncluded:"Included", qAbout:"About us", qCredentials:"Credentials",
-    qAssurance:"Curation and delivery", qAgent:"Travel agent", qDesigner:"Travel designer",
+    qAssurance:"Invitation", qAgent:"Travel agent", qDesigner:"Travel designer",
     qResumoLead:"",
     qStaysTitle:"Stays", qExtrasTitle:"Add-ons and options (available with the stay)",
     qNeedUnits:"Choose at least one room at:",
@@ -1406,7 +1406,9 @@ const MIGRACOES = [
   {id:"0020-poggio-completo",       arq:"0020-poggio-completo.sql",
    oque:"o Poggio Paradiso com a capa, em um arquivo só"},
   {id:"0021-proposta-da-agencia",   arq:"0021-proposta-da-agencia.sql",
-   oque:"proposta assinada pela agência: logo dela, página de respaldo e os dois nomes no envio"}
+   oque:"proposta assinada pela agência: logo dela, página de respaldo e os dois nomes no envio"},
+  {id:"0022-abertura-da-agencia",   arq:"0022-abertura-da-agencia.sql",
+   oque:"a folha de abertura da proposta da agência passa a ser a que as agências já aprovaram"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2414,8 +2416,8 @@ const ROTULOS = [
   {k:"cover_menu", onde:"Menu · capa",           pt:"Capa", en:"Cover"},
   {k:"cta",        onde:"Botão da capa",         pt:"Ver a proposta →", en:"View the proposal →"},
   {k:"about",      onde:"Menu e título · sobre", pt:"Sobre nós", en:"About us"},
-  {k:"assurance",  onde:"Menu e título · respaldo (proposta da agência)",
-     pt:"Curadoria e operação", en:"Curation and delivery"},
+  {k:"assurance",  onde:"Menu · abertura (proposta da agência)",
+     pt:"Convite", en:"Invitation"},
   {k:"agent_name",    onde:"Envio · nome do travel agent",    pt:"Travel agent", en:"Travel agent"},
   {k:"designer_name", onde:"Envio · nome do travel designer", pt:"Travel designer", en:"Travel designer"},
   {k:"prop_menu",  onde:"Menu · proposta",       pt:"Proposta", en:"Proposal"},
@@ -4382,9 +4384,13 @@ function drawQuoteApresentada(){
   const fotoAb   = daAgencia ? (capaDe(null, daPeca) || p.cover_img || "") : (p.about_img||"");
   if(abertura) passos.push({txt:rot(p,chaveAb,tituloAb), html:`
     <section class="ap-sec ap-passo" style="display:none;">
+      ${/* Na folha da agência a faixa não leva título: a chamada em
+            negrito do texto já é o título, e dois títulos na mesma
+            folha disputam a leitura. É assim na peça que as agências
+            já aprovaram. */""}
       <div class="ap-foto ap-foto-sobre">
         ${fotoAb?`<img class="ap-fundo" src="${esc(fotoAb)}" alt="">`:""}
-        <div class="ap-foto-txt"><h2>${esc(rot(p,chaveAb,tituloAb))}</h2></div></div>
+        ${daAgencia?"":`<div class="ap-foto-txt"><h2>${esc(rot(p,chaveAb,tituloAb))}</h2></div>`}</div>
       <div class="ap-lista">
         <div class="ap-sobre-txt">${fmtDoc(abertura)}</div>
         ${p.credentials?`<div class="ap-cred"><div class="k">${t.qCredentials}</div>${fmtDoc(p.credentials)}</div>`:""}

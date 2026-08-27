@@ -42,3 +42,4 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0019 | `0019-capa-do-poggio.sql` | grava a capa sem depender da ordem das migrações |
 | 0020 | `0020-poggio-completo.sql` | o Poggio com a capa, em um arquivo só |
 | 0021 | `0021-proposta-da-agencia.sql` | proposta assinada pela agência: logo dela, página de respaldo, travel agent e travel designer no envio |
+| 0022 | `0022-abertura-da-agencia.sql` | a folha de abertura da proposta da agência passa a ser a peça que as agências já aprovaram |
