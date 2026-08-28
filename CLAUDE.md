@@ -589,6 +589,37 @@ resumo em PDF diz "Confirmado por", com o nome do contato. As colunas `signature
 das confirmações antigas continuam onde estão e continuam sendo exibidas.
 
 ## Pendente
+
+### Venda por linha de serviço, e a volta para o CRM
+Pedido dela em agosto/26, com a especificação já dada. O CRM é outra aplicação
+(`crm-tuscanlands.netlify.app`), com Pipeline → "Gerar venda" → Vendas & Recebimentos, e hoje a
+venda entra com **valor total mais uma estimativa de custo**. Ela quer migrar para linha de
+serviço, porque é o que permite custo × serviço e projeto por serviço, e não só por total.
+
+**A descoberta que muda o modelo: a linha do cliente não é o serviço.** "Transfer com parada
+para almoço" é UMA linha na order — para o cliente é uma coisa só — e DOIS serviços para ela:
+o transfer e o almoço, cada um com fornecedor e custo próprios. Modelar um por um faria o hub
+mentir para um dos dois lados. Então a order precisa de dois níveis: `ops_order_items` continua
+sendo o que o cliente vê e paga, e a decomposição interna vira linha filha, com categoria,
+fornecedor e custo. O total do filho fecha com o pai, ou a conta não bate.
+
+**As categorias dela, e a armadilha:** ground services (transfer, meet & greet, trem, porter),
+selected stays (só hospedagem), signature experiences (tour com um ou mais serviços dentro —
+transporte, almoço, guia) e signature programs. **Signature program não é irmã das outras**: é
+o pacote que contém todas. Tratar as quatro como uma lista plana seria errado desde o primeiro
+registro — categoria é da linha, "programa" é da venda.
+
+**Testar exaustivamente antes de qualquer coisa, e ela disse isso com todas as letras**: o CRM
+tem fluxo de caixa e apuração fiscal em uso, e uma venda duplicada ou com valor errado ali é
+dinheiro. Nada de escrita no CRM sem o teste completo, e a regra de "o hub lê o CRM, nunca
+escreve" continua valendo até ela mandar o contrário, por escrito.
+
+**Não mexe no passado**: vale das próximas vendas em diante.
+
+**Falta para eu desenhar**: a estrutura das tabelas de venda e de serviço do CRM. O
+repositório dele não está entre os que eu enxergo (`tl-hub`, `Claude-Finance-TL`,
+`tuscanlands-concierge`).
+
 - **Duas caras de proposta da agência**, pedido dela em agosto/26: a de **colaboração**, em que
   as duas marcas aparecem, e a **100% white label**, em que só a agência aparece. Hoje existe
   uma chave só, `white_label`, que é o segundo caso. Falta a especificação do primeiro — onde
