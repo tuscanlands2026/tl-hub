@@ -1506,7 +1506,9 @@ const MIGRACOES = [
   {id:"0028-nascimento-opcional",     arq:"0028-nascimento-opcional.sql",
    oque:"a data de nascimento do viajante passa a ser escolha sua, por order"},
   {id:"0029-venda-por-servico",       arq:"0029-venda-por-servico.sql",
-   oque:"tipo, nome curto, regime de IVA e custo por linha, para a venda ir por serviço ao CRM"}
+   oque:"tipo, nome curto, regime de IVA e custo por linha, para a venda ir por serviço ao CRM"},
+  {id:"0030-tipos-e-iva-do-crm",      arq:"0030-tipos-e-iva-do-crm.sql",
+   oque:"os sete tipos de serviço e os cinco regimes de IVA, na grafia do CRM"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2904,18 +2906,30 @@ const UNIDADES = {vehicle:"veículo", person:"pessoa", group:"grupo", day:"dia"}
    validada. Os rótulos têm de ser IGUAIS aos de lá: é texto que ela
    digita nos dois sistemas, e "Signature Journeys" não casa com
    "Signature Programs". */
+/* A LISTA É A DO CRM, palavra por palavra. Ela sai de
+   public.tipos_servico (migração 0012 do CRM), e não da planilha: a
+   planilha é de onde o CRM nasceu, o CRM é o que roda. São SETE, com o
+   prefixo "TL" onde o CRM põe. Antes aqui tinha cinco, sem prefixo, com
+   "Signature Journeys" onde o CRM diz "TL Signature Programs" e faltando
+   Concierge e MICE — o elo é texto, então nome diferente é linha que
+   não encontra a venda. */
 const CRM_TIPOS = {
-  ground:     "Ground Services",
-  stay:       "Selected Stays",
-  experience: "Signature Experiences",
-  journey:    "Signature Journeys",
-  consulting: "Consultoria Eventos e Incentive"
+  consultoria: "Consultoria",
+  stay:        "TL Selected Stays",
+  experience:  "TL Signature Experiences",
+  program:     "TL Signature Programs",
+  concierge:   "Concierge",
+  ground:      "Ground Services",
+  mice:        "MICE e Exclusive Events"
 };
-/* Os quatro regimes que aparecem nas vendas dela. NÃO se deduz do tipo:
-   em Signature Experiences ela já usou os três — visita guiada isenta,
-   balão a 10%, tour guiado a 22%. Fica em branco até ela lançar, porque
-   um padrão silencioso aqui vira imposto errado. */
-const CRM_IVA = {"0":"0% (isento)", "10":"10%", "22":"22%", "74ter":"74-ter"};
+/* Os CINCO regimes que a tabela vendas do CRM aceita, na grafia dela
+   (public.vendas.regime_iva, migração 0002 do CRM). O 12% existe lá e
+   faltava aqui. NÃO se deduz do tipo: em Signature Experiences ela já
+   usou três — visita guiada isenta, balão a 10%, tour guiado a 22%.
+   Fica em branco até ela lançar, porque padrão silencioso aqui vira
+   imposto errado. */
+const CRM_IVA = {"0":"0% (isento)", "10":"10%", "12":"12%",
+                 "22":"22%", "74ter":"74-ter"};
 let CAT = [], CATFILTRO = "", CATBUSCA = "", CATEDIT = null;
 
 async function renderCatalogo(){

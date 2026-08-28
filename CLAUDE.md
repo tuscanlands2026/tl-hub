@@ -649,11 +649,52 @@ Signature Experiences aparece com os três — visita guiada isenta, balão a 10
 o que decide o imposto, o hub não tem esse campo, e não dá para adivinhar: é decisão fiscal
 dela, ainda que costume seguir o tipo de serviço.
 
-**A planilha confirma que "programa" é do projeto, e não da linha**: `Tipo de serviço` está na
-linha da venda, e o pacote é o `Projeto`.
+**O CÓDIGO DO CRM ESTÁ NO `Claude-Finance-TL` — mas não no `main`.** Achado em agosto/26 pelo
+painel do Netlify, que diz "Deploys from GitHub · Claude-Finance-TL". O `main` tem só a pasta
+`Modulo Financeiro` com as planilhas; a aplicação vive nas **branches**, e a mais recente é
+`claude/travel-agency-crm-supabase-dw9x9q`. Lá estão `web/modulo-financeiro.html` (a tela
+inteira, 537 KB, arquivo único como o hub) e **83 migrações** em `supabase/migrations/`.
+Eu tinha dito que o código não estava em repositório nenhum: estava, eu olhei só o `main`.
 
-**Falta ainda o código do CRM**: `Claude-Finance-TL` guarda só a especificação e as planilhas.
-A aplicação (`crm-tuscanlands.netlify.app`) não está em nenhum repositório que eu enxergo.
+**As tabelas do CRM**: `pipeline` · `projetos` · `vendas` · `fornecedores` · `fornecedores_db` ·
+`recebimentos` · `despesas_gerais` · `dividas` · `dividas_parcelas` · `impostos_efetivos` ·
+`parametros` · `tipos_servico` · `agencias` · `mercados` · `metas` · `op_servicos` ·
+`servicos_projeto` · `anexos` · `canais_pagamento` · `categorias_despesa` ·
+`fornecedor_arquivos` · `resultados_anuais`.
+
+**`pipeline.codigo` é o TL-###-AA, e é o elo que já existe.** É o mesmo número que o hub guarda
+em `ops_opportunities.crm_code` e em `ops_orders.opportunity_code`. E `vendas.proposta` já
+recebe esse código no "Gerar venda" — as duas pontas já se chamam pelo mesmo nome.
+
+**`pipeline.valor` é um campo só, que ela digita à mão.** É ele que alimenta o caixa projetado
+e os KPIs do funil, pelo `balde` derivado do status. É este o número que a proposta do hub
+deveria preencher — e o valor certo é o da **seleção do cliente**, não o total da proposta:
+a proposta oferece duas hospedagens na Umbria e duas em Florença, e o cliente leva uma de cada.
+
+**`gerarVenda` cria UMA venda com o valor cheio do pipeline.** Cria `projetos` + `vendas`, põe
+`servico = pipeline.tipo_servico`, deixa `regime_iva` em branco de propósito, e calcula
+`custo_previsto = valor × (1 − margem_alvo)`, com 15% quando a margem está vazia. Recebimento
+não é criado. É exatamente aqui que a venda por linha entra: hoje sai uma linha, e o hub tem N.
+
+**`tipo_servico` mora em `projetos`, NÃO em `vendas`.** Isto corrige o que estava escrito aqui
+antes a partir da planilha. Na planilha o tipo está na linha; no CRM que roda, está no projeto.
+Então **venda por linha de serviço exige uma coluna nova em `public.vendas`** — é a única
+alteração estrutural que o CRM precisa, e é escrita no CRM, que continua proibida até ela
+mandar por escrito depois do teste em paralelo.
+
+**`servicos_projeto` já existe e está abandonada.** Tem `descricao`, `tipo_servico`,
+`fornecedor`, `valor_venda`, `custo` — que é quase a decomposição interna que ela pediu — mas a
+tela não a referencia em lugar nenhum. Antes de criar tabela nova, olhar se é essa.
+
+**Os sete tipos de serviço são os de `public.tipos_servico`**, palavra por palavra, com o
+prefixo TL onde o CRM põe: Consultoria · TL Selected Stays · TL Signature Experiences ·
+TL Signature Programs · Concierge · Ground Services · MICE e Exclusive Events. Fica resolvida a
+dúvida "Journeys ou Programs": é **Programs**. O hub tinha cinco, sem prefixo, com "Signature
+Journeys" e sem Concierge nem MICE — corrigido na migração 0030.
+
+**Os regimes de IVA são cinco**, na grafia de `public.vendas.regime_iva`: `0% (isento)`, `10%`,
+`12%`, `22%`, `74-ter`. O **12% faltava** no hub, e a trava da 0029 recusava a linha inteira.
+Também corrigido na 0030. Nada disso calcula imposto: é etiqueta que ela escolhe.
 
 - **Duas caras de proposta da agência**, pedido dela em agosto/26: a de **colaboração**, em que
   as duas marcas aparecem, e a **100% white label**, em que só a agência aparece. Hoje existe
