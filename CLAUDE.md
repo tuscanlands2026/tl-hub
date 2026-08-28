@@ -616,9 +616,33 @@ escreve" continua valendo até ela mandar o contrário, por escrito.
 
 **Não mexe no passado**: vale das próximas vendas em diante.
 
-**Falta para eu desenhar**: a estrutura das tabelas de venda e de serviço do CRM. O
-repositório dele não está entre os que eu enxergo (`tl-hub`, `Claude-Finance-TL`,
-`tuscanlands-concierge`).
+**O CRM JÁ É POR LINHA DE SERVIÇO.** Descoberto em agosto/26 lendo
+`Claude-Finance-TL/Modulo Financeiro`, que guarda a especificação e as planilhas validadas de
+onde o CRM nasceu. A aba **Vendas e Serviços** tem uma linha por serviço, com as colunas:
+`Nº · Projeto · Agência · Tipo de serviço · Serviço · Regime IVA · Receita (c/ IVA) ·
+Custo previsto · Comissão · Trim. faturamento · IVA débito · Custo fornec.`
+A aba **Fornecedores** tem `Projeto · Serviço · Fornecedor · Regime IVA · Valor · IVA da
+fatura · Nº fatura · Data pagamento · Trim. pgto · Status`.
+
+Isso muda o tamanho do trabalho: **não há migração estrutural a fazer no CRM**, e portanto não
+há risco para o fluxo de caixa e a apuração que já rodam. O que muda é o uso — em vez de uma
+linha com o total do projeto, várias linhas, uma por serviço. Nada do passado precisa mudar.
+
+**O elo entre venda e custo é `Projeto + Serviço`, em TEXTO.** É o ponto frágil de tudo: se a
+venda sai do hub como "Transfer privativo FCO – Hotel Calimala, veículo sedan, stopover em
+Orvieto" e ela digita "Transfer Orvieto" em Fornecedores, o custo não encontra a venda e o
+projeto nunca fecha. Então o hub tem de emitir um **nome curto e estável de serviço**, que ela
+usa nos dois lados.
+
+**Falta no hub o `Regime IVA` por linha** — 0% isento, 10/12/22%, ou 74-ter sobre a margem. É
+o que decide o imposto, o hub não tem esse campo, e não dá para adivinhar: é decisão fiscal
+dela, ainda que costume seguir o tipo de serviço.
+
+**A planilha confirma que "programa" é do projeto, e não da linha**: `Tipo de serviço` está na
+linha da venda, e o pacote é o `Projeto`.
+
+**Falta ainda o código do CRM**: `Claude-Finance-TL` guarda só a especificação e as planilhas.
+A aplicação (`crm-tuscanlands.netlify.app`) não está em nenhum repositório que eu enxergo.
 
 - **Duas caras de proposta da agência**, pedido dela em agosto/26: a de **colaboração**, em que
   as duas marcas aparecem, e a **100% white label**, em que só a agência aparece. Hoje existe
