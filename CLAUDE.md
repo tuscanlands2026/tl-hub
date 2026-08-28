@@ -634,6 +634,17 @@ Orvieto" e ela digita "Transfer Orvieto" em Fornecedores, o custo não encontra 
 projeto nunca fecha. Então o hub tem de emitir um **nome curto e estável de serviço**, que ela
 usa nos dois lados.
 
+**Primeiro passo feito (0029):** a linha da order ganhou `crm_type` (as categorias dela, com o
+rótulo idêntico ao do CRM), `crm_service` (o nome curto que faz o elo), `vat_regime` e
+`cost_estimate`; a order ganhou `crm_project`. A tela **Venda para o CRM** monta uma linha por
+serviço na ordem das colunas da planilha, marca em vermelho o que falta, e baixa CSV com `;` e
+vírgula decimal — o Excel em português e em italiano abre sem perguntar nada. **O hub não
+escreve no CRM**, e não escreve até ela mandar por escrito depois do teste em paralelo.
+
+**Regime IVA fica em branco até ela lançar**, e não tem padrão: nas vendas de 2026 dela,
+Signature Experiences aparece com os três — visita guiada isenta, balão a 10%, tour guiado a
+22%. Padrão silencioso aqui é imposto errado.
+
 **Falta no hub o `Regime IVA` por linha** — 0% isento, 10/12/22%, ou 74-ter sobre a margem. É
 o que decide o imposto, o hub não tem esse campo, e não dá para adivinhar: é decisão fiscal
 dela, ainda que costume seguir o tipo de serviço.

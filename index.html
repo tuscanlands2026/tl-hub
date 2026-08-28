@@ -528,6 +528,10 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 /* Logo de agência é arquivo dela, de proporção que eu não escolho:
    trava pela altura para não empurrar o cabeçalho do documento. */
 .logo-img.da-agencia{width:auto;max-width:230px;max-height:56px;object-fit:contain;}
+.crm-falta{color:var(--brown);font-size:11px;letter-spacing:.1em;text-transform:uppercase;}
+.crm-cel{vertical-align:top;}
+.crm-cel select,.crm-cel input{margin-bottom:4px;font-size:12px;padding:5px 6px;}
+.crm-par{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
 .qtd-box{display:grid;grid-template-columns:1fr auto 1.4fr;align-items:center;gap:4px;}
 .qtd-box span{color:var(--muted);font-size:12px;}
 .qtd-box input{padding:5px 6px;font-size:12.5px;}
@@ -1500,7 +1504,9 @@ const MIGRACOES = [
   {id:"0027-acaba-o-grupo-de-escolha", arq:"0027-acaba-o-grupo-de-escolha.sql",
    oque:"acaba o \"escolha uma opção\": toda linha fica aberta, e o cliente aprova as que quiser"},
   {id:"0028-nascimento-opcional",     arq:"0028-nascimento-opcional.sql",
-   oque:"a data de nascimento do viajante passa a ser escolha sua, por order"}
+   oque:"a data de nascimento do viajante passa a ser escolha sua, por order"},
+  {id:"0029-venda-por-servico",       arq:"0029-venda-por-servico.sql",
+   oque:"tipo, nome curto, regime de IVA e custo por linha, para a venda ir por serviço ao CRM"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2076,6 +2082,113 @@ function montaTabelas(blocos, L){
 /* Documento interno: sai da order, vai para a agência. Só entra linha
    com percentual definido — linha sem comissão é linha que ela ainda
    não decidiu, e listar com zero afirmaria que não há comissão. */
+/* ====================================================================
+   VENDA PARA O CRM — uma linha por serviço, na ordem das colunas da
+   aba "Vendas e Serviços". O hub NÃO escreve no CRM: ele monta as
+   linhas, ela confere e lança. Escrever direto no banco do CRM é o que
+   pode estragar fluxo de caixa e apuração, e isso não se faz sem ela
+   mandar por escrito.
+
+   O que o hub sabe preenche sozinho: projeto, agência, serviço,
+   receita, comissão. O que é decisão dela — regime de IVA e custo
+   previsto — aparece em vermelho enquanto estiver em branco, porque
+   linha incompleta lançada no CRM é imposto errado, não é tela feia.
+   ==================================================================== */
+function crmLinhas(){
+  const o = ORDER;
+  const projeto = (o.crm_project||"").trim()
+    || [o.opportunity_code, o.final_client || o.agency].filter(Boolean).join(" - ");
+  return ITEMS.map(r => ({
+    projeto,
+    agencia: o.agency || "",
+    tipo:    r.crm_type ? CRM_TIPOS[r.crm_type] : "",
+    servico: (r.crm_service||"").trim(),
+    iva:     r.vat_regime ? CRM_IVA[r.vat_regime] : "",
+    receita: Number(r.price)||0,
+    custo:   r.cost_estimate==null ? null : Number(r.cost_estimate),
+    comissao: comissaoDe(r) || null,
+    titulo:  r.title || ""
+  }));
+}
+
+function renderCRM(){
+  const o = ORDER, L = crmLinhas();
+  const falta = L.filter(x => !x.tipo || !x.servico || !x.iva).length;
+  const cel = (v, ok) => ok
+    ? `<td>${esc(v)}</td>`
+    : `<td><span class="crm-falta">falta</span></td>`;
+  const num = v => v == null ? `<td class="money"><span class="crm-falta">falta</span></td>`
+                             : `<td class="money">${eur(v)}</td>`;
+  shell(`
+  <div class="editor-head">
+    <div>
+      <div class="overline">Venda para o CRM · ${esc(o.order_ref||"")}</div>
+      <h1>Uma linha por serviço</h1>
+    </div>
+    <div class="editor-actions">
+      <button class="btn ghost sm" id="crm-back">Voltar</button>
+      <button class="btn sm" id="crm-csv">Baixar em CSV</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div><label>Nome do projeto no CRM</label>
+      <input id="crm-proj" value="${esc((o.crm_project||"").trim()
+        || [o.opportunity_code, o.final_client || o.agency].filter(Boolean).join(" - "))}">
+      <div class="hint" style="margin-top:5px;">Tem de ser <b>idêntico</b> ao nome do projeto no
+        CRM. É metade do elo: a fatura do fornecedor reencontra a venda por
+        <b>projeto + serviço</b>, e os dois são texto.</div>
+    </div>
+  </div>
+
+  ${falta?`<div class="msg" style="max-width:none;">
+    ${falta} linha(s) sem tipo de serviço, nome curto ou regime de IVA. Lance no editor da order,
+    na coluna <b>Para o CRM</b>, antes de exportar — linha incompleta no CRM é imposto errado.
+  </div>`:""}
+
+  <div class="card">
+    <table class="rows"><thead><tr>
+      <th>Projeto</th><th>Agência</th><th>Tipo de serviço</th><th>Serviço</th>
+      <th style="width:96px;">Regime IVA</th><th style="width:110px;">Receita</th>
+      <th style="width:110px;">Custo previsto</th><th style="width:100px;">Comissão</th>
+    </tr></thead><tbody>
+      ${L.map(x=>`<tr>
+        <td>${esc(x.projeto)}</td>
+        <td>${esc(x.agencia)}</td>
+        ${cel(x.tipo, !!x.tipo)}
+        ${cel(x.servico || x.titulo, !!x.servico)}
+        ${cel(x.iva, !!x.iva)}
+        <td class="money">${eur(x.receita)}</td>
+        ${num(x.custo)}
+        <td class="money">${x.comissao?eur(x.comissao):"—"}</td>
+      </tr>`).join("")}
+    </tbody></table>
+    <div class="hint" style="margin-top:10px;">O hub <b>não escreve</b> no CRM. Estas linhas são
+      para você conferir e lançar — enquanto a exportação não for testada em paralelo com o que
+      você já faz à mão, é assim que fica.</div>
+  </div>`, o.order_ref);
+
+  el("crm-back").onclick = renderEditor;
+  el("crm-proj").oninput = e => { ORDER.crm_project = e.target.value; };
+  el("crm-csv").onclick = () => {
+    const proj = (el("crm-proj").value||"").trim();
+    const cab = ["Projeto","Agência","Tipo de serviço","Serviço","Regime IVA",
+                 "Receita (c/ IVA)","Custo previsto","Comissão"];
+    /* Ponto e vírgula e vírgula decimal: é assim que o Excel em
+       português e em italiano abre sem pedir nada. */
+    const esc2 = v => `"${String(v==null?"":v).replace(/"/g,'""')}"`;
+    const n = v => v==null ? "" : String(v).replace(".", ",");
+    const linhas = crmLinhas().map(x => [proj || x.projeto, x.agencia, x.tipo,
+      x.servico || x.titulo, x.iva, n(x.receita), n(x.custo), n(x.comissao)].map(esc2).join(";"));
+    const csv = "\uFEFF" + [cab.map(esc2).join(";"), ...linhas].join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
+    a.download = ((ORDER.order_ref||"venda").replace(/[^\w.-]+/g,"-")) + "-crm.csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  };
+}
+
 async function renderCommission(){
   const o = ORDER;
   const linhas = ITEMS.filter(r => r.commission_pct != null && r.commission_pct !== "");
@@ -2786,6 +2899,23 @@ const TIPOS = {stay:"Hospedagem", transfer:"Transfer", experience:"Experiência"
 /* Do que o valor é. Sem isto, 450 no cadastro não quer dizer nada: por
    veículo, por pessoa e por dia são três propostas diferentes. */
 const UNIDADES = {vehicle:"veículo", person:"pessoa", group:"grupo", day:"dia"};
+
+/* O vocabulário do CRM, copiado da aba "Vendas e Serviços" da planilha
+   validada. Os rótulos têm de ser IGUAIS aos de lá: é texto que ela
+   digita nos dois sistemas, e "Signature Journeys" não casa com
+   "Signature Programs". */
+const CRM_TIPOS = {
+  ground:     "Ground Services",
+  stay:       "Selected Stays",
+  experience: "Signature Experiences",
+  journey:    "Signature Journeys",
+  consulting: "Consultoria Eventos e Incentive"
+};
+/* Os quatro regimes que aparecem nas vendas dela. NÃO se deduz do tipo:
+   em Signature Experiences ela já usou os três — visita guiada isenta,
+   balão a 10%, tour guiado a 22%. Fica em branco até ela lançar, porque
+   um padrão silencioso aqui vira imposto errado. */
+const CRM_IVA = {"0":"0% (isento)", "10":"10%", "22":"22%", "74ter":"74-ter"};
 let CAT = [], CATFILTRO = "", CATBUSCA = "", CATEDIT = null;
 
 async function renderCatalogo(){
@@ -3537,6 +3667,7 @@ function renderEditor(){
       <button class="btn ghost sm" id="ed-preview">Ver como o cliente vê</button>
       ${CONF?`<button class="btn sm" id="ed-sum">Resumo (PDF)</button>`:""}
       <button class="btn ghost sm" id="ed-com">Comissão (PDF)</button>
+      <button class="btn ghost sm" id="ed-crm">Venda para o CRM</button>
     </div>
   </div>
 
@@ -3645,6 +3776,7 @@ function renderEditor(){
   el("ed-del").onclick = deleteOrder;
   if(el("ed-sum")) el("ed-sum").onclick = renderSummary;
   el("ed-com").onclick = renderCommission;
+  el("ed-crm").onclick = renderCRM;
   el("it-com").onclick = comissaoPadrao;
   if(el("lk-copy")) el("lk-copy").onclick = () => {
     el("lk").select(); document.execCommand("copy"); el("lk-copy").textContent="Copiado"; };
@@ -3665,7 +3797,8 @@ function drawItems(){
   el("items-host").innerHTML = `<table class="rows">
     <thead><tr><th style="width:110px;">Data</th><th>Serviço</th><th style="width:120px;">Valor €</th>
       <th style="width:140px;">Fornecedor</th><th style="width:150px;">Inclusos</th>
-      <th style="width:78px;">Comissão</th><th class="x"></th></tr></thead>
+      <th style="width:78px;">Comissão</th><th style="width:210px;">Para o CRM</th>
+      <th class="x"></th></tr></thead>
     <tbody>${ITEMS.map((r,i)=>`<tr>
       <td><input value="${esc(r.service_date||"")}" oninput="ITEMS[${i}].service_date=this.value"></td>
       <td>
@@ -3680,6 +3813,29 @@ function drawItems(){
       <td><input class="interno" type="number" step="0.5" style="text-align:right;"
         value="${r.commission_pct==null?"":Number(r.commission_pct)}" placeholder="%"
         oninput="ITEMS[${i}].commission_pct=this.value===''?null:parseFloat(this.value);sumItems()"></td>
+      ${/* O bloco do CRM. Nada daqui sai para o cliente: tl_get_order
+            monta o objeto campo a campo, e nenhum destes entra. */""}
+      <td class="crm-cel">
+        <select class="interno" onchange="ITEMS[${i}].crm_type=this.value||null">
+          <option value="">— tipo de serviço</option>
+          ${Object.entries(CRM_TIPOS).map(([k,v])=>
+            `<option value="${k}"${r.crm_type===k?" selected":""}>${v}</option>`).join("")}
+        </select>
+        <input class="interno" value="${esc(r.crm_service||"")}" placeholder="nome curto do serviço"
+          title="É por este nome que a fatura do fornecedor reencontra a venda no CRM"
+          oninput="ITEMS[${i}].crm_service=this.value.trim()||null">
+        <div class="crm-par">
+          <select class="interno" onchange="ITEMS[${i}].vat_regime=this.value||null">
+            <option value="">— IVA</option>
+            ${Object.entries(CRM_IVA).map(([k,v])=>
+              `<option value="${k}"${r.vat_regime===k?" selected":""}>${v}</option>`).join("")}
+          </select>
+          <input class="interno" type="number" step="0.01" style="text-align:right;"
+            placeholder="custo" title="Custo previsto desta linha"
+            value="${r.cost_estimate==null?"":Number(r.cost_estimate)}"
+            oninput="ITEMS[${i}].cost_estimate=this.value===''?null:(parseFloat(this.value)||0)">
+        </div>
+      </td>
       <td class="x"><button class="iconbtn" onclick="ITEMS.splice(${i},1);drawItems()">×</button></td>
     </tr>`).join("")}</tbody></table>`;
   sumItems();
@@ -4070,6 +4226,7 @@ async function saveOrder(){
     checkout_config: cfgToJson(),
     internal_notes: el("f-notes").value, updated_at: new Date().toISOString()
   };
+  patch.crm_project = (ORDER.crm_project||"").trim() || null;
   const {error:e1} = await sb.from("ops_orders").update(patch).eq("id",ORDER.id);
   await sb.from("ops_order_items").delete().eq("order_id",ORDER.id);
   await sb.from("ops_order_payments").delete().eq("order_id",ORDER.id);
@@ -4078,7 +4235,10 @@ async function saveOrder(){
     ITEMS.map((r,i)=>({order_id:ORDER.id,sort:i,service_date:r.service_date,title:r.title,
       details:r.details,price:r.price,supplier:(r.supplier||"").trim()||null,
       commission_basis:(r.commission_basis||"").trim()||null,
-      commission_pct:(r.commission_pct===""||r.commission_pct==null)?null:r.commission_pct}))) : {};
+      commission_pct:(r.commission_pct===""||r.commission_pct==null)?null:r.commission_pct,
+      crm_type:r.crm_type||null, crm_service:(r.crm_service||"").trim()||null,
+      vat_regime:r.vat_regime||null,
+      cost_estimate:(r.cost_estimate===""||r.cost_estimate==null)?null:r.cost_estimate}))) : {};
   const {error:e3} = PAYS.length ? await sb.from("ops_order_payments").insert(
     PAYS.map((p,i)=>({order_id:ORDER.id,sort:i,label:p.label,due_date:p.due_date,amount:p.amount,status:p.status}))) : {};
   const {error:e4} = FIELDS.length ? await sb.from("ops_order_fields").insert(
