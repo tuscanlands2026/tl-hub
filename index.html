@@ -525,6 +525,9 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .svc-qtd{font-size:12px;color:var(--muted);margin-top:3px;}
 .ap-qtd{display:block;font-size:11.5px;font-weight:300;color:var(--muted);
   letter-spacing:0;margin-top:3px;}
+/* Logo de agência é arquivo dela, de proporção que eu não escolho:
+   trava pela altura para não empurrar o cabeçalho do documento. */
+.logo-img.da-agencia{width:auto;max-width:230px;max-height:56px;object-fit:contain;}
 .qtd-box{display:grid;grid-template-columns:1fr auto 1.4fr;align-items:center;gap:4px;}
 .qtd-box span{color:var(--muted);font-size:12px;}
 .qtd-box input{padding:5px 6px;font-size:12.5px;}
@@ -2197,6 +2200,7 @@ function renderProposal(){
       <button class="btn ghost sm" id="pp-back">Voltar</button>
       <button class="btn sm" id="pp-save">Salvar</button>
       <button class="btn ghost sm" id="pp-preview">Ver como o cliente vê</button>
+      <button class="btn ghost sm" id="pp-nova">Nova versão</button>
     </div>
   </div>
 
@@ -2427,11 +2431,62 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
   el("q-cond-std").onclick = trazerPadrao;
   el("q-cond-save").onclick = salvarPadrao;
   if(el("q-nota-dmc")) el("q-nota-dmc").onclick = incluirNotaDMC;
+  if(el("pp-nova")) el("pp-nova").onclick = novaVersao;
   el("qs-add").onclick = () => {
     let n = 1; while(PSECS.some(x=>x.key==="sec"+n)) n++;
     PSECS.push({key:"sec"+n, title:"", note:""}); drawSections(); drawQuoteItems();
   };
   drawSections(); drawQuoteItems(); drawSelection();
+}
+
+/* REVISAR É FAZER OUTRA VERSÃO, e não reescrever a que foi enviada.
+   O cliente tem em mãos um documento com um número de versão; mexer
+   nele por baixo deixaria os dois falando de coisas diferentes com o
+   mesmo nome. A v2 nasce cópia da v1 — textos, seções, serviços,
+   valores, configuração — e o que ela NÃO leva é o que pertence à
+   outra: o link, a resposta do cliente e o "aceita". */
+async function novaVersao(){
+  const btn = el("pp-nova");
+  if(btn.disabled) return;
+  const v = 1 + PROPS.reduce((m,x)=>Math.max(m, x.version||0), 0);
+  if(!confirm(`Criar a versão ${v} a partir desta?\n\n`
+    + `Vem junto: todos os textos, as seções, os serviços com valores e a configuração.\n`
+    + `Não vem: o link do cliente, que nasce novo, e a resposta que esta versão tiver recebido.\n\n`
+    + `A v${PROP.version} continua como está, e o link dela continua valendo.`)) return;
+  btn.disabled = true; btn.textContent = "Criando…";
+  guardaCampos();
+
+  const copia = {};
+  /* Campo a campo, e não spread do registro: id, token, versão e o que
+     marca a resposta são da OUTRA proposta, e viriam junto. */
+  ["title","summary","lang","layout","show_prices","terms_url","intro","payment_note",
+   "pax_summary","travel_window","cover_img","cover_tag_pt","cover_tag_en","cover_title",
+   "about_img","backcover_img","assurance_img","about_pt","about_en",
+   "credentials_pt","credentials_en","backcover_pt","backcover_en",
+   "conditions_pt","conditions_en","excluded_pt","excluded_en",
+   "assurance_pt","assurance_en","white_label","agency_logo","agency_logo_bg",
+   "confirm_mode","internal_notes","labels","payment_options","sections"
+  ].forEach(k => { if(PROP[k] !== undefined) copia[k] = PROP[k]; });
+  copia.opportunity_id = PROP.opportunity_id;
+  copia.version = v;
+
+  const {data:nova, error} = await sb.from("ops_proposals").insert(copia).select().single();
+  if(error){ btn.disabled = false; btn.textContent = "Nova versão"; return alert(explicar(error)); }
+
+  const {data:itens} = await sb.from("ops_proposal_items")
+    .select("*").eq("proposal_id", PROP.id).order("sort");
+  if(itens && itens.length){
+    const {error:e2} = await sb.from("ops_proposal_items").insert(itens.map(r=>{
+      const c = Object.assign({}, r);
+      delete c.id; c.proposal_id = nova.id;
+      return c;
+    }));
+    if(e2) alert("A versão foi criada, mas os serviços não vieram: " + explicar(e2));
+  }
+  const {data:lista} = await sb.from("ops_proposals")
+    .select("*").eq("opportunity_id", PROP.opportunity_id).order("version");
+  PROPS = lista || PROPS;
+  openProposal(nova.id);
 }
 
 /* O texto padrão mora em ops_text_defaults e é dele que toda proposta
@@ -4891,13 +4946,19 @@ function drawQuote(){
   // mesmos — é a mesma proposta, com outra roupa.
   if(p.layout === "apresentada") return drawQuoteApresentada();
 
+  /* Quem assina vale para os dois formatos. Na quote simples o
+     cabeçalho é a assinatura inteira: com o logo da agência, o bloco
+     fiscal da Tuscan Lands sai junto — logo dela em cima do nosso CNPJ
+     seria o pior dos dois mundos. */
+  const daAgencia = !!p.white_label;
+  const logoDoc = daAgencia ? (p.agency_logo||"") : LOGO;
   const cabeca = `
     <div class="head">
       <div class="brand">
-        <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
-        <div class="logo-text" style="display:none;">TUSCAN LANDS TRAVEL</div>
-        <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
+        ${logoDoc?`<img class="logo-img${daAgencia?" da-agencia":""}" src="${esc(logoDoc)}" alt="${esc(daAgencia?(p.agency||""):"Tuscan Lands")}"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">`:""}
+        <div class="logo-text" style="display:${logoDoc?"none":"block"};">${esc(daAgencia?(p.agency||""):"TUSCAN LANDS TRAVEL")}</div>
+        ${daAgencia?"":`<div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>`}
       </div>
       <div class="to">
         <div class="lbl">${t.to}</div>

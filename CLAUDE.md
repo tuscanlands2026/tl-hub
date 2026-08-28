@@ -199,6 +199,17 @@ ele o logo da capa é o de `agency_logo` (com `agency_logo_bg` para o fundo bran
 escuro), a folha de abertura passa a ser o texto de respaldo em vez do "Sobre nós", a contracapa
 de contato da Tuscan Lands não sai, e o envio pede **travel agent** e **travel designer**.
 
+**A chave vale nos dois formatos.** Na quote simples o cabeçalho é a assinatura inteira do
+documento, então com o logo da agência o bloco fiscal da Tuscan Lands — razão social, VAT,
+e-mail — sai junto: logo dela em cima do nosso CNPJ seria o pior dos dois mundos. Sem logo
+cadastrado, sai o nome da agência em texto.
+
+**Revisar é fazer outra versão, e não reescrever a que foi enviada.** O botão "Nova versão"
+copia a proposta inteira — textos, seções, serviços com valores, configuração — e deixa de
+fora o que pertence à outra: o link, a resposta do cliente e o "aceita". A anterior continua
+como está, e o link dela continua valendo. A cópia é **campo a campo** e não spread do
+registro, senão id, token e a marca da resposta viriam junto.
+
 **É uma chave só, e não cinco.** As cinco peças se movem juntas — deixar cada uma com a sua
 chave seria deixar uma para ela esquecer de virar, e proposta meio white label é pior que
 nenhuma. Nasce desligada: proposta que já existe não muda de cara.
