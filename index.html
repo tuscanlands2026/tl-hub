@@ -1118,7 +1118,8 @@ const T = {
     qSite:"Ver o site da propriedade →", qSelected:"Selecionado",
     qOthers:"Outros serviços", qItinerary:"Roteiro dia a dia", qHighlights:"Destaques",
     qExtrasDisp:"Adicionais disponíveis", qFacilities:"Estrutura", qIncluded:"Incluso", qAbout:"Sobre nós", qCredentials:"Credenciais",
-    qAssurance:"Sua viagem", qAgent:"Travel agent", qDesigner:"Travel designer",
+    qAssurance:"Sua viagem", qAgency:"Agência", qAgent:"Consultor de viagens",
+    qDesigner:"Travel designer",
     qInterest:"Confirmo interesse nos serviços selecionados",
     qInterestAck:"Confirmo interesse nos serviços que selecionei acima.",
     qResumoLead:"",
@@ -1210,7 +1211,8 @@ const T = {
     qSite:"Visit the property website →", qSelected:"Selected",
     qOthers:"Other services", qItinerary:"Day by day", qHighlights:"Highlights",
     qExtrasDisp:"Available add-ons", qFacilities:"Facilities", qIncluded:"Included", qAbout:"About us", qCredentials:"Credentials",
-    qAssurance:"Your journey", qAgent:"Travel agent", qDesigner:"Travel designer",
+    qAssurance:"Your journey", qAgency:"Travel agency", qAgent:"Travel advisor",
+    qDesigner:"Travel designer",
     qInterest:"I confirm my interest in the selected services",
     qInterestAck:"I confirm my interest in the services I selected above.",
     qResumoLead:"",
@@ -1508,7 +1510,9 @@ const MIGRACOES = [
   {id:"0029-venda-por-servico",       arq:"0029-venda-por-servico.sql",
    oque:"tipo, nome curto, regime de IVA e custo por linha, para a venda ir por serviço ao CRM"},
   {id:"0030-tipos-e-iva-do-crm",      arq:"0030-tipos-e-iva-do-crm.sql",
-   oque:"os sete tipos de serviço e os cinco regimes de IVA, na grafia do CRM"}
+   oque:"os sete tipos de serviço e os cinco regimes de IVA, na grafia do CRM"},
+  {id:"0031-agencia-e-advisor",        arq:"0031-agencia-e-advisor.sql",
+   oque:"no envio, a agência é a empresa e o advisor é a pessoa"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2373,7 +2377,7 @@ function renderProposal(){
       </select>
       <div class="hint" style="margin-top:6px;">Em nome da agência, a capa sai com o logo dela,
         a página de abertura fala da agência em vez de "Sobre nós", a contracapa de contato da
-        Tuscan Lands não sai, e no envio são pedidos o travel agent e o travel designer.
+        Tuscan Lands não sai, e no envio são pedidos a agência e o advisor.
         Vale só nesta proposta.</div>
       ${p.white_label?`
       <div class="grid2" style="margin-top:12px;">
@@ -2728,8 +2732,11 @@ const ROTULOS = [
   {k:"about",      onde:"Menu e título · sobre", pt:"Sobre nós", en:"About us"},
   {k:"assurance",  onde:"Menu · abertura (proposta da agência)",
      pt:"Sua viagem", en:"Your journey"},
-  {k:"agent_name",    onde:"Envio · nome do travel agent",    pt:"Travel agent", en:"Travel agent"},
-  {k:"designer_name", onde:"Envio · nome do travel designer", pt:"Travel designer", en:"Travel designer"},
+  /* Agent, advisor e agente de viagens são a MESMA pessoa — instrução
+     dela em agosto/26. O que faltava era a EMPRESA. Então agency_name
+     é o business, e agent_name é a pessoa que respondeu. */
+  {k:"agency_name",   onde:"Envio · nome da agência (empresa)", pt:"Agência", en:"Travel agency"},
+  {k:"agent_name",    onde:"Envio · nome do advisor (pessoa)",  pt:"Consultor de viagens", en:"Travel advisor"},
   {k:"prop_menu",  onde:"Menu · proposta",       pt:"Proposta", en:"Proposal"},
   {k:"prop_title", onde:"Título da proposta",    pt:"Proposta e condições comerciais",
                                                  en:"Commercial proposal and conditions"},
@@ -3494,6 +3501,9 @@ function drawSelection(){
         PSEL.confirm_mode==="simple"
           ? `${esc(OPP.agency||"—")}<br><span style="color:var(--copper);">confirmação de interesse</span>`
           : esc(PSEL.lead_name||"—")}
+        ${PSEL.agency_name?`<br>Agência: ${esc(PSEL.agency_name)}`:""}
+        ${/* Respostas de antes da 0031 ainda têm designer_name gravado.
+             Continua sendo exibido: resposta antiga não se reescreve. */""}
         ${PSEL.designer_name?`<br>Travel designer: ${esc(PSEL.designer_name)}`:""}
         <br>${esc(PSEL.lead_email||"")}<br>${esc(PSEL.lead_phone||"")}</div></div>
       <div><label>Quando</label><div class="muted">${stamp(PSEL.submitted_at,"pt")}</div></div>
@@ -4680,8 +4690,11 @@ function quoteConfirmar(t, respondida, pagamentos, p){
           pessoa, e cobrar os dois travaria o envio à toa. */""}
     ${(p||{}).white_label?`
     <div class="grid3 fieldrow" style="margin-bottom:18px;">
+      ${/* A agência é a EMPRESA e não é obrigatória: ela já vem da
+            oportunidade, e o campo é confirmação. O advisor é a PESSOA,
+            e esse é obrigatório — é quem respondeu. */""}
+      <div><label>${L("agency_name",t.qAgency)}</label><input id="qc-agency"></div>
       <div><label>${L("agent_name",t.qAgent)} <span class="req">*</span></label><input id="qc-name"></div>
-      <div><label>${L("designer_name",t.qDesigner)}</label><input id="qc-designer"></div>
       <div><label>${t.leadEmail}</label><input id="qc-mail" type="email"></div>
     </div>`:`
     <div class="grid2 fieldrow" style="margin-bottom:18px;">
@@ -5197,7 +5210,7 @@ async function submitQuote(){
   const pg = document.querySelector("input[name=qc-pay]:checked");
   const {data,error} = await sb.rpc("tl_submit_quote",{p_token:QT.token, p_payload:{
     lead_name:nome, lead_email: el("qc-mail") ? el("qc-mail").value.trim() : "",
-    designer_name: el("qc-designer") ? el("qc-designer").value.trim() : "",
+    agency_name: el("qc-agency") ? el("qc-agency").value.trim() : "",
     lead_phone:"", remarks: el("qc-rem") ? el("qc-rem").value.trim() : "",
     payment_choice: pg ? pg.value : null,
     items: escolhidos, extras: QSEL.extras, units: QSEL.units, ack_conditions: true
