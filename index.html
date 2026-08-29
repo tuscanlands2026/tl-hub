@@ -935,8 +935,17 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 /* Endereço público do hub, o que a agência vai abrir. Preenchido, o link
    do cliente sai sempre certo, não importa de onde você abriu o editor.
    Vazio, o programa usa o endereço da janela aberta — e avisa na tela se
-   esse endereço não servir para mandar a ninguém. */
-const PUBLIC_BASE_URL = "";
+   esse endereço não servir para mandar a ninguém.
+
+   Fixado no domínio dela em agosto/26, e o motivo é concreto: vazio, o
+   link saía com o endereço da janela, e ela continuava entrando pelo
+   favorito antigo do netlify. A proposta da Luminoso saiu com
+   hubtl.netlify.app. Depender de ela lembrar de entrar pelo endereço
+   certo é depender de ela não errar um dia — e o erro vai numa proposta
+   já enviada, que não dá para consertar.
+
+   O endereço antigo continua funcionando: o que já foi enviado abre. */
+const PUBLIC_BASE_URL = "https://quote.tuscanlandstravel.com/";
 
 const SUPABASE_URL = "https://iloznrjpiedrohlhrmce.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlsb3pucmpwaWVkcm9obGhybWNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NjQxMjUsImV4cCI6MjA5OTM0MDEyNX0.nz8KvP-BIh3Bm6QWj2WjjOWBTLd_lVhaZJewGkwTunA";
