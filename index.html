@@ -5168,16 +5168,19 @@ function drawQuote(){
         ${daAgencia?"":`<div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>`}
       </div>
       ${/* Com a agência assinando, o "para" NÃO cai para o nome dela: o
-            documento se dirigiria a quem o está mandando. E o código
-            TL sai junto — é a numeração da Tuscan Lands, e numa folha
-            que a agência assina ele entrega que existe um terceiro.
-            Mesma razão pela qual as credenciais saíram da apresentada. */""}
-      ${(daAgencia ? (p.final_client||"") : (p.final_client||p.agency||"")) || (!daAgencia && p.crm_code) ? `
+            documento se dirigiria a quem o está mandando.
+
+            O NÚMERO DA PROPOSTA FICA, sempre, nos dois casos. Eu tinha
+            tirado dele no white label junto com as credenciais, e ela
+            corrigiu em agosto/26: número é referência de trabalho, não
+            é marca. Sem ele a agência não tem como falar com ela sobre
+            aquela proposta. */""}
+      ${(daAgencia ? (p.final_client||"") : (p.final_client||p.agency||"")) || p.crm_code ? `
       <div class="to">
         ${(daAgencia ? (p.final_client||"") : (p.final_client||p.agency||"")) ? `
           <div class="lbl">${t.to}</div>
           <div class="val">${esc(daAgencia ? p.final_client : (p.final_client||p.agency))}</div>` : ""}
-        ${!daAgencia && p.crm_code?`<div class="lbl">${t.ref}</div><div class="val">${esc(p.crm_code)}</div>`:""}
+        ${p.crm_code?`<div class="lbl">${t.ref}</div><div class="val">${esc(p.crm_code)}</div>`:""}
       </div>` : ""}
     </div>`;
 
