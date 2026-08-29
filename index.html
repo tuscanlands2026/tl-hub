@@ -1428,6 +1428,14 @@ function makeClient(){
 }
 function route(){ return (location.hash||"").replace(/^#\/?/,""); }
 
+/* Ver como o cliente vê troca o hash, e voltar limpa o hash — o que
+   caía no Painel, e ela tinha de refazer o caminho inteiro até a
+   proposta. Aqui fica guardado de onde ela saiu, e o voltar devolve
+   para lá. Só vale enquanto a página não recarregar: recarregando, a
+   proposta não está mais na memória e o Painel é o certo mesmo. */
+let VOLTAR = null;
+function verComoCliente(hash, voltarPara){ VOLTAR = voltarPara; location.hash = hash; }
+
 async function boot(){
   const r = route();
   const isPublic = r.startsWith("confirm/") || r.startsWith("quote/");
@@ -1436,6 +1444,7 @@ async function boot(){
   if(r.startsWith("quote/"))   return renderQuote(r.split("/")[1]);
   const {data} = await sb.auth.getSession();
   if(!data.session) return renderLogin();
+  if(VOLTAR){ const f = VOLTAR; VOLTAR = null; return f(); }
   await conferirBanco();
   renderPainel();
 }
@@ -2543,7 +2552,7 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
 
   el("pp-back").onclick = () => openOpportunity(OPP.id);
   el("pp-save").onclick = saveProposal;
-  el("pp-preview").onclick = () => { location.hash = "#/quote/"+PROP.token; };
+  el("pp-preview").onclick = () => verComoCliente("#/quote/"+PROP.token, renderProposal);
   if(el("qlk-copy")) el("qlk-copy").onclick = () => {
     el("qlk").select(); document.execCommand("copy"); el("qlk-copy").textContent="Copiado"; };
   el("qi-add").onclick = () => {
@@ -3797,7 +3806,7 @@ function renderEditor(){
 
   el("ed-back").onclick = renderApp;
   el("ed-save").onclick = saveOrder;
-  el("ed-preview").onclick = () => { location.hash = "#/confirm/"+ORDER.token; };
+  el("ed-preview").onclick = () => verComoCliente("#/confirm/"+ORDER.token, renderEditor);
   el("ed-dup").onclick = duplicateOrder;
   el("ed-del").onclick = deleteOrder;
   if(el("ed-sum")) el("ed-sum").onclick = renderSummary;
