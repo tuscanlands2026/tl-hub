@@ -1512,7 +1512,9 @@ const MIGRACOES = [
   {id:"0030-tipos-e-iva-do-crm",      arq:"0030-tipos-e-iva-do-crm.sql",
    oque:"os sete tipos de serviço e os cinco regimes de IVA, na grafia do CRM"},
   {id:"0031-agencia-e-advisor",        arq:"0031-agencia-e-advisor.sql",
-   oque:"no envio, a agência é a empresa e o advisor é a pessoa"}
+   oque:"no envio, a agência é a empresa e o advisor é a pessoa"},
+  {id:"0032-a-agencia-nao-e-destinatario", arq:"0032-a-agencia-nao-e-destinatario.sql",
+   oque:"na proposta da agência, o nome dela não vai no \"para\" nem na capa"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5147,11 +5149,18 @@ function drawQuote(){
         <div class="logo-text" style="display:${logoDoc?"none":"block"};">${esc(daAgencia?(p.agency||""):"TUSCAN LANDS TRAVEL")}</div>
         ${daAgencia?"":`<div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>`}
       </div>
+      ${/* Com a agência assinando, o "para" NÃO cai para o nome dela: o
+            documento se dirigiria a quem o está mandando. E o código
+            TL sai junto — é a numeração da Tuscan Lands, e numa folha
+            que a agência assina ele entrega que existe um terceiro.
+            Mesma razão pela qual as credenciais saíram da apresentada. */""}
+      ${(daAgencia ? (p.final_client||"") : (p.final_client||p.agency||"")) || (!daAgencia && p.crm_code) ? `
       <div class="to">
-        <div class="lbl">${t.to}</div>
-        <div class="val">${esc(p.final_client||p.agency||"")}</div>
-        ${p.crm_code?`<div class="lbl">${t.ref}</div><div class="val">${esc(p.crm_code)}</div>`:""}
-      </div>
+        ${(daAgencia ? (p.final_client||"") : (p.final_client||p.agency||"")) ? `
+          <div class="lbl">${t.to}</div>
+          <div class="val">${esc(daAgencia ? p.final_client : (p.final_client||p.agency))}</div>` : ""}
+        ${!daAgencia && p.crm_code?`<div class="lbl">${t.ref}</div><div class="val">${esc(p.crm_code)}</div>`:""}
+      </div>` : ""}
     </div>`;
 
   app.innerHTML = `
@@ -5168,7 +5177,8 @@ function drawQuote(){
     <div class="intro" style="text-align:left;">${respondida?t.qAlready:t.qLead}</div>
 
     <div class="meta">
-      <div class="cell"><div class="k">${t.to}</div><div class="v">${esc(p.final_client||p.agency||"—")}</div></div>
+      ${(daAgencia ? (p.final_client||"") : (p.final_client||p.agency||"")) ? `
+      <div class="cell"><div class="k">${t.to}</div><div class="v">${esc(daAgencia ? p.final_client : (p.final_client||p.agency))}</div></div>` : ""}
       <div class="cell"><div class="k">${t.pax}</div><div class="v">${esc(p.pax_summary||"—")}</div></div>
       <div class="cell"><div class="k">${t.period}</div><div class="v">${esc(p.travel_window||"—")}</div></div>
       <div class="cell"><div class="k">${t.qTitle}</div><div class="v">v${p.version}</div></div>
