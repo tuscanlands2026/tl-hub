@@ -159,8 +159,17 @@ export default async (req) => {
           im.src = c.toDataURL("image/jpeg", 0.82);
         } catch (e) { /* não deu: fica a original — foto grande é melhor que nenhuma */ }
       };
-      document.querySelectorAll("img.ap-fundo").forEach(im => encolher(im, 1200));
-      document.querySelectorAll(".ap-fotos img, .ap-card img").forEach(im => encolher(im, 800));
+      /* TODA foto, e não só as que eu lembrei de listar. A versão por
+         seletor deixava passar as que não estavam na minha lista, e o
+         PDF saía com fotos de 1257 e 1353 px no meio das encolhidas.
+         Aqui a regra é pelo tamanho: foto grande encolhe, seja de onde
+         for. Logo e marca ficam de fora — têm transparência, e JPEG
+         não tem. */
+      document.querySelectorAll("img").forEach(im => {
+        const cls = im.className || "";
+        if (/logo|marca/i.test(cls)) return;
+        encolher(im, im.classList.contains("ap-fundo") ? 1200 : 800);
+      });
 
       // As trocadas por dataURL precisam assentar antes de imprimir.
       await esperar(3000);
