@@ -2612,18 +2612,24 @@ async function novaVersao(){
     .select("*").eq("id", PROP.id).maybeSingle();
   const fonte = gravada || PROP;
 
+  /* COPIAR É COPIAR: leva TUDO, e tira só o que é da outra proposta.
+     Antes era uma lista de campos escrita à mão, e uma lista à mão
+     esquece — esqueceu as condições, o texto de boas-vindas e o
+     itinerário, que sumiam em toda cópia sem ninguém ver. E cada coluna
+     nova que eu criasse voltaria a sumir, porque eu teria de lembrar de
+     acrescentar em dois lugares.
+
+     Invertido: o que NÃO vem está aqui embaixo, e é curto. Coluna nova
+     entra na cópia sozinha. */
+  const NAO_COPIA = new Set([
+    "id", "version", "token",          // identidade: a nova é outra
+    "created_at", "updated_at",        // datas do registro
+    "sent_at", "decided_at",           // quando a OUTRA foi mandada e decidida
+    "outcome", "acceptance_mode", "refusal_reason",  // o "aceita" é da outra
+    "responded_at"                     // a resposta do cliente é da outra
+  ]);
   const copia = {};
-  /* Campo a campo, e não spread do registro: id, token, versão e o que
-     marca a resposta são da OUTRA proposta, e viriam junto. */
-  ["title","summary","lang","layout","show_prices","terms_url","intro","payment_note",
-   "pax_summary","travel_window","cover_img","cover_tag_pt","cover_tag_en","cover_title",
-   "about_img","backcover_img","assurance_img","about_pt","about_en",
-   "credentials_pt","credentials_en","backcover_pt","backcover_en",
-   "conditions_pt","conditions_en","excluded_pt","excluded_en",
-   "assurance_pt","assurance_en","white_label","agency_logo","agency_logo_bg",
-   "confirm_mode","internal_notes","labels","payment_options","sections"
-  ].forEach(k => { if(fonte[k] !== undefined) copia[k] = fonte[k]; });
-  copia.opportunity_id = fonte.opportunity_id;
+  Object.keys(fonte).forEach(k => { if(!NAO_COPIA.has(k)) copia[k] = fonte[k]; });
   copia.version = v;
 
   const {data:nova, error} = await sb.from("ops_proposals").insert(copia).select().single();
