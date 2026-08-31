@@ -50,6 +50,37 @@ export default async (req) => {
       defaultViewport: { width: 1280, height: 900 }
     });
     const page = await browser.newPage();
+
+    /* PEDIR AS FOTOS COM CORS, DESDE O COMEÇO.
+       Sem crossOrigin o canvas fica "manchado" pela foto de outro
+       domínio e toDataURL é RECUSADO — o encolhimento lá embaixo caía no
+       catch e não fazia nada, em silêncio. Foi o que aconteceu na
+       primeira tentativa: o PDF continuou gordo e eu achei que tinha
+       encolhido.
+
+       Conferido nas três hospedagens de foto que ela usa — Squarespace,
+       cdn-website e postimg: as três respondem
+       access-control-allow-origin: *, então o pedido com CORS passa.
+
+       O observador entra ANTES da página desenhar, e marca cada <img>
+       assim que ela nasce. Reatribuir o src é o que refaz o pedido com
+       CORS: marcar depois de carregada não desmancha a mancha. */
+    await page.evaluateOnNewDocument(() => {
+      const marcar = (im) => {
+        if (!im || im.dataset.cors) return;
+        im.dataset.cors = "1";
+        const src = im.getAttribute("src");
+        im.setAttribute("crossorigin", "anonymous");
+        if (src) im.setAttribute("src", src);
+      };
+      new MutationObserver(muts => {
+        for (const m of muts) for (const n of m.addedNodes) {
+          if (n.nodeType !== 1) continue;
+          if (n.tagName === "IMG") marcar(n);
+          else if (n.querySelectorAll) n.querySelectorAll("img").forEach(marcar);
+        }
+      }).observe(document.documentElement, { childList: true, subtree: true });
+    });
     /* domcontentloaded, e não networkidle0: com as fotos dos hotéis o
        networkidle0 espera os 12 MB inteiros descerem antes de sequer
        devolver o controle, e a função tem 10 segundos no total. Quem
@@ -78,6 +109,13 @@ export default async (req) => {
       /* PRIMEIRO esperar, DEPOIS encolher. Encolher lê naturalWidth, que
          só existe com a foto já carregada — invertendo a ordem o laço
          pula todas em silêncio e o PDF sai gordo do mesmo jeito. */
+      /* Rede de segurança: o que escapou do observador (foto que já
+         estava no HTML inicial) é marcada aqui e recarregada. */
+      document.querySelectorAll("img:not([crossorigin])").forEach(im => {
+        const src = im.getAttribute("src");
+        im.setAttribute("crossorigin", "anonymous");
+        if (src) im.setAttribute("src", src);
+      });
       await esperar(6000);
 
       /* AS FOTOS ENTRAM NO PDF EM BAIXA RESOLUÇÃO. Instrução dela em
