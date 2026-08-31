@@ -390,6 +390,48 @@ impressão escondia o problema. No celular, quando o navegador ignora o atributo
 em blob, o arquivo vai para o menu de compartilhar do sistema; não havendo, abre em aba
 nova e o navegador oferece salvar.
 
+**O PDF é montado SEM RELÓGIO, em três peças.** A função síncrona não dava conta e está
+medido: a TL-042-26 levava de 16 a 24 segundos e 4 de 7 chamadas morriam. O tempo não era do
+documento — era ligar um Chromium do zero a cada clique, dentro do limite de ~25 segundos que
+o Netlify dá a uma função que responde na hora.
+
+- `proposta-pdf-background.mjs` — função DE FUNDO (o sufixo `-background` é o que diz isso ao
+  Netlify): responde 202 na hora e trabalha com 15 minutos. Guarda o arquivo em **Netlify
+  Blobs**, e não no Storage do Supabase: escrever lá pediria chave de escrita dentro de uma
+  função pública, e chave de serviço não entra em lugar nenhum.
+- `proposta-pdf-arquivo.mjs` — diz o estado em JSON e entrega o arquivo com
+  `Content-Disposition`. Nunca estoura o tempo porque só lê.
+- O botão manda montar, pergunta de dois em dois segundos, mostra os segundos correndo e baixa
+  sozinho. Erro vira mensagem; nunca a caixa de impressão.
+
+Medido depois, três vezes seguidas: **pronto em 19 a 23 segundos, download em ~1 segundo,
+HTTP 200 nas três.** A síncrona continua no ar em `/api/proposta-pdf` para proposta leve.
+
+**Cada clique leva uma marca própria, e a tela só aceita o arquivo da marca dela.** O arquivo
+da vez anterior fica guardado e o estado continua dizendo "pronto": sem a marca a tela via esse
+"pronto" velho no primeiro segundo e baixava um arquivo que estava sendo reescrito naquele
+momento — o download morria no meio. Marca, e não relógio: o do navegador e o do servidor
+discordam.
+
+**As fotos entram no PDF em baixa resolução** — instrução dela em agosto/26: "o PDF é só pra
+gerar alguma coisa, não é para impressão". Quem inflava não era o download: as fotos da
+TL-042-26 somam 4,9 MB, e o Chromium embutia cada uma no tamanho original, 2250×3000 numa
+folha A4. Medido com as fotos reais dela: sem encolher 33,4 MB, a 1600px 3,6 MB, a 1200px
+2,8 MB. Redesenhar num canvas e trocar o `src` resolve para qualquer hospedagem de foto —
+mexer na URL só do Squarespace não pegava a maioria, porque as fotos de uma proposta moram em
+três lugares diferentes.
+
+Duas armadilhas do encolhimento, as duas descobertas falhando em silêncio:
+- **Sem CORS o canvas fica manchado** e `toDataURL` é recusado. A exceção caía no `catch` e o
+  PDF continuava gordo. As três hospedagens que ela usa respondem `access-control-allow-origin: *`,
+  então basta pedir com `crossOrigin` — e pedir **antes** de a foto carregar, porque marcar
+  depois não desmancha a mancha. Um observador marca cada `<img>` assim que ela nasce.
+- **Encolher lê `naturalWidth`**, que só existe com a foto carregada: encolher antes da espera
+  pula todas sem avisar.
+
+Fica pendente: o arquivo ainda sai com 8,5 MB e sobram fotos de 1257 e 1353 px que o
+encolhimento não pega. Funciona e baixa, mas é anexo grande — falta achar de onde vêm.
+
 Três tropeços na hora de pôr a função de pé, todos só visíveis contra o site no ar:
 o pacote `@sparticuz/chromium-min` sobe o binário sem as bibliotecas dele; o formato antigo
 de função devolve o corpo em base64 e estoura no limite de 6 MB — a proposta com fotos tem
