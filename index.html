@@ -5090,26 +5090,77 @@ function paginaSemMargem(){
    Content-Disposition: attachment e o nome do arquivo, e o navegador
    faz o que faz com qualquer arquivo da internet — baixa, com o nome
    certo, sem abrir nada. */
-function baixarProposta(){
+async function baixarProposta(){
   const btn = document.querySelector(".ap-baixar");
   const rot = btn ? (btn.getAttribute("data-rot") || btn.textContent) : "";
-  if(btn){ btn.setAttribute("data-rot", rot); btn.disabled = true; btn.textContent = "Montando o PDF…"; }
+  if(btn){
+    if(btn.disabled) return;
+    btn.setAttribute("data-rot", rot); btn.disabled = true;
+  }
+  const diz = txt => { if(btn) btn.textContent = txt; };
+  const solta = () => { if(btn){ btn.disabled = false; btn.textContent = rot; } };
+
   const nome = (QT.proposal.crm_code || QT.proposal.title || "proposta")
     .replace(/[^\w.-]+/g,"-") || "proposta";
-  const url = "/api/proposta-pdf?token=" + encodeURIComponent(QT.token)
-    + "&nome=" + encodeURIComponent(nome) + "&t=" + Date.now();
+  const base = "/api/proposta-pdf-arquivo?token=" + encodeURIComponent(QT.token)
+             + "&nome=" + encodeURIComponent(nome);
 
-  const a = document.createElement("a");
-  a.href = url; a.download = nome + ".pdf"; a.rel = "noopener";
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  try{
+    diz("Montando o PDF…");
+    /* Manda montar. A função de fundo responde na hora com 202 e segue
+       trabalhando com 15 minutos, em vez dos ~25 segundos da síncrona,
+       que era o que fazia a proposta com fotos falhar como se tivesse
+       caído a internet. */
+    /* Dois endereços porque função de fundo no Netlify se declara pelo
+       sufixo do arquivo, e o caminho bonito nem sempre vale para elas.
+       Tenta o bonito e cai no oficial — sem isto, um detalhe de
+       configuração do servidor viraria botão que não faz nada. */
+    const chamar = async (u) => {
+      try { const r = await fetch(u + "?token=" + encodeURIComponent(QT.token),
+                                  { method:"POST" });
+            return r.status < 400; } catch(e){ return false; }
+    };
+    if(!await chamar("/api/proposta-pdf-montar"))
+      await chamar("/.netlify/functions/proposta-pdf-background");
 
-  /* O navegador leva alguns segundos montando antes de a barra de
-     download aparecer. O botão fica avisando nesse tempo e volta ao
-     normal depois — não há como saber daqui quando o arquivo chegou. */
-  setTimeout(()=>{ if(btn){ btn.disabled = false; btn.textContent = rot; } }, 25000);
+    /* Pergunta de dois em dois segundos. Dois minutos de teto: a
+       função de fundo tem quinze, mas proposta que passa de dois
+       minutos é proposta que deu errado, e é melhor dizer isso do que
+       girar para sempre. */
+    for(let i=0; i<60; i++){
+      await new Promise(r=>setTimeout(r, 2000));
+      let st;
+      try{ st = await (await fetch(base + "&t=" + Date.now())).json(); }
+      catch(e){ continue; }
+
+      if(st.estado === "pronto"){
+        diz("Baixando…");
+        /* Quem baixa é o NAVEGADOR indo ao endereço: a função responde
+           com Content-Disposition: attachment e ele faz o que faz com
+           qualquer arquivo da internet — baixa, com o nome certo, sem
+           abrir o visualizador. */
+        const a = document.createElement("a");
+        a.href = base + "&baixar=1"; a.download = nome + ".pdf"; a.rel = "noopener";
+        a.style.display = "none";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(solta, 3000);
+        return;
+      }
+      if(st.estado === "erro"){
+        solta();
+        return alert("Não consegui montar o PDF.\n\n" + (st.msg||"") 
+          + "\n\nTente de novo. Se repetir, me avise.");
+      }
+      if(i > 3 && i % 5 === 0) diz("Montando… " + (i*2) + "s");
+    }
+    solta();
+    alert("O PDF está demorando mais que o normal. Tente de novo em um minuto.");
+  }catch(e){
+    solta();
+    /* Nunca cair na caixa de impressão: instrução dela. Cair na
+       impressão escondia o problema. */
+    alert("Não consegui falar com o servidor para montar o PDF.\n\n" + (e && e.message));
+  }
 }
 
 /* Avançar e voltar em toda etapa: o cliente revisa a proposta inteira
