@@ -2595,7 +2595,20 @@ async function novaVersao(){
     + `Não vem: o link do cliente, que nasce novo, e a resposta que esta versão tiver recebido.\n\n`
     + `A v${PROP.version} continua como está, e o link dela continua valendo.`)) return;
   btn.disabled = true; btn.textContent = "Criando…";
-  guardaCampos();
+
+  /* Salva ANTES de copiar, e depois copia do que está gravado.
+     Antes daqui a cópia era metade memória e metade banco: os campos de
+     texto vinham de guardaCampos(), os serviços vinham de um select, e
+     as SEÇÕES não vinham de lugar nenhum — guardaCampos não recolhe
+     PSECS, então a foto de capa de cada folha se perdia se ela não
+     tivesse salvado antes de clicar. Salvando primeiro, a cópia é de um
+     estado só, e não existe mais "depende de ela ter salvado". */
+  if(await saveProposal() === false){
+    btn.disabled = false; btn.textContent = "Nova versão"; return;
+  }
+  const {data:gravada} = await sb.from("ops_proposals")
+    .select("*").eq("id", PROP.id).maybeSingle();
+  const fonte = gravada || PROP;
 
   const copia = {};
   /* Campo a campo, e não spread do registro: id, token, versão e o que
@@ -2607,8 +2620,8 @@ async function novaVersao(){
    "conditions_pt","conditions_en","excluded_pt","excluded_en",
    "assurance_pt","assurance_en","white_label","agency_logo","agency_logo_bg",
    "confirm_mode","internal_notes","labels","payment_options","sections"
-  ].forEach(k => { if(PROP[k] !== undefined) copia[k] = PROP[k]; });
-  copia.opportunity_id = PROP.opportunity_id;
+  ].forEach(k => { if(fonte[k] !== undefined) copia[k] = fonte[k]; });
+  copia.opportunity_id = fonte.opportunity_id;
   copia.version = v;
 
   const {data:nova, error} = await sb.from("ops_proposals").insert(copia).select().single();
@@ -3493,9 +3506,10 @@ async function saveProposal(){
       extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}))) : {};
   btn.disabled = false; btn.textContent = "Salvar";
   const err = e1||e2;
-  if(err) return alert(explicar(err));
+  if(err){ alert(explicar(err)); return false; }
   Object.assign(PROP, patch);
   btn.textContent = "Salvo"; setTimeout(()=>btn.textContent="Salvar",1600);
+  return true;
 }
 
 /* ------------------------------ O QUE O CLIENTE ESCOLHEU ------------- */
