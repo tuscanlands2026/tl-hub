@@ -40,7 +40,11 @@ export default async (req) => {
       .filter(Boolean).join(":");
 
     browser = await puppeteer.launch({
-      args: [...chromium.args, "--font-render-hinting=none"],
+      /* disable-web-security: sem ele o canvas fica "manchado" pela
+         foto de outro domínio e toDataURL é recusado — as fotos não
+         encolheriam. É um Chromium descartável abrindo só a nossa
+         própria página, não um navegador de ninguém. */
+      args: [...chromium.args, "--font-render-hinting=none", "--disable-web-security"],
       executablePath: exe,
       headless: chromium.headless,
       defaultViewport: { width: 1280, height: 900 }
@@ -63,35 +67,53 @@ export default async (req) => {
     await page.evaluate(async () => {
       document.querySelectorAll(".ap-passo").forEach(e => { e.style.display = "block"; });
 
-      /* AS FOTOS DESCEM MENORES. Medido em agosto/26 com as fotos do
-         Borgo Vescine: 20 fotos de hotel em tamanho original são
-         11,7 MB, e a função tem 10 segundos para tudo — abrir o
-         Chromium, carregar a página, buscar as fotos e imprimir. Era
-         por isso que a proposta com fotos falhava como se tivesse caído
-         a internet: o Netlify cortava antes de o arquivo ficar pronto.
+      const esperar = (ms) => Promise.all(
+        [...document.querySelectorAll("img")].filter(i => !i.complete).map(i =>
+          new Promise(ok => {
+            i.addEventListener("load", ok, { once: true });
+            i.addEventListener("error", ok, { once: true });
+            setTimeout(ok, ms);
+          })));
 
-         O CDN do Squarespace serve a mesma foto em qualquer largura
-         pelo parâmetro format. 1600w cobre a folha A4 inteira sangrada
-         a 150dpi (210mm = 1240px), e 1000w cobre a fita de fotos do
-         card, que nunca passa de meia folha. Com isso os mesmos 12 MB
-         viram menos de 4.
+      /* PRIMEIRO esperar, DEPOIS encolher. Encolher lê naturalWidth, que
+         só existe com a foto já carregada — invertendo a ordem o laço
+         pula todas em silêncio e o PDF sai gordo do mesmo jeito. */
+      await esperar(6000);
 
-         Só o Squarespace: parâmetro que outro CDN não entende viraria
-         404, e foto faltando é pior que foto pesada. */
-      document.querySelectorAll("img").forEach(im => {
-        const src = im.getAttribute("src") || "";
-        if (!/images\.squarespace-cdn\.com/.test(src) || /[?&]format=/.test(src)) return;
-        const larg = im.classList.contains("ap-fundo") ? "1600w" : "1000w";
-        im.setAttribute("src", src + (src.includes("?") ? "&" : "?") + "format=" + larg);
-      });
+      /* AS FOTOS ENTRAM NO PDF EM BAIXA RESOLUÇÃO. Instrução dela em
+         agosto/26: "o PDF é só pra gerar alguma coisa, não é para
+         impressão" — é o arquivo que ela manda por e-mail.
 
-      const imgs = [...document.querySelectorAll("img")].filter(i => !i.complete);
-      await Promise.all(imgs.map(i => new Promise(ok => {
-        const fim = () => ok();
-        i.addEventListener("load", fim, { once: true });
-        i.addEventListener("error", fim, { once: true });
-        setTimeout(fim, 6000);
-      })));
+         Medido com as fotos reais da TL-042-26 (4,9 MB de origem):
+             sem encolher   33,4 MB · 8,9 s
+             1600px          3,6 MB · 4,1 s
+             1200px          2,8 MB · 2,1 s
+         Quem inflava não era o download: era o Chromium embutindo cada
+         foto no tamanho original, 2250×3000 numa folha A4. O arquivo
+         dela saía com 18 MB em 21 segundos, encostando no limite do
+         servidor — daí o erro que parecia queda de internet.
+
+         Redesenhar num canvas e trocar o src resolve para QUALQUER
+         hospedagem de foto. A tentativa anterior mexia na URL do
+         Squarespace, e as fotos desta proposta estão em três lugares
+         diferentes: não pegava a maioria.
+
+         Logo não passa por aqui: tem transparência, e JPEG não tem. */
+      const encolher = (im, larg) => {
+        if (!im.complete || !im.naturalWidth || im.naturalWidth <= larg) return;
+        const alt = Math.round(im.naturalHeight * larg / im.naturalWidth);
+        const c = document.createElement("canvas");
+        c.width = larg; c.height = alt;
+        try {
+          c.getContext("2d").drawImage(im, 0, 0, larg, alt);
+          im.src = c.toDataURL("image/jpeg", 0.82);
+        } catch (e) { /* não deu: fica a original — foto grande é melhor que nenhuma */ }
+      };
+      document.querySelectorAll("img.ap-fundo").forEach(im => encolher(im, 1200));
+      document.querySelectorAll(".ap-fotos img, .ap-card img").forEach(im => encolher(im, 800));
+
+      // As trocadas por dataURL precisam assentar antes de imprimir.
+      await esperar(3000);
       if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
     });
 
