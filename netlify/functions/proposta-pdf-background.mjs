@@ -29,11 +29,17 @@ export default async (req) => {
   }
   const alvo = `${url.origin}/#/quote/${token}`;
   const loja = getStore("propostas-pdf");
+  /* A MARCA DESTA MONTAGEM, mandada pela tela. Comparar por relógio não
+     serve: o do navegador e o do servidor discordam, e um minuto de
+     diferença faria a tela aceitar o arquivo da vez anterior — que é o
+     que estava sendo reescrito naquele momento. A marca é a mesma dos
+     dois lados, e não depende de hora nenhuma. */
+  const marca = (url.searchParams.get("r") || "").slice(0, 40);
 
   /* Marca "montando" ANTES de começar. Sem isto a tela que pergunta se
      ficou pronto não teria como distinguir "ainda não começou" de
      "morreu no meio", e ficaria perguntando para sempre. */
-  await loja.setJSON(token + ".estado", { estado: "montando", em: Date.now() });
+  await loja.setJSON(token + ".estado", { estado: "montando", r: marca, em: Date.now() });
 
   let browser;
   try {
@@ -173,13 +179,13 @@ export default async (req) => {
       metadata: { tipo: "application/pdf", bytes: pdf.length, em: Date.now() }
     });
     await loja.setJSON(token + ".estado",
-      { estado: "pronto", bytes: pdf.length, em: Date.now() });
+      { estado: "pronto", r: marca, bytes: pdf.length, em: Date.now() });
     return new Response("ok", { status: 200 });
   } catch (e) {
     /* O erro fica GUARDADO, e não só no log: é o que faz a tela poder
        dizer o que houve em vez de girar para sempre. */
     await loja.setJSON(token + ".estado",
-      { estado: "erro", msg: String((e && e.message) || e), em: Date.now() });
+      { estado: "erro", r: marca, msg: String((e && e.message) || e), em: Date.now() });
     return new Response("erro", { status: 500 });
   } finally {
     if (browser) { try { await browser.close(); } catch (e) {} }

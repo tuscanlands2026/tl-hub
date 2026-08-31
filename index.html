@@ -5105,6 +5105,15 @@ async function baixarProposta(){
   const base = "/api/proposta-pdf-arquivo?token=" + encodeURIComponent(QT.token)
              + "&nome=" + encodeURIComponent(nome);
 
+  /* A MARCA DESTE CLIQUE, e não é detalhe. O arquivo da vez anterior
+     fica guardado, e o estado dele continua dizendo "pronto". Sem a
+     marca, a tela via esse "pronto" velho no primeiro segundo e mandava
+     baixar um arquivo que estava sendo reescrito naquele exato momento
+     — foi o que aconteceu na rodada 2 do teste: o download morreu no
+     meio. Marca, e não relógio: o do navegador e o do servidor
+     discordam. */
+  const marca = Math.random().toString(36).slice(2) + Date.now().toString(36);
+
   try{
     diz("Montando o PDF…");
     /* Manda montar. A função de fundo responde na hora com 202 e segue
@@ -5116,8 +5125,8 @@ async function baixarProposta(){
        Tenta o bonito e cai no oficial — sem isto, um detalhe de
        configuração do servidor viraria botão que não faz nada. */
     const chamar = async (u) => {
-      try { const r = await fetch(u + "?token=" + encodeURIComponent(QT.token),
-                                  { method:"POST" });
+      try { const r = await fetch(u + "?token=" + encodeURIComponent(QT.token)
+                                    + "&r=" + marca, { method:"POST" });
             return r.status < 400; } catch(e){ return false; }
     };
     if(!await chamar("/api/proposta-pdf-montar"))
@@ -5133,7 +5142,7 @@ async function baixarProposta(){
       try{ st = await (await fetch(base + "&t=" + Date.now())).json(); }
       catch(e){ continue; }
 
-      if(st.estado === "pronto"){
+      if(st.estado === "pronto" && st.r === marca){
         diz("Baixando…");
         /* Quem baixa é o NAVEGADOR indo ao endereço: a função responde
            com Content-Disposition: attachment e ele faz o que faz com
@@ -5146,7 +5155,7 @@ async function baixarProposta(){
         setTimeout(solta, 3000);
         return;
       }
-      if(st.estado === "erro"){
+      if(st.estado === "erro" && st.r === marca){
         solta();
         return alert("Não consegui montar o PDF.\n\n" + (st.msg||"") 
           + "\n\nTente de novo. Se repetir, me avise.");
