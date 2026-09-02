@@ -1536,7 +1536,9 @@ const MIGRACOES = [
   {id:"0033-borgo-vescine",            arq:"0033-borgo-vescine.sql",
    oque:"Borgo Vescine no catálogo, com a Camera Deluxe"},
   {id:"0034-conserta-as-fotos-da-v2", arq:"0034-conserta-as-fotos-da-v2.sql",
-   oque:"devolve à TL-042-26 v2 as fotos de seção que a cópia perdeu"}
+   oque:"devolve à TL-042-26 v2 as fotos de seção que a cópia perdeu"},
+  {id:"0035-idioma-da-venda",         arq:"0035-idioma-da-venda.sql",
+   oque:"a venda em inglês chega inteira no e-mail e na order, com o tipo de quarto e as unidades"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -3723,7 +3725,7 @@ function renderEditor(){
   shell(`
   <div class="editor-head">
     <div>
-      <div class="overline">Order · ${esc(o.opportunity_code)}</div>
+      <div class="overline">Order · ${esc(o.opportunity_code)}${o.proposal_ref?` · da proposta ${esc(o.proposal_ref)}`:""}</div>
       <h1>${esc(o.order_ref)}</h1>
       <div class="who" id="ed-who">${esc(quemE(o))}</div>
     </div>

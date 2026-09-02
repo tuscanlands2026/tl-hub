@@ -50,3 +50,4 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0027 | `0027-acaba-o-grupo-de-escolha.sql` | acaba o "escolha uma opção": toda linha fica aberta, e sai a conferência do grupo no banco |
 | 0028 | `0028-nascimento-opcional.sql` | a data de nascimento do viajante vira escolha por order: exige, pede sem exigir, ou não pergunta |
 | 0029 | `0029-venda-por-servico.sql` | tipo de serviço, nome curto, regime de IVA e custo previsto por linha da order |
+| 0035 | `0035-idioma-da-venda.sql` | a venda em inglês chega inteira: título resolvido no e-mail e na order, e-mail no idioma da proposta, tipo de quarto no lugar do texto de venda, unidades viram linha |
