@@ -237,7 +237,7 @@ input.interno{border-left:2px solid var(--brown);}
 .apres-box{border-left:2px solid var(--sage);padding-left:10px;margin-top:8px;}
 .item-bloco{border:1px solid var(--cream);padding:16px 18px;margin-bottom:14px;background:#fff;}
 .item-topo .mover{display:flex;align-items:center;gap:2px;align-self:center;}
-.item-topo{display:grid;grid-template-columns:110px 100px 1fr 1fr 1fr 130px 82px 92px;gap:10px;
+.item-topo{display:grid;grid-template-columns:104px 96px 1fr 1fr 1fr 124px 116px 78px 88px;gap:9px;
   align-items:end;padding-bottom:14px;margin-bottom:12px;border-bottom:1px solid var(--cream);}
 .item-topo .ck{text-align:center;}
 .item-topo .ck input{width:auto;}
@@ -288,6 +288,45 @@ table.rows tr.par td{border-top:none;padding-top:0;}
    casa — sage, Libre Franklin, canto vivo — e não a da referência.
    ===================================================================== */
 .apres{display:grid;grid-template-columns:238px 1fr;min-height:100vh;background:var(--cream-light);}
+/* ---- folha da curadoria: fundo chapado, texto justificado, sem foto ---- */
+.ap-cur{padding:56px 62px 74px;color:var(--cream-light);position:relative;min-height:100vh;}
+.ap-cur.verde{background:var(--sage);}
+.ap-cur.terra{background:var(--terracotta);}
+.ap-cur .cur-op{text-align:center;font-weight:500;font-size:12px;letter-spacing:.2em;
+  text-transform:uppercase;opacity:.9;margin-bottom:14px;}
+.ap-cur h2{font-family:"Sorts Mill Goudy",Georgia,"Times New Roman",serif;font-weight:400;font-size:38px;line-height:1.18;
+  text-align:center;margin:0 0 42px;color:var(--cream-light);}
+.ap-cur .cur-dest{font-family:"Sorts Mill Goudy",Georgia,"Times New Roman",serif;font-size:19px;line-height:1.62;margin-bottom:32px;}
+.ap-cur .cur-dias{font-size:15.5px;line-height:1.72;text-align:justify;hyphens:auto;}
+.ap-cur .cur-dias ul{list-style:none;margin:0;padding:0;}
+.ap-cur .cur-dias li{position:relative;padding-left:24px;margin-bottom:16px;}
+.ap-cur .cur-dias li::before{content:"";position:absolute;left:6px;top:.72em;width:5px;height:5px;
+  background:var(--cream-light);}
+.ap-cur .cur-dias li ul{margin-top:9px;}
+.ap-cur .cur-dias li li{padding-left:22px;margin-bottom:7px;}
+.ap-cur .cur-dias li li::before{background:transparent;border:1px solid var(--cream-light);top:.66em;}
+.ap-cur .cur-dias .cur-dia{font-family:"Sorts Mill Goudy",Georgia,"Times New Roman",serif;font-style:italic;
+  text-decoration:underline;text-underline-offset:3px;}
+.ap-cur .cur-dias p{margin:0 0 14px;}
+.ap-cur .cur-ref{position:absolute;right:62px;bottom:26px;font-size:12px;letter-spacing:.14em;opacity:.85;}
+/* Avançar e voltar dentro da folha colorida: a caixa branca do resto da
+   proposta abriria um retângulo claro no meio do fundo chapado. */
+.ap-cur .ap-lista{background:transparent;padding:0;max-width:none;}
+.ap-cur .ap-nav{border-top-color:rgba(246,243,240,.35);}
+.ap-cur .ap-btn{background:transparent;color:var(--cream-light);border-color:rgba(246,243,240,.55);}
+.ap-cur .ap-btn:hover{background:rgba(246,243,240,.12);}
+/* prévia da cor no editor, e a caixa de cada folha */
+.cur-ed{border:1px solid var(--cream);padding:14px;margin-bottom:14px;background:#fff;}
+.cur-mini{margin-top:12px;padding:9px 12px;color:var(--cream-light);font-size:11px;
+  letter-spacing:.16em;text-transform:uppercase;}
+.cur-mini.verde{background:var(--sage);} .cur-mini.terra{background:var(--terracotta);}
+@media screen and (max-width:760px){
+  .ap-cur{padding:34px 22px 60px;}
+  .ap-cur h2{font-size:26px;margin-bottom:26px;}
+  .ap-cur .cur-dest{font-size:16px;margin-bottom:22px;}
+  .ap-cur .cur-dias{font-size:14.5px;}
+  .ap-cur .cur-ref{right:22px;bottom:18px;}
+}
 /* Na capa o menu não existe: a primeira tela é só a imagem, o nome e o
    convite para entrar. */
 .apres.na-capa{grid-template-columns:1fr;}
@@ -319,6 +358,20 @@ table.rows tr.par td{border-top:none;padding-top:0;}
   background:none;cursor:pointer;font-family:inherit;width:100%;}
 .ap-indice nav button:hover{color:#fff;background:rgba(255,255,255,.06);}
 .ap-indice nav button.on{color:#fff;border-left-color:#fff;background:rgba(255,255,255,.1);}
+/* Submenu: cabeçalho da seção e os serviços dela recuados por baixo. */
+.ap-indice .idx-cab{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:rgba(255,255,255,.6);padding:12px 9px 4px;}
+.ap-indice nav button.sub{padding-left:22px;font-size:12px;}
+/* Dia a dia: foto à esquerda, texto à direita; no celular, empilhado. */
+.ap-dia{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start;
+  border-top:1px solid var(--cream);padding:22px 0;}
+.ap-dia:first-child{border-top:none;}
+.ap-dia-foto img{width:100%;height:170px;object-fit:cover;display:block;}
+.ap-dia-txt .ap-preco-dia{font-size:13px;color:var(--muted);margin:4px 0 8px;}
+@media screen and (max-width:760px){
+  .ap-dia{grid-template-columns:1fr;gap:12px;}
+  .ap-dia-foto img{height:200px;}
+}
 
 /* Avançar e voltar: presentes em toda etapa, para o cliente percorrer a
    proposta inteira sem usar o botão do navegador. */
@@ -1447,10 +1500,13 @@ function verComoCliente(hash, voltarPara){ VOLTAR = voltarPara; location.hash = 
 
 async function boot(){
   const r = route();
-  const isPublic = r.startsWith("confirm/") || r.startsWith("quote/");
+  const isPublic = r.startsWith("confirm/") || r.startsWith("quote/") || r.startsWith("valores/");
   if(!makeClient()){ return renderSetup(isPublic ? r : null); }
   if(r.startsWith("confirm/")) return renderPublic(r.split("/")[1]);
   if(r.startsWith("quote/"))   return renderQuote(r.split("/")[1]);
+  /* O link dos valores: mesma proposta, outra leitura — formato tabela,
+     com os preços net, e é por aqui que a agência aprova. */
+  if(r.startsWith("valores/")) return renderQuote(r.split("/")[1], true);
   const {data} = await sb.auth.getSession();
   if(!data.session) return renderLogin();
   if(VOLTAR){ const f = VOLTAR; VOLTAR = null; return f(); }
@@ -1538,7 +1594,9 @@ const MIGRACOES = [
   {id:"0034-conserta-as-fotos-da-v2", arq:"0034-conserta-as-fotos-da-v2.sql",
    oque:"devolve à TL-042-26 v2 as fotos de seção que a cópia perdeu"},
   {id:"0035-idioma-da-venda",         arq:"0035-idioma-da-venda.sql",
-   oque:"a venda em inglês chega inteira no e-mail e na order, com o tipo de quarto e as unidades"}
+   oque:"a venda em inglês chega inteira no e-mail e na order, com o tipo de quarto e as unidades"},
+  {id:"0036-modelos-de-proposta",     arq:"0036-modelos-de-proposta.sql",
+   oque:"folha da curadoria, modo de cada seção, tarifa net com link de valores e a escolha de opção"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -1835,7 +1893,7 @@ async function renderPainel(){
 /*  existiam no banco desde a sessão que escreveu tl-hub-opportunities  */
 /*  e nunca tinham ganhado tela — este é o pedaço que faltava.          */
 /* ==================================================================== */
-let OPP = null, BRIEF = null, PROPS = [], PROP = null, PITEMS = [], PSEL = null, PSECS = [];
+let OPP = null, BRIEF = null, PROPS = [], PROP = null, PITEMS = [], PSEL = null, PSECS = [], PCUR = [];
 
 const ETAPA = {
   proposal:    "Proposta",
@@ -2324,6 +2382,10 @@ async function openProposal(id){
   if(e1) return alert(e1.message);
   PROP = p; PITEMS = it||[]; PSEL = (sel&&sel[0])||null;
   PSECS = Array.isArray(p.sections) ? p.sections.map(x=>Object.assign({},x)) : [];
+  /* Folhas da curadoria: lista, porque uma proposta pode mandar Opção 1
+     e Opção 2. Cópia própria, como as seções — o que ela digita só vira
+     banco no Salvar. */
+  PCUR = Array.isArray(p.curations) ? p.curations.map(x=>Object.assign({},x)) : [];
   renderProposal();
 }
 
@@ -2376,6 +2438,34 @@ function renderProposal(){
       </select></div>
       <div style="grid-column:span 2;"><label>Imagem da capa — link</label>
         <input id="q-cover" value="${esc(p.cover_img||"")}" placeholder="https://…"></div>
+    </div>
+
+    ${/* Tarifa: é ela que decide se o valor sai na peça ou num link à
+          parte. Fica perto do Formato porque as duas juntas definem o
+          que o cliente vê. */""}
+    <div style="border-left:2px solid var(--sage);padding-left:12px;">
+      <label style="color:var(--sage);">Tarifa desta proposta</label>
+      <select id="q-rate" onchange="guardaCampos();PROP.rate_type=this.value;renderProposal();">
+        <option value="comissionado"${p.rate_type==="net"?"":" selected"}>Comissionada — o valor vai na proposta</option>
+        <option value="net"${p.rate_type==="net"?" selected":""}>Net — proposta sem valores, com link separado dos nossos preços</option>
+      </select>
+      ${p.rate_type==="net"?`
+      <div class="hint" style="margin-top:6px;">A proposta sai <b>completa e sem valores</b>, e
+        <b>sem as caixinhas de aprovação</b>: é peça de apresentação para a agência mandar ao
+        cliente dela. Os valores vão no link abaixo, no formato <b>tabela</b>, e é lá que a
+        agência aprova.</div>
+      <div style="margin-top:10px;">
+        <label>Link dos valores — só para a agência</label>
+        <div class="grid2" style="align-items:end;">
+          <input id="q-netlink" readonly value="${esc(linkValores(p))}">
+          <div><button class="btn ghost sm" onclick="copiarTexto(el('q-netlink').value,this)">Copiar</button>
+            <button class="btn ghost sm" onclick="verComoCliente('/valores/${esc(p.net_token||"")}','/proposta/${esc(p.id)}')">Abrir</button></div>
+        </div>
+        <div class="hint" style="margin-top:5px;">Endereço próprio: quem tem o link da proposta
+          bonita não chega nos valores mexendo na URL. Vence junto com ela.</div>
+      </div>`:`
+      <div class="hint" style="margin-top:6px;">O valor aparece em cada linha e no total, e o
+        cliente final aprova na própria proposta.</div>`}
     </div>
     ${p.layout==="apresentada"?`<div class="grid2">
       <div><label>Nome grande da capa</label>
@@ -2530,6 +2620,18 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
   </div>
 
   <div class="card">
+    ${/* A folha da curadoria. Dois campos grandes e livres, como ela
+          pediu: "deixa livre para eu escrever". Uma folha por opção. */""}
+    ${p.layout==="apresentada"?`
+    <div class="section-title">Curadoria de viagem</div>
+    <div class="hint">A folha inteira colorida, sem foto, depois da primeira página. Uma folha por
+      <b>opção</b> de roteiro — mande Opção 1 e Opção 2 na mesma proposta se for o caso. Sem folha
+      nenhuma, essa etapa não existe na proposta. Você está escrevendo em
+      <b>${EDIOMA==="en"?"English":"português"}</b>.</div>
+    <div id="qc-host"></div>
+    <button class="btn ghost sm" id="qc-add" style="margin-top:6px;">+ Folha de curadoria</button>
+    `:""}
+
     <div class="section-title">Seções de serviço</div>
     <div class="hint">Cada seção vira uma tabela própria na quote, com título e instrução.
       Linha sem seção cai numa tabela final sem título — orçamento de transfer avulso não precisa de seção nenhuma.</div>
@@ -2577,11 +2679,15 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
   el("q-cond-save").onclick = salvarPadrao;
   if(el("q-nota-dmc")) el("q-nota-dmc").onclick = incluirNotaDMC;
   if(el("pp-nova")) el("pp-nova").onclick = novaVersao;
+  if(el("qc-add")) el("qc-add").onclick = () => {
+    PCUR.push({opcao:"Opção "+(PCUR.length+1), cor:"verde"});
+    drawCuradorias();
+  };
   el("qs-add").onclick = () => {
     let n = 1; while(PSECS.some(x=>x.key==="sec"+n)) n++;
-    PSECS.push({key:"sec"+n, title:"", note:""}); drawSections(); drawQuoteItems();
+    PSECS.push({key:"sec"+n, title:"", note:"", modo:"blocos"}); drawSections();drawCuradorias(); drawQuoteItems();
   };
-  drawSections(); drawQuoteItems(); drawSelection();
+  drawSections();drawCuradorias(); drawQuoteItems(); drawSelection();
 }
 
 /* REVISAR É FAZER OUTRA VERSÃO, e não reescrever a que foi enviada.
@@ -2706,17 +2812,92 @@ async function salvarPadrao(){
   alert(error ? error.message : "Guardado. As próximas propostas já nascem com este texto.");
 }
 
+/* Uma folha por vez, empilhada, com os campos do tamanho do texto que
+   vai dentro: destinos é bloco curto, o dia a dia é longo. Caixa miúda
+   aqui seria pedir para ela escrever no escuro. */
+function drawCuradorias(){
+  const host = el("qc-host");
+  if(!host) return;
+  if(!PCUR.length){
+    host.innerHTML = `<div class="muted">Nenhuma folha. A proposta vai da primeira página direto
+      para os serviços.</div>`;
+    return;
+  }
+  const cp = (k)=>EDIOMA==="en" ? k+"_en" : k+"_pt";
+  host.innerHTML = PCUR.map((c,i)=>`
+    <div class="cur-ed">
+      <div class="grid3" style="align-items:end;">
+        <div><label>Rótulo da opção</label>
+          <input value="${esc(c.opcao||"")}" placeholder="Opção 1"
+            oninput="PCUR[${i}].opcao=this.value"></div>
+        <div><label>Cor do fundo</label>
+          <select onchange="PCUR[${i}].cor=this.value;drawCuradorias()">
+            <option value="verde"${(c.cor||"verde")==="verde"?" selected":""}>Verde</option>
+            <option value="terracota"${c.cor==="terracota"?" selected":""}>Terracota</option>
+          </select></div>
+        <div style="text-align:right;">
+          <button class="iconbtn" onclick="moveCuradoria(${i},-1)" title="Subir">↑</button>
+          <button class="iconbtn" onclick="moveCuradoria(${i},1)" title="Descer">↓</button>
+          <button class="iconbtn" onclick="removeCuradoria(${i})" title="Excluir">×</button>
+        </div>
+      </div>
+      <div style="margin-top:10px;"><label>Título da folha</label>
+        <input value="${esc(c[cp("title")]||"")}"
+          placeholder="Curadoria de viagem e serviços propostos"
+          oninput="PCUR[${i}].${cp("title")}=this.value"></div>
+      <div style="margin-top:10px;"><label>Destinos e datas</label>
+        <div class="hint" style="margin:0 0 6px;">Uma linha por base. Ex.: <i>Roma: de 5 a 9 de
+          outubro (4 noites)</i>.</div>
+        <textarea rows="5" oninput="PCUR[${i}].${cp("dest")}=this.value"
+          placeholder="Roma: de 5 a 9 de outubro (4 noites)">${esc(c[cp("dest")]||"")}</textarea></div>
+      <div style="margin-top:10px;"><label>Dia a dia</label>
+        <div class="hint" style="margin:0 0 6px;">Escreva como quiser. Linha que começa com
+          <b>-</b> vira marcador; com <b>--</b>, sub-marcador. O trecho antes dos dois-pontos sai
+          em itálico sublinhado, como na sua peça.</div>
+        <textarea rows="16" oninput="PCUR[${i}].${cp("dias")}=this.value"
+          placeholder="- 5 de outubro: recepção no desembarque em Roma Fiumicino…
+- 9 de outubro: check-out e ida para a Toscana.
+-- Experiência exclusiva em Ferrari de Roma até o hotel.
+-- Transfer privativo e entrega do carro alugado no hotel.">${esc(c[cp("dias")]||"")}</textarea></div>
+      <div class="cur-mini ${(c.cor||"verde")==="terracota"?"terra":"verde"}">
+        <span>${esc(c.opcao||"Opção")}</span> · prévia da cor
+      </div>
+    </div>`).join("");
+}
+function moveCuradoria(i,d){
+  const j=i+d; if(j<0||j>=PCUR.length) return;
+  const t=PCUR[i]; PCUR[i]=PCUR[j]; PCUR[j]=t; drawCuradorias();
+}
+function removeCuradoria(i){
+  if(!confirm("Excluir esta folha de curadoria?")) return;
+  PCUR.splice(i,1); drawCuradorias();
+}
+
 function drawSections(){
   const host = el("qs-host");
   if(!PSECS.length){ host.innerHTML = `<div class="muted">Nenhuma seção. Todas as linhas saem numa tabela só.</div>`; return; }
   host.innerHTML = `<table class="rows">
     <thead><tr><th style="width:60px;"></th><th style="width:210px;">Título</th>
-      <th>Instrução ao cliente</th><th style="width:240px;">Foto de capa — link</th>
+      <th>Instrução ao cliente</th><th style="width:190px;">Como esta seção aparece</th>
+      <th style="width:240px;">Foto de capa — link</th>
       <th class="x"></th></tr></thead>
     <tbody>${PSECS.map((sec,i)=>`<tr>
       <td class="idio">PT</td>
       <td><input value="${esc(sec.title||"")}" placeholder="Selected Stays" oninput="PSECS[${i}].title=this.value"></td>
       <td><input value="${esc(sec.note||"")}" placeholder="Selecione sua hospedagem para esta viagem" oninput="PSECS[${i}].note=this.value"></td>
+      <!-- O modo também não tem idioma: é estrutura, não texto. -->
+      <td rowspan="2">
+        <select onchange="PSECS[${i}].modo=this.value">
+          <option value="blocos"${(sec.modo||"blocos")==="blocos"?" selected":""}>Blocos — tudo numa aba</option>
+          <option value="dias"${sec.modo==="dias"?" selected":""}>Dia a dia — uma foto por dia</option>
+          <option value="abas"${sec.modo==="abas"?" selected":""}>Uma aba por serviço — submenu</option>
+        </select>
+        <div class="hint" style="margin-top:5px;">${(sec.modo||"blocos")==="abas"
+          ? "Cada serviço vira etapa própria, listada por baixo do título da seção no índice."
+          : sec.modo==="dias"
+            ? "Programa cronológico: a data de cada serviço vira o dia, com a foto dele ao lado."
+            : "Um bloco por serviço, todos na mesma etapa. É o padrão."}</div>
+      </td>
       <!-- A foto é a mesma nos dois idiomas: vale a folha inteira da
            seção, não o texto. Por isso rowspan e não par PT/EN. -->
       <td rowspan="2"><input value="${esc(sec.photo||"")}" placeholder="https://…"
@@ -2833,17 +3014,29 @@ function moveSection(i, d){
   const j = i + d;
   if(j < 0 || j >= PSECS.length) return;
   const t = PSECS[i]; PSECS[i] = PSECS[j]; PSECS[j] = t;
-  drawSections(); drawQuoteItems();
+  drawSections();drawCuradorias(); drawQuoteItems();
 }
 
 function removeSection(i){
   const chave = PSECS[i].key;
   PSECS.splice(i,1);
   PITEMS.forEach(r=>{ if(r.section===chave) r.section = null; });
-  drawSections(); drawQuoteItems();
+  drawSections();drawCuradorias(); drawQuoteItems();
 }
 
 const quoteLink = tok => (clientLink(tok)||"").replace("#/confirm/","#/quote/");
+/* O link dos valores é outro endereço da mesma casa: #/valores/<net_token>.
+   Sem net_token gravado (proposta antiga), devolve vazio em vez de um
+   link quebrado — a 0036 preenche o token de todas. */
+const linkValores = p => p && p.net_token
+  ? (clientLink(p.net_token)||"").replace("#/confirm/","#/valores/") : "";
+async function copiarTexto(txt, btn){
+  if(!txt) return;
+  try{ await navigator.clipboard.writeText(txt); }
+  catch(e){ const t=document.createElement("textarea"); t.value=txt; document.body.appendChild(t);
+    t.select(); document.execCommand("copy"); t.remove(); }
+  if(btn){ const antes=btn.textContent; btn.textContent="Copiado"; setTimeout(()=>btn.textContent=antes,1400); }
+}
 
 function drawQuoteItems(){
   if(PROP.layout === "apresentada"){ return drawItensApresentada(); }
@@ -3246,6 +3439,13 @@ function drawItensApresentada(){
         </select></div>
       <div class="ck"><label>Opcional</label>
         <input type="checkbox"${r.optional?" checked":""} onchange="PITEMS[${i}].optional=this.checked"></div>
+      ${/* Conjunto de escolha: linhas com o MESMO nome aqui se excluem na
+            hora de aprovar — "selecione a opção aprovada". Em branco, a
+            linha é livre, que é o normal. Vale só no comissionado: no net
+            não há caixinha para escolher. */""}
+      <div><label>Conjunto de escolha</label>
+        <input class="interno" value="${esc(r.choice_group||"")}" placeholder="ex.: jantar"
+          oninput="PITEMS[${i}].choice_group=this.value;drawQuoteItems()"></div>
       <div class="mover">
         <button class="iconbtn" onclick="moveItem(${i},-1)" title="Subir">\u2191</button>
         <button class="iconbtn" onclick="moveItem(${i},1)" title="Descer">\u2193</button>
@@ -3476,6 +3676,10 @@ async function saveProposal(){
     cover_title: PROP.cover_title, assurance_img: PROP.assurance_img || null,
     white_label: !!PROP.white_label, agency_logo: PROP.agency_logo || null,
     agency_logo_bg: !!PROP.agency_logo_bg,
+    rate_type: PROP.rate_type === "net" ? "net" : "comissionado",
+    // Folha sem texto nenhum não vira página em branco na proposta.
+    curations: PCUR.filter(c=>["title_pt","title_en","dest_pt","dest_en","dias_pt","dias_en"]
+      .some(k=>(c[k]||"").trim())),
     assurance_pt: PROP.assurance_pt, assurance_en: PROP.assurance_en,
     cover_tag_pt: PROP.cover_tag_pt, cover_tag_en: PROP.cover_tag_en,
     backcover_pt: PROP.backcover_pt, backcover_en: PROP.backcover_en,
@@ -3503,7 +3707,9 @@ async function saveProposal(){
     PITEMS.map((r,i)=>({proposal_id:PROP.id, sort:i, service_date:r.service_date,
       title:r.title, details:r.details, price:r.price, optional:!!r.optional,
       qty: Number(r.qty)||1, unit_price: r.unit_price != null ? Number(r.unit_price) : null,
-      choice_group: null, section:r.section||null,
+      /* O conjunto de escolha volta: linhas com o mesmo conjunto se
+         excluem na hora de aprovar. Vazio é o normal — linha livre. */
+      choice_group:(r.choice_group||"").trim()||null, section:r.section||null,
       supplier:(r.supplier||"").trim()||null,
       catalog_id:r.catalog_id||null,
       included_pt:r.included_pt||null, included_en:r.included_en||null,
@@ -4548,11 +4754,12 @@ function renderSummary(){
 /* ==================================================================== */
 let QT = null, QSEL = {items:{}, extras:{}, units:{}};
 
-async function renderQuote(token){
+async function renderQuote(token, netView){
   app.innerHTML = `<div class="done"><div class="muted">…</div></div>`;
-  const {data,error} = await sb.rpc("tl_get_quote",{p_token:token});
+  const {data,error} = await sb.rpc(netView ? "tl_get_net_quote" : "tl_get_quote",{p_token:token});
   if(error || !data) return app.innerHTML = message(T.pt.notFound);
   if(data.expired) return app.innerHTML = message(T.pt.expired);
+  if(data.not_net) return app.innerHTML = message("Esta proposta é comissionada: os valores estão nela mesma.");
   QT = data; QT.token = token;
   QSEL = {items:{}, extras:{}, units:{}};
   drawQuote();
@@ -4590,6 +4797,21 @@ function redesenharEscolha(){
 function marcaItem(id, on){
   QSEL.items[id] = on;
   if(!on){ delete QSEL.extras[id]; delete QSEL.units[id]; }
+  /* Conjunto de escolha: marcar uma desmarca as irmãs, e o que sai do
+     conjunto leva os extras e as unidades dele — senão sobraria extra
+     de um serviço que não vai. Desmarcar continua permitido: o conjunto
+     pode ficar sem nada, e aí ele não entra na order. O banco confere o
+     mesmo na tl_submit_quote, porque tela se contorna. */
+  if(on){
+    const alvo = (QT.items||[]).find(x=>x.id===id);
+    const g = alvo && alvo.choice_group;
+    if(g) (QT.items||[]).forEach(x=>{
+      if(x.id!==id && x.choice_group===g && QSEL.items[x.id]){
+        QSEL.items[x.id] = false;
+        delete QSEL.extras[x.id]; delete QSEL.units[x.id];
+      }
+    });
+  }
   redesenharEscolha();
 }
 
@@ -4813,6 +5035,38 @@ function apItem(i, t, p, mostra, respondida){
   </div>`;
 }
 
+/* O dia a dia da curadoria é texto livre, e vira lista aqui: linha com
+   "-" é marcador, com "--" é sub-marcador, e o trecho antes dos
+   dois-pontos sai em itálico sublinhado, como na peça dela. Linha sem
+   marcador nenhum sai como parágrafo — ela escreve como quiser. */
+function curDias(txt){
+  const linhas = String(txt||"").split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  if(!linhas.length) return "";
+  const dia = (tx)=>{
+    const m = tx.match(/^([^:]{1,60}:)([\s\S]*)$/);
+    return m ? `<span class="cur-dia">${esc(m[1])}</span>${esc(m[2])}`
+             : esc(tx);
+  };
+  let out = "", nivel = 0;
+  const fecha = (n)=>{ while(nivel > n){ out += nivel===2?"</ul></li>":"</ul>"; nivel--; } };
+  linhas.forEach(l=>{
+    const sub = /^--\s?/.test(l), mk = sub || /^-\s?/.test(l);
+    const tx = l.replace(/^--?\s?/, "");
+    if(!mk){ fecha(0); out += `<p>${dia(tx)}</p>`; return; }
+    if(sub){
+      if(nivel === 0){ out += "<ul><li>"; nivel = 1; }   // sub sem pai: abre um
+      if(nivel === 1){ out = out.replace(/<\/li>$/, ""); out += "<ul>"; nivel = 2; }
+      out += `<li>${dia(tx)}</li>`;
+      return;
+    }
+    if(nivel === 2){ out += "</ul></li>"; nivel = 1; }
+    if(nivel === 0){ out += "<ul>"; nivel = 1; }
+    out += `<li>${dia(tx)}</li>`;
+  });
+  fecha(0);
+  return out;
+}
+
 /* Rótulo da proposta: o que ela escreveu, e o padrão do hub quando ela
    não escreveu nada. Um lugar só, para não haver rótulo que escapa. */
 function rot(p, chave, padrao){
@@ -4904,12 +5158,16 @@ function drawQuoteApresentada(){
   const capaDe = (sec, lista) => (sec && (sec.photo||"").trim())
     || ((lista||[]).map(i=>(i.photos||[])[0]).find(u=>u && String(u).trim()) || "");
 
-  const bloco = (sec, lista) => `<section class="ap-sec ap-passo" style="display:none;">
+  /* soUm: no modo de uma aba por serviço a faixa de foto é do PRÓPRIO
+     serviço e o título é o dele — a etapa fala de um só. A instrução da
+     seção continua, porque é ela que diz o que fazer ali. */
+  const bloco = (sec, lista, soUm) => `<section class="ap-sec ap-passo" style="display:none;">
     <div class="ap-foto">
       ${capaDe(sec,lista)?`<img class="ap-fundo" src="${esc(capaDe(sec,lista))}" alt="">`:""}
       <div class="ap-foto-txt">
-        <h2>${esc(sec ? (sec.title||"") : t.qOthers)}</h2>
-        ${sec && sec.note?`<div class="ap-note">${esc(sec.note)}</div>`:""}
+        <h2>${esc(soUm ? (lista[0]&&lista[0].title||"") : (sec ? (sec.title||"") : t.qOthers))}</h2>
+        ${soUm && sec ? `<div class="ap-note">${esc(sec.title||"")}${sec.note?" · "+esc(sec.note):""}</div>`
+                      : (sec && sec.note?`<div class="ap-note">${esc(sec.note)}</div>`:"")}
       </div>
     </div>
     <div class="ap-lista">
@@ -4917,6 +5175,34 @@ function drawQuoteApresentada(){
       ${apNav(t)}
     </div>
   </section>`;
+
+  /* Modo dia a dia: a data de cada serviço vira o dia, com a foto dele
+     ao lado — uma foto por dia, decisão dela. Serviço sem data entra na
+     ordem em que está, com o título fazendo o papel do dia. */
+  const blocoDias = (sec, lista, t, p, mostra, respondida) => `
+    <section class="ap-sec ap-passo" style="display:none;">
+      <div class="ap-foto">
+        ${capaDe(sec,lista)?`<img class="ap-fundo" src="${esc(capaDe(sec,lista))}" alt="">`:""}
+        <div class="ap-foto-txt">
+          <h2>${esc(sec ? (sec.title||"") : t.qItinerary)}</h2>
+          ${sec && sec.note?`<div class="ap-note">${esc(sec.note)}</div>`:""}
+        </div>
+      </div>
+      <div class="ap-lista">
+        ${lista.map(i=>{
+          const foto = (i.photos||[]).filter(u=>u&&u.trim())[0]||"";
+          return `<div class="ap-dia">
+            ${foto?`<div class="ap-dia-foto"><img src="${esc(foto.trim())}" alt=""></div>`:""}
+            <div class="ap-dia-txt">
+              ${i.service_date?`<div class="ap-data">${esc(i.service_date)}</div>`:""}
+              <div class="ap-nome">${esc(i.title||"")}</div>
+              ${mostra?`<div class="ap-preco-dia">${eur(linhaTotal(i))}</div>`:""}
+              ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
+              ${i.included?`<div class="ap-estrutura"><div class="k">${t.qIncluded}</div>${fmtDoc(i.included)}</div>`:""}
+            </div></div>`;}).join("")}
+        ${apNav(t)}
+      </div>
+    </section>`;
 
   /* "Sobre nós" vem logo depois da capa, e não no fim: o cliente sabe
      com quem está falando antes de ver o que está sendo proposto.
@@ -4956,7 +5242,42 @@ function drawQuoteApresentada(){
       </div>
     </section>`});
 
-  secs.forEach(sec=>passos.push({txt:sec.title||sec.key, html:bloco(sec, daPeca.filter(i=>i.section===sec.key))}));
+  /* A folha da curadoria vem antes dos serviços: primeiro o roteiro
+     inteiro, depois o que compõe cada parte dele. Uma etapa por opção. */
+  (p.curations||[]).forEach((c,k)=>{
+    const cor = (c.cor==="terracota") ? "terra" : "verde";
+    passos.push({txt:(c.opcao||"").trim() || (c.title||"Curadoria"), html:`
+      <section class="ap-cur ap-passo ${cor}" style="display:none;">
+        ${(c.opcao||"").trim()?`<div class="cur-op">${esc(c.opcao)}</div>`:""}
+        ${(c.title||"").trim()?`<h2>${esc(c.title)}</h2>`:""}
+        ${(c.destinos||"").trim()?`<div class="cur-dest">${esc(c.destinos).replace(/\n/g,"<br>")}</div>`:""}
+        <div class="cur-dias">${curDias(c.dias)}</div>
+        ${p.crm_code?`<div class="cur-ref">${esc(p.crm_code)}</div>`:""}
+        <div class="ap-lista" style="padding:0;margin-top:26px;">${apNav(t)}</div>
+      </section>`});
+  });
+
+  /* Três modos por seção, decididos por ela conforme o briefing:
+       blocos — tudo numa etapa, um bloco por serviço (o de sempre);
+       dias   — programa cronológico, uma foto por dia;
+       abas   — uma etapa por serviço, em submenu por baixo da seção. */
+  secs.forEach(sec=>{
+    const lista = daPeca.filter(i=>i.section===sec.key);
+    const modo = sec.modo || "blocos";
+    if(modo === "abas"){
+      // O título da seção vira cabeçalho do submenu, sem etapa própria:
+      // etapa vazia só para dizer "Experiences" é clique perdido.
+      passos.push({txt:sec.title||sec.key, cab:true});
+      lista.forEach(i=>passos.push({txt:i.title||"", sub:true,
+        html:bloco(sec, [i], true)}));
+      return;
+    }
+    if(modo === "dias"){
+      passos.push({txt:sec.title||sec.key, html:blocoDias(sec, lista, t, p, mostra, respondida)});
+      return;
+    }
+    passos.push({txt:sec.title||sec.key, html:bloco(sec, lista)});
+  });
   if(soltas.length) passos.push({txt:t.qOthers, html:bloco(null, soltas)});
 
   if(dias.length) passos.push({txt:t.qItinerary, html:`
@@ -4988,8 +5309,15 @@ function drawQuoteApresentada(){
            :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
           ${quoteFecho(p, t, mostra, respondida, false, true)}
         </div>
-        <div class="ap-aviso">${esc(rot(p,"notice",t.qNaoBloqueio))}</div>
-        ${quoteConfirmar(t, respondida, p.payment_options, p)}
+        ${/* Net: nada de bloco de envio na peça bonita. Quem aprova é a
+              agência, no link dos valores — pôr formulário aqui seria
+              convidar o cliente final a aprovar um preço que ele não vê. */""}
+        ${(p.rate_type==="net" && !p.net_view) ? `
+          <div class="ap-aviso">${esc(p.lang==="en"
+            ? "Rates for this proposal are shared separately with your travel advisor."
+            : "Os valores desta proposta seguem em documento separado, com a sua agência.")}</div>`
+        : `<div class="ap-aviso">${esc(rot(p,"notice",t.qNaoBloqueio))}</div>
+           ${quoteConfirmar(t, respondida, p.payment_options, p)}`}
         ${apNav(t)}
       </div>
     </section>`});
@@ -5009,19 +5337,32 @@ function drawQuoteApresentada(){
       </div>
     </section>`});
 
+  /* Cabeçalho de grupo não é etapa: ele fica no índice sem html. */
   app.innerHTML = `
   <div class="apres">
     <aside class="ap-indice noprint">
       ${logoCapa?`<img class="ap-logo${fundoLogo}" src="${esc(logoCapa)}" alt="${esc(marcaCapa)}"
            onerror="this.style.display='none';this.nextElementSibling.style.display='block';">`:""}
       <div class="ap-marca" style="display:${logoCapa?"none":"block"};">${esc(marcaCapa)}</div>
-      <nav>${passos.map((x,k)=>`<button onclick="apIr(${k})" class="${k===0?"on":""}">${esc(x.txt)}</button>`).join("")}</nav>
+      ${/* O índice agrupa: seção em modo "uma aba por serviço" entra como
+            cabeçalho, e os serviços dela como filhos recuados. Cabeçalho
+            não é etapa e não recebe clique — clicar nele não levaria a
+            lugar nenhum. */""}
+      ${/* O número que vai no apIr é o da ETAPA, e não o da linha do
+            índice: cabeçalho de grupo não desenha seção, então os dois
+            contadores andam diferente. Errar isto joga o cliente na
+            etapa errada. */""}
+      <nav>${(()=>{ let et = -1; return passos.map(x=>{
+        if(x.cab) return `<div class="idx-cab">${esc(x.txt)}</div>`;
+        et++;
+        return `<button onclick="apIr(${et})" class="${(x.sub?"sub ":"")}${et===0?"on":""}">${esc(x.txt)}</button>`;
+      }).join(""); })()}</nav>
       <div class="ap-rodape-idx">
         ${mostra?`<div class="ap-tot"><span>${t.qYourTotal}</span><b id="ap-total">${eur(quoteTotal())}</b></div>`:""}
         <button class="ap-baixar" onclick="baixarProposta()">${t.qDownload}</button>
       </div>
     </aside>
-    <main class="ap-main">${passos.map(x=>x.html).join("")}</main>
+    <main class="ap-main">${passos.map(x=>x.html||"").join("")}</main>
   </div>`;
 
   /* A última etapa não leva "avançar". Qual é a última muda de proposta
@@ -5199,10 +5540,19 @@ function quoteLinha(i, t, p, mostra, respondida){
               aqueles outros, e cada linha tem de ficar aberta. Etiqueta
               "escolha uma opção" e exclusividade saíram das duas
               pontas: da tela e da conferência do banco. */""}
-        ${respondida ? "" : `<div class="check" style="margin:8px 0 0;">
+        ${/* Net: a peça bonita não tem caixinha nenhuma — quem aprova é a
+              agência, no link dos valores. Lá (net_view) as caixinhas
+              voltam, porque é ali que a escolha acontece.
+              Conjunto de escolha: a linha que faz parte de um conjunto
+              troca o rótulo para "selecione a opção aprovada", e marcar
+              uma desmarca as irmãs. Continua caixinha, e não rádio, para
+              poder desmarcar — foi o que a prendeu em agosto/26. */""}
+        ${(respondida || (p.rate_type==="net" && !p.net_view)) ? "" : `<div class="check" style="margin:8px 0 0;">
           <input type="checkbox" id="qi-${esc(i.id)}"${QSEL.items[i.id]?" checked":""}
             onchange="marcaItem('${esc(i.id)}',this.checked)">
-          <label for="qi-${esc(i.id)}">${esc(rot(p,"approve",t.qChoose))}</label></div>`}
+          <label for="qi-${esc(i.id)}">${esc(i.choice_group
+            ? rot(p,"approve_choice", p.lang==="en" ? "Select the approved option" : "Selecione a opção aprovada")
+            : rot(p,"approve",t.qChoose))}</label></div>`}
         ${(i.units||[]).length ? `<div class="unid-cli">
           ${(i.units||[]).map(u=>u.optional && dentro && !respondida
             ? `<div class="check unid"><span>
@@ -5238,6 +5588,12 @@ function drawQuote(){
   // hospedagem no lugar das tabelas. Resumo, condições e envio são os
   // mesmos — é a mesma proposta, com outra roupa.
   if(p.layout === "apresentada") return drawQuoteApresentada();
+
+  /* O link dos valores é este mesmo documento em tabela, e ele precisa
+     dizer o que é: preço NET, para a agência, e não peça de cliente. */
+  const avisoNet = p.net_view ? `<div class="voucher-note" style="margin-bottom:18px;">${esc(p.lang==="en"
+      ? "Net rates — for the travel agency. The presentation proposal goes to the traveller without prices."
+      : "Valores NET — documento da agência. A proposta de apresentação vai ao viajante sem preços.")}</div>` : "";
 
   /* Quem assina vale para os dois formatos. Na quote simples o
      cabeçalho é a assinatura inteira: com o logo da agência, o bloco
@@ -5281,6 +5637,7 @@ function drawQuote(){
     ${cabeca}
 
     <h1 class="doctitle">${t.qTitle}${p.title?` · ${esc(p.title)}`:""}</h1>
+    ${avisoNet}
     <div class="intro" style="text-align:left;">${respondida?t.qAlready:t.qLead}</div>
 
     <div class="meta">

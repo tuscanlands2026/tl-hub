@@ -97,6 +97,37 @@ recusa leitura automatizada. O site do Poggio Paradiso não publica metragem nem
 suítes — ficou em branco para ela preencher. Data e valor nunca vêm do catálogo — são desta
 venda.
 
+**Os dois modelos, e o que cada um leva** (setembro/26, desenho fechado em
+`docs/MODELOS-DE-PROPOSTA.md`). **Tabela** é a cotação rápida. **Completo** é a apresentada,
+e ela ganhou três peças:
+
+**A folha da Curadoria** (`ops_proposals.curations`, migração 0036). Folha inteira chapada —
+verde sage ou terracota —, com rótulo de opção, título, um bloco de destinos e o dia a dia.
+Os dois campos grandes são **texto livre**: linha com `-` vira marcador, com `--` vira
+sub-marcador, e o trecho antes dos dois-pontos sai em itálico sublinhado, como na peça que ela
+já usava. `curDias()` faz essa conversão. Uma proposta leva **quantas folhas quiser** — Opção 1,
+Opção 2 —, e cada uma é uma etapa antes dos serviços. Texto justificado, inclusive no celular.
+
+**O modo de cada seção** (`sections[].modo`): `blocos` (o de sempre, um bloco por serviço numa
+etapa só), `dias` (programa cronológico, **uma foto por dia**, que é a foto do próprio serviço)
+e `abas` (uma etapa por serviço, em submenu recuado por baixo do título da seção no índice).
+É por seção, não por proposta: hospedagem em blocos e experiências em abas na mesma peça. Quem
+decide é o briefing. Cabeçalho de grupo no índice **não é etapa** — por isso o número que vai
+no `apIr` é o da etapa, contado pulando os cabeçalhos, e não o índice da linha do menu.
+
+**Tarifa net** (`rate_type`). Net: a peça sai completa, **sem valores e sem caixinha de
+aprovação** — é apresentação para a agência mandar ao cliente dela. Os valores vão em
+`#/valores/<net_token>`, outro endereço, no formato tabela, com o aviso de que são NET; a
+aprovação acontece lá, e a `tl_submit_quote` aceita os dois tokens. O `tl_get_quote` **força**
+`show_prices=false` no net mesmo que o campo esteja em "sim": regra de tarifa ganha de chave
+esquecida.
+
+**"Selecione a opção aprovada"** volta, e só no comissionado: linhas com o mesmo
+`choice_group` se excluem, marcar uma desmarca as irmãs (com os extras e as unidades delas), e
+continua **caixinha** para poder desmarcar — foi o rádio que a prendeu em agosto/26. Conjunto
+sem nada marcado não entra na order, em vez de barrar o envio. O banco confere igual, porque
+tela se contorna.
+
 **Quote simples.** É o modelo sem a proposta "bonita": serve para hospedagem mais
 serviços terrestres, e para orçamento avulso de transfer. As linhas se agrupam em
 **seções** (`ops_proposals.sections`, chave em `ops_proposal_items.section`), e cada seção

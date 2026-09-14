@@ -50,4 +50,10 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0027 | `0027-acaba-o-grupo-de-escolha.sql` | acaba o "escolha uma opção": toda linha fica aberta, e sai a conferência do grupo no banco |
 | 0028 | `0028-nascimento-opcional.sql` | a data de nascimento do viajante vira escolha por order: exige, pede sem exigir, ou não pergunta |
 | 0029 | `0029-venda-por-servico.sql` | tipo de serviço, nome curto, regime de IVA e custo previsto por linha da order |
+| 0030 | `0030-tipos-e-iva-do-crm.sql` | tipos de serviço e regimes de IVA iguais aos do CRM, inclusive o 12% que faltava |
+| 0031 | `0031-agencia-e-advisor.sql` | agência e advisor na proposta e na order |
+| 0032 | `0032-a-agencia-nao-e-destinatario.sql` | a agência deixa de ser destinatária do e-mail do cliente |
+| 0033 | `0033-borgo-vescine.sql` | Borgo Vescine no catálogo |
+| 0034 | `0034-conserta-as-fotos-da-v2.sql` | conserta as fotos da v2 do catálogo |
 | 0035 | `0035-idioma-da-venda.sql` | a venda em inglês chega inteira: título resolvido no e-mail e na order, e-mail no idioma da proposta, tipo de quarto no lugar do texto de venda, unidades viram linha |
+| 0036 | `0036-modelos-de-proposta.sql` | folha da curadoria (uma ou mais opções), modo de exibição por seção, tarifa net com link separado de valores, e a volta do "selecione a opção aprovada" |
