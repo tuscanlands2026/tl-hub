@@ -36,11 +36,18 @@ em qualquer combinação. Ela monta como quiser. **Existe hoje**
 4. **Uma aba por seção** — Selected Stays, Ground Services, Experiences, na ordem dela.
    Fica como está hoje: os hotéis numa aba, os ground services em outra, cada serviço
    como bloco dentro. Decisão dela: "para hotel e ground services está ok, deixamos assim".
-   - **Cada seção escolhe como se exibe**: `blocos` (hoje) ou `dia a dia` (alternativo).
-     O dia a dia serve quando o briefing pede programa cronológico em vez de vitrine de
-     serviços. É por seção, não por proposta — a de experiências pode ser dia a dia
-     enquanto a de hotéis segue em blocos.
+   - **Cada seção escolhe como se exibe**, e são três modos:
+     - `blocos` — todos os serviços numa aba, um bloco cada. É o de hoje, e o que fica
+       para hospedagem e ground services;
+     - `dias` — programa cronológico, **uma foto por dia** (a foto do próprio item, que
+       ali representa o dia). Serve quando o briefing pede roteiro em vez de vitrine;
+     - `abas` — **uma aba por serviço**, em submenu por baixo da seção no índice. É para
+       quando cada opção tem informação demais para caber num bloco — a MICE de setembro,
+       com quatro experiências caras, é esse caso.
    - **Índice agrupado por seção**, com cada item clicável por baixo do título dela.
+   - **Extras e opcionais por serviço já existem** (migração 0014): cada linha carrega a
+     sua própria lista de extras com preço, e o cliente marca o que quer. Vale nos três
+     modos — nada a construir aqui, é campo que já está na tela.
 5. **Resumo da proposta** — tabelas por tipo e total. Sai sem valores quando a tarifa é net.
 6. **Sobre nós, formas de pagamento, contracapa.** *Existem.*
 
@@ -52,6 +59,14 @@ Campo novo na proposta: **tipo de tarifa**.
 
 **Comissionado** — como hoje. Preço em toda linha, total no fim, caixinha de aprovação
 para o cliente final marcar. O valor mostrado é o com a comissão dentro.
+
+**"Selecione a opção aprovada"** volta, e só no comissionado. Em agosto/26 o grupo de
+escolha foi removido porque o rádio prendia: ela clicava sem querer e não conseguia
+desmarcar, e na venda real o cliente aprova este serviço **e** aqueles outros. Volta com
+três travas: é **opcional por conjunto** (ela marca quais linhas formam a escolha, o resto
+segue livre), **desmarca** clicando de novo, e conjunto sem nada escolhido não entra na
+order em vez de barrar o envio. O rótulo é o dela: *Selecione a opção aprovada*. Caso de
+uso: as três opções de jantar da MICE, onde uma exclui as outras.
 
 **Net** — a proposta sai **completa e sem valores**, e **sem** as caixinhas: ela é peça de
 apresentação, para a agência mandar ao cliente dela. A aprovação é **do lado da agência**.
@@ -76,7 +91,7 @@ partir das respostas:
 | Idioma: português ou inglês | `lang`, e qual coluna de texto a peça usa |
 | Tarifa: comissionada ou net | preço na proposta × link separado de valores |
 | O que compõe: hospedagem · ground services · experiências | quais seções nascem |
-| Experiências em blocos ou dia a dia | o modo daquela seção |
+| Cada seção: blocos, dia a dia ou uma aba por serviço | o modo daquela seção |
 | Folha de Curadoria: não · uma · mais de uma | quantas folhas, e a cor de cada |
 | Assinada pela agência (white label)? | logo e folha de respaldo |
 | Validade do link | `token_expires_at` |
@@ -100,4 +115,4 @@ em tudo, foto sempre full-bleed. Ver a skill `visual-identity-tuscan-lands`.
 
 - O PDF da apresentada ainda sai com ~8,5 MB: sobram fotos de 1257 e 1353 px que o
   encolhimento não pega.
-- No modo dia a dia, definir se cada dia leva foto própria ou se a seção tem uma só.
+- ~~No modo dia a dia, definir se cada dia leva foto própria~~ — decidido: **uma foto por dia**.
