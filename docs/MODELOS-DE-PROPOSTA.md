@@ -23,7 +23,8 @@ em qualquer combinação. Ela monta como quiser. **Existe hoje**
 2. **Primeira página** — o convite/abertura. *Existe.*
 3. **Curadoria de viagem e serviços propostos** — **nova**. Folha inteira colorida, sem
    foto, no desenho da peça que ela já usa:
-   - fundo **verde sage** (`#595e49`) ou **terracota** (`#772f25`), escolha dela;
+   - fundo **verde sage** (`#595e49`) ou **terracota** (`#772f25`), escolha dela, **liso**:
+     a marca d'água de telhados saiu a pedido dela — a folha respira melhor sem ela;
    - rótulo `Opção N` acima do título;
    - título editável, com o texto dela como padrão;
    - **dois campos grandes e livres**: *destinos e datas* (as linhas de cidade + noites)
