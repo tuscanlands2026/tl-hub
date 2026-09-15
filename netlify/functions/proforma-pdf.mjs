@@ -51,16 +51,20 @@ export default async (req) => {
     await page.goto(alvo, { waitUntil: "domcontentloaded", timeout: 20000 });
 
     /* Espera o DOCUMENTO, não a página: o app monta a proforma depois de
-       consultar o banco. Se o token não valer, o que aparece é o recado
-       em .done — e aí o arquivo sairia com "não encontrado" dentro. */
-    const pronto = await Promise.race([
-      page.waitForSelector(".doc.com.pf", { timeout: 20000 }).then(() => "doc"),
-      page.waitForSelector(".done .muted:not(:empty)", { timeout: 20000 })
-        .then(() => page.$eval(".done", e => e.textContent.trim()))
-    ]);
-    if (pronto !== "doc") {
-      const recado = String(pronto || "").replace(/\s+/g, " ").slice(0, 200);
-      return new Response("Não consegui montar a proforma: " + (recado || "link não reconhecido."),
+       consultar o banco. Se o token não valer, o que aparece é o recado —
+       e aí o arquivo sairia com "não encontrado" dentro.
+
+       O recado final é o .done[data-recado]; a TELA DE CARREGAMENTO é um
+       .done também, com "…" dentro. Esperar por ".done .muted" pegava o
+       carregamento e a função desistia antes de o documento chegar. */
+    await page.waitForSelector(".doc.com.pf, .done[data-recado]", { timeout: 20000 });
+    const doc = await page.$(".doc.com.pf");
+    if (!doc) {
+      const recado = await page.$eval(".done[data-recado]", e => e.textContent.trim())
+        .catch(() => "");
+      return new Response("Não consegui montar a proforma: "
+        + (String(recado).replace(/\s+/g, " ").replace(/^Tuscan Lands\s*/, "").slice(0, 200)
+           || "link não reconhecido."),
         { status: 404 });
     }
     // As fontes da casa precisam estar em casa antes de imprimir, senão o
