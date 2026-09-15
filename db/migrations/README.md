@@ -58,3 +58,4 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0035 | `0035-idioma-da-venda.sql` | a venda em inglês chega inteira: título resolvido no e-mail e na order, e-mail no idioma da proposta, tipo de quarto no lugar do texto de venda, unidades viram linha |
 | 0036 | `0036-modelos-de-proposta.sql` | folha da curadoria (uma ou mais opções), modo de exibição por seção, tarifa net com link separado de valores, e a volta do "selecione a opção aprovada" |
 | 0037 | `0037-proforma-invoice.sql` | proforma invoice da order: número próprio a partir de 159/26, gravado na order, e o texto de pagamento/dados bancários |
+| 0038 | `0038-relatorio-em-ingles.sql` | versão inglesa inteira em inglês: instruções de emissão e dados em inglês, e o "Inclusos" com campo próprio (`commission_basis_en`) |

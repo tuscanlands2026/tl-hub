@@ -1598,7 +1598,9 @@ const MIGRACOES = [
   {id:"0036-modelos-de-proposta",     arq:"0036-modelos-de-proposta.sql",
    oque:"folha da curadoria, modo de cada seção, tarifa net com link de valores e a escolha de opção"},
   {id:"0037-proforma-invoice",        arq:"0037-proforma-invoice.sql",
-   oque:"proforma invoice da order, numerada a partir de 159/26"}
+   oque:"proforma invoice da order, numerada a partir de 159/26"},
+  {id:"0038-relatorio-em-ingles",     arq:"0038-relatorio-em-ingles.sql",
+   oque:"relatório de comissão inteiro em inglês: instruções, dados e o Inclusos com par em inglês"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2148,7 +2150,11 @@ async function saveOpportunity(){
    relatório em inglês saía texto português no meio do documento. Some a
    coluna inteira em vez de sair meia-traduzida — instrução dela,
    setembro/26. */
-function montaTabelas(blocos, L, comInc){
+/* O "Inclusos" tem um campo por idioma: o português é o antigo
+   commission_basis, e o inglês entrou na 0038. Sem par preenchido, a
+   coluna não sai — em vez de sair em português no documento inglês. */
+const incDa = (r, idioma) => idioma === "en" ? r.commission_basis_en : r.commission_basis;
+function montaTabelas(blocos, L, comInc, idioma){
   return blocos.map((bl,n)=>{
     const ultimo = n === blocos.length - 1;
     const sBase = bl.reduce((x,r)=>x+(Number(r.price)||0),0);
@@ -2162,7 +2168,7 @@ function montaTabelas(blocos, L, comInc){
       <tbody>${bl.map(r=>`<tr>
         <td class="date-cell">${esc(r.service_date||"")}</td>
         <td><div class="svc-title">${esc(r.title)}</div></td>
-        ${comInc?`<td class="inclui">${esc(r.commission_basis||"—")}</td>`:""}
+        ${comInc?`<td class="inclui">${esc(incDa(r, idioma)||"—")}</td>`:""}
         <td class="money">${eur(r.price)}</td>
         <td class="money">${Number(r.commission_pct)}%</td>
         <td class="money">${eur(comissaoDe(r))}</td></tr>`).join("")}</tbody>
@@ -2190,7 +2196,9 @@ async function renderProforma(){
 
   const {data:tm} = await sb.from("ops_text_defaults").select("*").eq("key","proforma_terms").maybeSingle();
   const idioma = o.lang === "en" ? "en" : "pt";
-  const texto = d => (d && (d[idioma] || d.pt)) || "";
+  /* Sem cair no outro idioma: proforma em inglês com bloco em português
+     é o mesmo erro do relatório. Em branco, o bloco não sai. */
+  const texto = d => (d && (d[idioma] || "")) || "";
   const total = ITEMS.reduce((x,r)=>x+(Number(r.price)||0), 0);
   const dataBR = (d)=>{ const x=String(d||"").slice(0,10).split("-");
     return x.length===3 ? (idioma==="en" ? `${x[2]}/${x[1]}/${x[0]}` : `${x[2]}/${x[1]}/${x[0]}`) : ""; };
@@ -2417,7 +2425,10 @@ async function renderCommission(){
     sb.from("ops_text_defaults").select("*").eq("key","commission_terms").maybeSingle()
   ]);
   const idioma = o.lang === "en" ? "en" : "pt";
-  const texto = d => (d && (d[idioma] || d.pt)) || "";
+  /* Sem cair no outro idioma: era o fallback para o português que punha
+     parágrafo português dentro do documento inglês. Em branco, o bloco
+     não sai — melhor faltar do que sair na língua errada. */
+  const textoDo = d => (d && (d[idioma] || "")) || "";
   const total = linhas.reduce((x,r)=>x+comissaoDe(r), 0);
   const base  = linhas.reduce((x,r)=>x+(Number(r.price)||0), 0);
 
@@ -2468,35 +2479,29 @@ async function renderCommission(){
       <div class="cell"><div class="k">${L.basel}</div><div class="v">${eur(base)}</div></div>
     </div>
 
-    ${montaTabelas([linhas], L, idioma !== "en")}
+    ${/* A coluna só sai quando ALGUMA linha tem texto no idioma do
+          documento. Assim o inglês mostra commission_basis_en quando ela
+          preenche, e não mostra coluna vazia quando não preenche. */""}
+    ${montaTabelas([linhas], L, linhas.some(r=>(incDa(r, idioma)||"").trim()), idioma)}
 
     <div class="total-row"><div class="total-box">
       <span class="lbl">${L.tot}</span><span class="amt">${eur(total)}</span></div></div>
 
-    ${/* As instruções de emissão são de nota brasileira — prefeitura,
-          CNPJ, cotação do euro, remessa do exterior. Num relatório em
-          inglês elas não servem a ninguém, e saíam em português no meio
-          do documento. Ficam só no relatório em português. Os DADOS para
-          emissão (nome, VAT, endereço) continuam nos dois: a agência
-          precisa deles para faturar em qualquer idioma. */""}
-    ${idioma === "en" ? `
-    <div class="instr">
-      <div class="dadosnf">
-        <div class="blocktitle">${L.bill}</div>
-        <div class="condicoes">${fmtDoc(texto(bt))}</div>
-      </div>
-    </div>` : `
-    <div class="proxpag">${L.next}</div>
+    ${/* Versão inglesa é inteira em inglês (instrução dela): as duas
+          partes voltaram, lendo a coluna do idioma. O fallback para o
+          português saiu de propósito — em branco, o bloco não sai, e
+          isso é melhor que sair na língua errada. */""}
+    ${textoDo(tm) ? `<div class="proxpag">${L.next}</div>` : ""}
 
     <div class="instr">
       <div class="dadosnf">
         <div class="blocktitle">${L.bill}</div>
-        <div class="condicoes">${fmtDoc(texto(bt))}</div>
+        <div class="condicoes">${fmtDoc(textoDo(bt))}</div>
       </div>
 
-      <div class="blocktitle">${L.how}</div>
-      <div class="condicoes">${fmtDoc(texto(tm))}</div>
-    </div>`}
+      ${textoDo(tm) ? `<div class="blocktitle">${L.how}</div>
+      <div class="condicoes">${fmtDoc(textoDo(tm))}</div>` : ""}
+    </div>
 
     <div class="foot">
       <div class="co">TUSCAN LANDS TRAVEL</div>
@@ -4226,7 +4231,13 @@ function drawItems(){
       <td><input class="interno" value="${esc(r.supplier||"")}" placeholder="quem opera"
         oninput="ITEMS[${i}].supplier=this.value.trim()||null"></td>
       <td><input class="interno" value="${esc(r.commission_basis||"")}" placeholder="só transfer"
-        oninput="ITEMS[${i}].commission_basis=this.value.trim()||null"></td>
+        oninput="ITEMS[${i}].commission_basis=this.value.trim()||null">
+        ${/* Order em inglês ganha o par: o relatório inglês lê este campo,
+              e sem ele a coluna não sai. Em order portuguesa o campo não
+              aparece — seria caixa para esquecer de preencher. */""}
+        ${ORDER && ORDER.lang === "en" ? `<input class="interno" style="margin-top:4px;"
+          value="${esc(r.commission_basis_en||"")}" placeholder="EN · transfer only"
+          oninput="ITEMS[${i}].commission_basis_en=this.value.trim()||null">` : ""}</td>
       <td><input class="interno" type="number" step="0.5" style="text-align:right;"
         value="${r.commission_pct==null?"":Number(r.commission_pct)}" placeholder="%"
         oninput="ITEMS[${i}].commission_pct=this.value===''?null:parseFloat(this.value);sumItems()"></td>
@@ -4652,6 +4663,7 @@ async function saveOrder(){
     ITEMS.map((r,i)=>({order_id:ORDER.id,sort:i,service_date:r.service_date,title:r.title,
       details:r.details,price:r.price,supplier:(r.supplier||"").trim()||null,
       commission_basis:(r.commission_basis||"").trim()||null,
+      commission_basis_en:(r.commission_basis_en||"").trim()||null,
       commission_pct:(r.commission_pct===""||r.commission_pct==null)?null:r.commission_pct,
       crm_type:r.crm_type||null, crm_service:(r.crm_service||"").trim()||null,
       vat_regime:r.vat_regime||null,
