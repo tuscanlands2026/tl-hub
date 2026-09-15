@@ -1566,9 +1566,13 @@ function verComoCliente(hash, voltarPara){ VOLTAR = voltarPara; location.hash = 
 
 async function boot(){
   const r = route();
-  const isPublic = r.startsWith("confirm/") || r.startsWith("quote/") || r.startsWith("valores/");
+  const isPublic = r.startsWith("confirm/") || r.startsWith("quote/") || r.startsWith("valores/")
+               || r.startsWith("proforma/");
   if(!makeClient()){ return renderSetup(isPublic ? r : null); }
   if(r.startsWith("confirm/")) return renderPublic(r.split("/")[1]);
+  /* A proforma pelo token: é esta página que o servidor abre para desenhar
+     o PDF, e é a mesma que a agência pode abrir se ela mandar o endereço. */
+  if(r.startsWith("proforma/")) return renderProformaPublica(r.split("/")[1]);
   if(r.startsWith("quote/"))   return renderQuote(r.split("/")[1]);
   /* O link dos valores: mesma proposta, outra leitura — formato tabela,
      com os preços net, e é por aqui que a agência aprova. */
@@ -1666,7 +1670,9 @@ const MIGRACOES = [
   {id:"0037-proforma-invoice",        arq:"0037-proforma-invoice.sql",
    oque:"proforma invoice da order, numerada a partir de 159/26"},
   {id:"0038-relatorio-em-ingles",     arq:"0038-relatorio-em-ingles.sql",
-   oque:"relatório de comissão inteiro em inglês: instruções, dados e o Inclusos com par em inglês"}
+   oque:"relatório de comissão inteiro em inglês: instruções, dados e o Inclusos com par em inglês"},
+  {id:"0039-proforma-para-baixar",    arq:"0039-proforma-para-baixar.sql",
+   oque:"botão Baixar PDF da proforma, com o link de pagamento clicável dentro do arquivo"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2253,22 +2259,15 @@ function montaTabelas(blocos, L, comInc, idioma){
    manda à agência para pagar. Numeração própria, começando em 159/26 e
    GRAVADA na order — reabrir o documento não gera outro número.
    Sai no idioma da order, porque o destino é a agência. */
-async function renderProforma(){
-  const o = ORDER;
-  if(!ITEMS.length) return alert("A order não tem serviço nenhum lançado: a proforma sairia vazia.");
-  const {data:num, error:e1} = await sb.rpc("tl_proforma_no", {p_order: o.id});
-  if(e1 || !num || !num.ok) return alert((e1&&e1.message) || (num&&num.error) || "erro ao numerar a proforma");
-  ORDER.proforma_no = num.no; ORDER.proforma_date = num.date;
-
-  const {data:tm} = await sb.from("ops_text_defaults").select("*").eq("key","proforma_terms").maybeSingle();
-  const idioma = o.lang === "en" ? "en" : "pt";
-  /* Sem cair no outro idioma: proforma em inglês com bloco em português
-     é o mesmo erro do relatório. Em branco, o bloco não sai. */
-  const texto = d => (d && (d[idioma] || "")) || "";
-  const total = ITEMS.reduce((x,r)=>x+(Number(r.price)||0), 0);
-  const dataBR = (d)=>{ const x=String(d||"").slice(0,10).split("-");
-    return x.length===3 ? (idioma==="en" ? `${x[2]}/${x[1]}/${x[0]}` : `${x[2]}/${x[1]}/${x[0]}`) : ""; };
-
+/* O DOCUMENTO, UMA VEZ SÓ. Ele é montado aqui e usado em dois lugares: a
+   tela dela (com o campo dos dados bancários por cima) e a página pública
+   pelo token, que é a que o servidor abre para desenhar o PDF. Dois HTML
+   iguais em lugares diferentes é a receita para um deles ficar para trás. */
+function proformaDoc(d){
+  const o = d.order, idioma = (o.lang === "en" ? "en" : "pt");
+  const total = (d.items||[]).reduce((x,r)=>x+(Number(r.price)||0), 0);
+  const dataBR = (t)=>{ const x=String(t||"").slice(0,10).split("-");
+    return x.length===3 ? `${x[2]}/${x[1]}/${x[0]}` : ""; };
   const L = idioma === "en"
     ? {tit:"Proforma invoice", sub:"Issued for payment of the services confirmed for this booking.",
        para:"Bill to", ref:"Reference", per:"Period", pax:"Travellers", no:"Proforma nº", date:"Date",
@@ -2278,38 +2277,8 @@ async function renderProforma(){
        para:"Faturar a", ref:"Referência", per:"Período", pax:"Passageiros", no:"Proforma nº", date:"Data",
        svc:"Serviço", val:"Valor €", tot:"Total a pagar", pay:"Pagamento",
        nota:"Documento emitido para fins de pagamento. Não substitui a fattura fiscal."};
-
-  app.innerHTML = `
-  <div class="topbar noprint">
-    <span class="mark">TUSCAN LANDS TRAVEL</span>
-    <span class="sep">·</span><span class="ctx">${L.tit} ${esc(num.no)} · ${esc(o.order_ref||"")}</span>
-    <div class="right">
-      <button id="pf-back">Voltar</button>
-      <button id="pf-print">Imprimir / PDF</button>
-    </div>
-  </div>
-  ${/* Os dados bancários não moravam em lugar nenhum editável: ficariam
-        para sempre com o texto de exemplo da migração. O campo fica aqui,
-        na tela de quem está emitindo, e vale para TODAS as proformas —
-        por isso o aviso. Não sai na impressão. */""}
-  <div class="docpad noprint" style="padding-bottom:0;">
-    <div class="card" style="max-width:820px;margin:0 auto 14px;">
-      <div class="section-title">${idioma==="en"?"Payment and bank details":"Pagamento e dados bancários"}</div>
-      <div class="hint">Vale para <b>todas</b> as proformas, nos dois idiomas — você está editando o
-        <b>${idioma==="en"?"inglês":"português"}</b>, que é o idioma desta order. Em branco, o bloco
-        não sai no documento.</div>
-      <textarea id="pf-terms" rows="7">${esc(texto(tm))}</textarea>
-      <div style="margin-top:8px;"><button class="btn ghost sm" id="pf-terms-save">Guardar</button></div>
-      ${/* O link só continua clicável no arquivo se quem gera o PDF for o
-            próprio Chrome. O "Microsoft Print to PDF" do Windows imprime a
-            página como imagem de papel: o link some e ela não tem como saber
-            por quê. Por isso o aviso fica aqui, ao lado do botão. */""}
-      <div class="hint" style="margin-top:10px;">Para o PDF: <b>Imprimir / PDF</b> e, em
-        <i>Destino</i>, <b>Salvar como PDF</b> — assim o link de pagamento continua clicável no
-        arquivo. O <i>Microsoft Print to PDF</i> do Windows apaga o link.</div>
-    </div>
-  </div>
-  <div class="docpad"><div class="doc com pf">
+  const termos = String(d.terms||"");
+  return `<div class="docpad"><div class="doc com pf">
     <div class="head">
       <div class="brand">
         <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
@@ -2318,8 +2287,8 @@ async function renderProforma(){
         <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
       </div>
       <div class="to">
-        <div class="lbl">${L.no}</div><div class="val">${esc(num.no)}</div>
-        <div class="lbl">${L.date}</div><div class="val">${esc(dataBR(num.date))}</div>
+        <div class="lbl">${L.no}</div><div class="val">${esc(d.no)}</div>
+        <div class="lbl">${L.date}</div><div class="val">${esc(dataBR(d.date))}</div>
       </div>
     </div>
 
@@ -2336,7 +2305,7 @@ async function renderProforma(){
     <table class="svc">
       <thead><tr><th style="width:110px;">${L.date}</th><th>${L.svc}</th>
         <th class="money" style="width:130px;">${L.val}</th></tr></thead>
-      <tbody>${ITEMS.map(r=>`<tr>
+      <tbody>${(d.items||[]).map(r=>`<tr>
         <td class="date-cell">${esc(r.service_date||"")}</td>
         <td><div class="svc-title">${esc(r.title)}</div>
           ${r.details?`<div class="svc-sub">${fmtDoc(r.details)}</div>`:""}</td>
@@ -2346,9 +2315,9 @@ async function renderProforma(){
     <div class="total-row"><div class="total-box">
       <span class="lbl">${L.tot}</span><span class="amt">${eur(total)}</span></div></div>
 
-    ${texto(tm).trim()?`<div class="instr">
+    ${termos.trim()?`<div class="instr">
       <div class="blocktitle">${L.pay}</div>
-      <div class="condicoes">${fmtDoc(texto(tm))}</div>
+      <div class="condicoes">${fmtDoc(termos)}</div>
     </div>`:""}
 
     <div class="voucher-note" style="margin-top:20px;">${L.nota}</div>
@@ -2358,9 +2327,62 @@ async function renderProforma(){
       ${COMPANY.legal} · ${COMPANY.vat.replace(" · Pontassieve (FI), Italy","")} · ${COMPANY.email}
     </div>
   </div></div>`;
+}
+
+/* O nome do arquivo que baixa: Proforma-159-26.pdf. Barra não pode. */
+const proformaNome = (no, ref) => ("Proforma-" + String(no||"").replace(/\//g,"-")
+  + (ref?("-"+String(ref)):"")).replace(/[^\w.-]+/g,"-").slice(0,60);
+
+async function renderProforma(){
+  const o = ORDER;
+  if(!ITEMS.length) return alert("A order não tem serviço nenhum lançado: a proforma sairia vazia.");
+  const {data:num, error:e1} = await sb.rpc("tl_proforma_no", {p_order: o.id});
+  if(e1 || !num || !num.ok) return alert((e1&&e1.message) || (num&&num.error) || "erro ao numerar a proforma");
+  ORDER.proforma_no = num.no; ORDER.proforma_date = num.date;
+
+  const {data:tm} = await sb.from("ops_text_defaults").select("*").eq("key","proforma_terms").maybeSingle();
+  const idioma = o.lang === "en" ? "en" : "pt";
+  /* Sem cair no outro idioma: proforma em inglês com bloco em português
+     é o mesmo erro do relatório. Em branco, o bloco não sai. */
+  const texto = d => (d && (d[idioma] || "")) || "";
+
+  app.innerHTML = `
+  <div class="topbar noprint">
+    <span class="mark">TUSCAN LANDS TRAVEL</span>
+    <span class="sep">·</span><span class="ctx">${idioma==="en"?"Proforma invoice":"Fatura proforma"} ${esc(num.no)} · ${esc(o.order_ref||"")}</span>
+    <div class="right">
+      <button id="pf-back">Voltar</button>
+      <button id="pf-baixar">Baixar PDF</button>
+      <button id="pf-print">Imprimir / PDF</button>
+    </div>
+  </div>
+  ${/* Os dados bancários não moravam em lugar nenhum editável: ficariam
+        para sempre com o texto de exemplo da migração. O campo fica aqui,
+        na tela de quem está emitindo, e vale para TODAS as proformas —
+        por isso o aviso. Não sai na impressão. */""}
+  <div class="docpad noprint" style="padding-bottom:0;">
+    <div class="card" style="max-width:820px;margin:0 auto 14px;">
+      <div class="section-title">${idioma==="en"?"Payment and bank details":"Pagamento e dados bancários"}</div>
+      <div class="hint">Vale para <b>todas</b> as proformas, nos dois idiomas — você está editando o
+        <b>${idioma==="en"?"inglês":"português"}</b>, que é o idioma desta order. Em branco, o bloco
+        não sai no documento. Endereço que você escrever aqui vira link clicável no documento.</div>
+      <textarea id="pf-terms" rows="7">${esc(texto(tm))}</textarea>
+      <div style="margin-top:8px;"><button class="btn ghost sm" id="pf-terms-save">Guardar</button></div>
+      ${/* BAIXAR é o caminho certo, e a caixa de impressão é o atalho de
+            emergência: o "Microsoft Print to PDF" do Windows imprime a
+            página como papel e apaga o link de pagamento. O botão Baixar
+            manda o servidor desenhar o arquivo, e lá o link sobrevive. */""}
+      <div class="hint" style="margin-top:10px;"><b>Baixar PDF</b> monta o arquivo no servidor e
+        <b>mantém o link de pagamento clicável</b> — é por aí. O <i>Imprimir / PDF</i> só serve se,
+        em <i>Destino</i>, você escolher <b>Salvar como PDF</b>; o <i>Microsoft Print to PDF</i> do
+        Windows imprime a página como papel e apaga o link.</div>
+    </div>
+  </div>
+  ${proformaDoc({order:o, items:ITEMS, terms:texto(tm), no:num.no, date:num.date})}`;
 
   el("pf-back").onclick = renderEditor;
   el("pf-print").onclick = () => window.print();
+  el("pf-baixar").onclick = (ev) => baixarProforma(ev.currentTarget);
   el("pf-terms-save").onclick = async (ev)=>{
     const btn = ev.currentTarget; btn.disabled = true; btn.textContent = "Guardando…";
     const linha = {key:"proforma_terms", updated_at:new Date().toISOString()};
@@ -2373,6 +2395,38 @@ async function renderProforma(){
     if(error) return alert(explicar(error));
     renderProforma();
   };
+}
+
+/* BAIXAR, e não imprimir. O servidor abre a página pública da proforma
+   num Chromium sem tela e devolve o arquivo com Content-Disposition:
+   attachment — o navegador baixa, com o nome certo, e o link de pagamento
+   continua clicável dentro do PDF. É o mesmo caminho do voucher do CRM.
+   Deixar o NAVEGADOR buscar o endereço é o que baixa de verdade: montar
+   em memória e entregar por blob faz o Chrome abrir o visualizador. */
+function baixarProforma(btn){
+  const o = ORDER || {};
+  if(!o.token) return alert("Esta order não tem link público (token). Salve a order e tente de novo.");
+  if(!o.proforma_no) return alert("A proforma ainda não foi numerada. Abra a proforma e tente de novo.");
+  const url = "/api/proforma-pdf?token=" + encodeURIComponent(o.token)
+            + "&nome=" + encodeURIComponent(proformaNome(o.proforma_no, o.order_ref));
+  if(btn){ btn.disabled = true; const r = btn.textContent; btn.textContent = "Montando…";
+    setTimeout(()=>{ btn.disabled = false; btn.textContent = r; }, 6000); }
+  window.location.href = url;
+}
+
+/* A proforma pelo token, do jeito que o servidor lê para desenhar o PDF.
+   Só documento: nem topbar, nem campo, nem botão. Número já emitido é
+   condição — a função do banco não devolve nada antes disso. */
+async function renderProformaPublica(token){
+  app.innerHTML = `<div class="done"><div class="muted">…</div></div>`;
+  const {data,error} = await sb.rpc("tl_get_proforma",{p_token:token});
+  if(error || !data) return app.innerHTML = message(T.pt.notFound);
+  if(data.expired) return app.innerHTML = message(T.pt.expired);
+  if(data.nao_emitida) return app.innerHTML = message(
+    "Esta proforma ainda não foi emitida.");
+  const o = data.order;
+  app.innerHTML = proformaDoc({order:o, items:data.items, terms:data.terms,
+                               no:o.proforma_no, date:o.proforma_date});
 }
 
 /* -------------------------------------------------- COMISSÃO --------- */
