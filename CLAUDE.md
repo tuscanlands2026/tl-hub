@@ -135,12 +135,17 @@ própria — `159/26` em diante —, mora em `ops_proforma_seq` por ano e é **g
 cobranças do mesmo serviço. Pagamento e dados bancários saem de `ops_text_defaults.proforma_terms`
 e se editam na própria tela da proforma, que é onde ela está quando precisa disso.
 
-**O relatório de comissão em inglês não leva as instruções de emissão.** Elas falam de nota
-brasileira — prefeitura, CNPJ, cotação do euro, remessa do exterior — e saíam em português no
-meio de um documento inglês, porque `commission_terms` cai no `pt` quando o `en` está vazio. Os
-**dados** para emissão continuam nos dois idiomas. A coluna **Inclusos** também sai do relatório
-em inglês: `commission_basis` é campo único, escrito por ela em português, e não tem par em
-inglês para traduzir.
+**Versão inglesa é inteira em inglês, e portuguesa inteira em português** — regra dela,
+setembro/26, depois de eu ter errado para o lado fácil. Meu primeiro conserto foi *esconder* do
+relatório inglês as duas partes que vinham em português; esconder não é traduzir, e a agência de
+fora ficava sem saber como faturar. Na 0038 as duas ganharam versão inglesa de verdade:
+`commission_terms.en` e `commission_billto.en` (adaptados, não traduzidos ao pé da letra —
+prefeitura e CNPJ não existem fora do Brasil) e `ops_order_items.commission_basis_en`, o par do
+"Inclusos", que ela digita ao lado do português quando a order é em inglês.
+
+E o **fallback de idioma saiu** dos dois documentos: `d[idioma]` sem cair no outro. Bloco vazio
+não sai, e isso é melhor do que sair na língua errada — era o fallback que punha parágrafo
+português dentro do documento inglês.
 
 **Quote simples.** É o modelo sem a proposta "bonita": serve para hospedagem mais
 serviços terrestres, e para orçamento avulso de transfer. As linhas se agrupam em
