@@ -703,6 +703,13 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .doc .condicoes a,.doc .svc-sub a,.doc .intro a,.ap-desc a,.ap-estrutura a,
 .ap-back a,.ap-sobre-txt a{color:var(--sage);text-decoration:underline;
   text-underline-offset:2px;word-break:break-word;}
+/* A PROFORMA É UMA FOLHA. Os dados de pagamento são um bloco, não um
+   texto corrido: linha embaixo de linha, como ela copiaria do banco. O
+   espaçamento de parágrafo do relatório espalhava IBAN, SWIFT e link por
+   meia página e empurrava tudo para a folha 2. */
+.doc.com.pf .condicoes p{margin-bottom:2px;line-height:1.55;text-align:left;}
+.doc.com.pf .condicoes p:has(> strong:only-child){margin-top:9px;}
+.doc.com.pf .condicoes p:first-child{margin-top:0;}
 .doc .condicoes ul{margin:0 0 12px 18px;}
 .doc .condicoes li{font-size:13px;line-height:1.7;margin-bottom:7px;text-align:justify;}
 .doc .voucher-note{margin-top:18px;font-size:13px;color:var(--muted);line-height:1.7;
@@ -823,6 +830,30 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
      ocupando a primeira, elas não caberiam junto sem apertar a ponto de
      ficar ilegível — e a primeira página é a que a agência confere. */
   .doc.com .instr{break-before:page;}
+  /* …menos na proforma, que é documento de uma folha: a quebra jogava os
+     dados bancários para uma segunda página quase vazia. Aqui o bloco de
+     pagamento fica na mesma folha do total, e inteiro. */
+  .doc.com.pf .instr{break-before:auto !important;break-inside:avoid;margin-top:10px;}
+  .doc.com.pf .voucher-note{break-inside:avoid;margin-top:10px;font-size:11.5px;}
+  /* Dados bancários são dados, não prosa: tipo menor e linha curta, como
+     em qualquer fatura. É o que faz a proforma de seis serviços fechar
+     numa folha em vez de vazar 13mm. */
+  .doc.com.pf .condicoes p{margin-bottom:0;line-height:1.45;font-size:12px;}
+  .doc.com.pf .condicoes p:has(> strong:only-child){margin-top:5px;}
+  /* O ar do papel, apertado só aqui: com o espaçamento do relatório, uma
+     proforma de seis serviços passava 18mm da folha e a segunda página
+     levava só o rodapé. Na tela nada muda — isto é @media print. */
+  /* Na proforma o logo entra menor: é documento de cobrança, e os 20mm do
+     logo da proposta valem uma linha e meia de serviço na folha. */
+  .doc.com.pf .head{padding-bottom:12px;}
+  .doc.com.pf .brand .logo-img{height:58px;margin-bottom:8px;}
+  .doc.com.pf .intro{margin:12px 0 2px;}
+  .doc.com.pf .meta{margin:12px 0 6px;}
+  .doc.com.pf .meta .cell{padding:8px 11px;}
+  .doc.com.pf table.svc{margin-top:12px;}
+  .doc.com.pf table.svc tbody td{padding:5px 11px;}
+  .doc.com.pf .total-row{margin-top:10px;}
+  .doc.com.pf .foot{margin-top:12px;}
   /* ================= A APRESENTAÇÃO NO PAPEL =================
      Uma etapa por folha A4, e a folha inteira usada. O que a página
      tinha antes era a etapa correndo solta: a faixa da foto da seção
@@ -2256,9 +2287,16 @@ async function renderProforma(){
         não sai no documento.</div>
       <textarea id="pf-terms" rows="7">${esc(texto(tm))}</textarea>
       <div style="margin-top:8px;"><button class="btn ghost sm" id="pf-terms-save">Guardar</button></div>
+      ${/* O link só continua clicável no arquivo se quem gera o PDF for o
+            próprio Chrome. O "Microsoft Print to PDF" do Windows imprime a
+            página como imagem de papel: o link some e ela não tem como saber
+            por quê. Por isso o aviso fica aqui, ao lado do botão. */""}
+      <div class="hint" style="margin-top:10px;">Para o PDF: <b>Imprimir / PDF</b> e, em
+        <i>Destino</i>, <b>Salvar como PDF</b> — assim o link de pagamento continua clicável no
+        arquivo. O <i>Microsoft Print to PDF</i> do Windows apaga o link.</div>
     </div>
   </div>
-  <div class="docpad"><div class="doc com">
+  <div class="docpad"><div class="doc com pf">
     <div class="head">
       <div class="brand">
         <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
