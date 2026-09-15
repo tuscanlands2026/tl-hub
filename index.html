@@ -2418,9 +2418,18 @@ function baixarProforma(btn){
    Só documento: nem topbar, nem campo, nem botão. Número já emitido é
    condição — a função do banco não devolve nada antes disso. */
 async function renderProformaPublica(token){
-  app.innerHTML = `<div class="done"><div class="muted">…</div></div>`;
+  app.innerHTML = `<div class="done" data-carregando="1"><div class="muted">…</div></div>`;
   const {data,error} = await sb.rpc("tl_get_proforma",{p_token:token});
-  if(error || !data) return app.innerHTML = message(T.pt.notFound);
+  /* Erro do banco não é "não encontrado". O caso comum é a migração que
+     ainda não rodou: dizer isso aqui é o que faz o recado chegar inteiro
+     no erro do botão Baixar, em vez de virar "documento não encontrado". */
+  if(error){
+    const falta = /tl_get_proforma|schema cache|does not exist|não existe/i.test(error.message||"");
+    return app.innerHTML = message(falta
+      ? "Falta rodar a migração 0039-proforma-para-baixar.sql no Supabase — é ela que cria a leitura da proforma pelo link."
+      : ("Não deu para abrir a proforma: " + error.message));
+  }
+  if(!data) return app.innerHTML = message(T.pt.notFound);
   if(data.expired) return app.innerHTML = message(T.pt.expired);
   if(data.nao_emitida) return app.innerHTML = message(
     "Esta proforma ainda não foi emitida.");
@@ -6015,8 +6024,11 @@ async function renderPublic(token){
   drawPublic();
 }
 
+/* data-recado marca o recado FINAL. A tela de carregamento é um .done com
+   .muted igual a este, e o navegador do servidor lia o "…" dela como se
+   fosse a resposta — desistia antes de o documento chegar. */
 function message(txt){
-  return `<div class="done"><h2>Tuscan Lands</h2><div class="muted">${esc(txt)}</div></div>`;
+  return `<div class="done" data-recado="1"><h2>Tuscan Lands</h2><div class="muted">${esc(txt)}</div></div>`;
 }
 
 /* Um campo configurado, do jeito que a agência vê. */
