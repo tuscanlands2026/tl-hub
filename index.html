@@ -698,6 +698,11 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .doc .condicoes p{font-size:13px;line-height:1.75;margin-bottom:10px;text-align:justify;}
 .doc .condicoes u{text-decoration:underline;text-underline-offset:3px;
   text-decoration-thickness:.5px;}
+/* Endereço que a fmtDoc transformou em link tem de parecer link em qualquer
+   documento — e endereço comprido não estoura a coluna justificada. */
+.doc .condicoes a,.doc .svc-sub a,.doc .intro a,.ap-desc a,.ap-estrutura a,
+.ap-back a,.ap-sobre-txt a{color:var(--sage);text-decoration:underline;
+  text-underline-offset:2px;word-break:break-word;}
 .doc .condicoes ul{margin:0 0 12px 18px;}
 .doc .condicoes li{font-size:13px;line-height:1.7;margin-bottom:7px;text-align:justify;}
 .doc .voucher-note{margin-top:18px;font-size:13px;color:var(--muted);line-height:1.7;
@@ -1039,14 +1044,31 @@ const nl2br = s => esc(s).replace(/\n/g,"<br>");
    começando por "- " viram lista. Não é markdown — é o mínimo para os
    textos comerciais da casa ficarem legíveis sem editor de texto rico,
    que traria biblioteca, upload e um formato a mais para manter. */
+/* Endereço digitado no texto vira link de verdade — o link de pagamento da
+   proforma tem de abrir num clique, e continua clicável no PDF que o Chrome
+   gera. Roda DEPOIS do esc(): o href desfaz as entidades que o esc pôs, senão
+   o & de uma query viraria &amp; dentro do endereço. */
+const href1 = u => String(u).replace(/&amp;/g,"&")
+  .replace(/&quot;/g,"%22").replace(/&lt;/g,"%3C").replace(/&gt;/g,"%3E").replace(/"/g,"%22");
+function linkar(h){
+  return String(h)
+    .replace(/https?:\/\/[^\s<]+/g, m=>{
+      // pontuação de fim de frase não é parte do endereço
+      const cauda = (/[.,;:!?)\]]+$/.exec(m)||[""])[0];
+      const u = m.slice(0, m.length - cauda.length);
+      return `<a href="${href1(u)}" target="_blank" rel="noopener">${u}</a>` + cauda;
+    })
+    .replace(/(^|[\s>(])([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g,
+      (m,antes,mail)=>`${antes}<a href="mailto:${mail}">${mail}</a>`);
+}
 function fmtDoc(txt){
   const linhas = String(txt||"").split("\n");
   let out = "", lista = false;
   // **negrito** e __sublinhado__. O sublinhado destaca sem pesar a
   // mancha: parágrafo inteiro em negrito compete com os títulos.
-  const forte = t => esc(t)
+  const forte = t => linkar(esc(t)
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/__([^_]+)__/g, "<u>$1</u>");
+    .replace(/__([^_]+)__/g, "<u>$1</u>"));
   linhas.forEach(l=>{
     const li = /^\s*[-•]\s+(.*)$/.exec(l);
     if(li){
