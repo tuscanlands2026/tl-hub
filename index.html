@@ -833,6 +833,20 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   /* …menos na proforma, que é documento de uma folha: a quebra jogava os
      dados bancários para uma segunda página quase vazia. Aqui o bloco de
      pagamento fica na mesma folha do total, e inteiro. */
+  /* O RODAPÉ FECHA A FOLHA, NÃO O TEXTO. Ele vinha logo debaixo da última
+     linha e deixava seis centímetros de papel em branco embaixo. A altura
+     vem da própria folha (height:100%), e não de um número em mm: vale para
+     A4, para Letter e para a margem que ela escolher na caixa de impressão.
+     O :has escopa a regra à proforma — em qualquer outra tela o seletor não
+     casa, e navegador que não conheça :has ignora tudo e imprime como antes. */
+  html:has(.doc.com.pf), html:has(.doc.com.pf) body,
+  html:has(.doc.com.pf) #app, html:has(.doc.com.pf) .docpad{height:100%;}
+  .doc.com.pf{min-height:100%;display:flex;flex-direction:column;}
+  /* margin-top:auto empurra o rodapé para o pé da folha quando sobra papel,
+     e vira zero quando o documento passa de uma folha — nada de rodapé no
+     meio da segunda página. Vem depois dos ajustes acima de propósito:
+     regra de mesma força, a última é que vale. */
+  .doc.com.pf .foot{margin-top:auto;}
   .doc.com.pf .instr{break-before:auto !important;break-inside:avoid;margin-top:10px;}
   .doc.com.pf .voucher-note{break-inside:avoid;margin-top:10px;font-size:11.5px;}
   /* Dados bancários são dados, não prosa: tipo menor e linha curta, como
@@ -853,7 +867,6 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .doc.com.pf table.svc{margin-top:12px;}
   .doc.com.pf table.svc tbody td{padding:5px 11px;}
   .doc.com.pf .total-row{margin-top:10px;}
-  .doc.com.pf .foot{margin-top:12px;}
   /* ================= A APRESENTAÇÃO NO PAPEL =================
      Uma etapa por folha A4, e a folha inteira usada. O que a página
      tinha antes era a etapa correndo solta: a faixa da foto da seção
