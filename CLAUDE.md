@@ -128,6 +128,20 @@ continua **caixinha** para poder desmarcar — foi o rádio que a prendeu em ago
 sem nada marcado não entra na order, em vez de barrar o envio. O banco confere igual, porque
 tela se contorna.
 
+**Dois documentos na order** (setembro/26). O de confirmação, que o cliente assina, e a
+**proforma invoice**, que ela emite e manda à agência para pagar. A numeração da proforma é
+própria — `159/26` em diante —, mora em `ops_proforma_seq` por ano e é **gravada na order**
+(`proforma_no`): reabrir o documento devolve o mesmo número, porque proforma renumerada é duas
+cobranças do mesmo serviço. Pagamento e dados bancários saem de `ops_text_defaults.proforma_terms`
+e se editam na própria tela da proforma, que é onde ela está quando precisa disso.
+
+**O relatório de comissão em inglês não leva as instruções de emissão.** Elas falam de nota
+brasileira — prefeitura, CNPJ, cotação do euro, remessa do exterior — e saíam em português no
+meio de um documento inglês, porque `commission_terms` cai no `pt` quando o `en` está vazio. Os
+**dados** para emissão continuam nos dois idiomas. A coluna **Inclusos** também sai do relatório
+em inglês: `commission_basis` é campo único, escrito por ela em português, e não tem par em
+inglês para traduzir.
+
 **Quote simples.** É o modelo sem a proposta "bonita": serve para hospedagem mais
 serviços terrestres, e para orçamento avulso de transfer. As linhas se agrupam em
 **seções** (`ops_proposals.sections`, chave em `ops_proposal_items.section`), e cada seção

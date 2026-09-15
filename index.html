@@ -1596,7 +1596,9 @@ const MIGRACOES = [
   {id:"0035-idioma-da-venda",         arq:"0035-idioma-da-venda.sql",
    oque:"a venda em inglês chega inteira no e-mail e na order, com o tipo de quarto e as unidades"},
   {id:"0036-modelos-de-proposta",     arq:"0036-modelos-de-proposta.sql",
-   oque:"folha da curadoria, modo de cada seção, tarifa net com link de valores e a escolha de opção"}
+   oque:"folha da curadoria, modo de cada seção, tarifa net com link de valores e a escolha de opção"},
+  {id:"0037-proforma-invoice",        arq:"0037-proforma-invoice.sql",
+   oque:"proforma invoice da order, numerada a partir de 159/26"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2141,31 +2143,155 @@ async function saveOpportunity(){
 /* Uma tabela por bloco, com subtotal no pé de cada uma. A última não
    corta folha; as outras sim, para o subtotal cair no pé da página a
    que ele se refere. */
-function montaTabelas(blocos, L){
+/* comInc: a coluna "Inclusos" existe só em português. O que ela escreve
+   ali (commission_basis, "só transfer") não tem versão em inglês, e no
+   relatório em inglês saía texto português no meio do documento. Some a
+   coluna inteira em vez de sair meia-traduzida — instrução dela,
+   setembro/26. */
+function montaTabelas(blocos, L, comInc){
   return blocos.map((bl,n)=>{
     const ultimo = n === blocos.length - 1;
     const sBase = bl.reduce((x,r)=>x+(Number(r.price)||0),0);
     const sCom  = bl.reduce((x,r)=>x+comissaoDe(r),0);
     return `<table class="svc${ultimo?"":" corta"}">
       <thead><tr><th style="width:90px;">${L.date}</th><th>${L.svc}</th>
-        <th style="width:150px;">${L.inc}</th>
+        ${comInc?`<th style="width:150px;">${L.inc}</th>`:""}
         <th class="money" style="width:104px;">${L.val}</th>
         <th class="money" style="width:48px;">${L.pct}</th>
         <th class="money" style="width:112px;">${L.com}</th></tr></thead>
       <tbody>${bl.map(r=>`<tr>
         <td class="date-cell">${esc(r.service_date||"")}</td>
         <td><div class="svc-title">${esc(r.title)}</div></td>
-        <td class="inclui">${esc(r.commission_basis||"—")}</td>
+        ${comInc?`<td class="inclui">${esc(r.commission_basis||"—")}</td>`:""}
         <td class="money">${eur(r.price)}</td>
         <td class="money">${Number(r.commission_pct)}%</td>
         <td class="money">${eur(comissaoDe(r))}</td></tr>`).join("")}</tbody>
       <tfoot><tr>
-        <td></td><td>${blocos.length>1 ? `${L.subt} ${n+1}/${blocos.length}` : L.sold}</td><td></td>
+        <td></td><td>${blocos.length>1 ? `${L.subt} ${n+1}/${blocos.length}` : L.sold}</td>${comInc?"<td></td>":""}
         <td class="money">${eur(sBase)}</td>
         <td></td>
         <td class="money">${eur(sCom)}</td>
       </tr></tfoot>
     </table>`; }).join("");
+}
+
+/* -------------------------------------------------- PROFORMA --------- */
+/* Segundo documento da order, pedido dela em setembro/26: o PDF de
+   confirmação continua sendo o que o cliente assina, e este é o que ela
+   manda à agência para pagar. Numeração própria, começando em 159/26 e
+   GRAVADA na order — reabrir o documento não gera outro número.
+   Sai no idioma da order, porque o destino é a agência. */
+async function renderProforma(){
+  const o = ORDER;
+  if(!ITEMS.length) return alert("A order não tem serviço nenhum lançado: a proforma sairia vazia.");
+  const {data:num, error:e1} = await sb.rpc("tl_proforma_no", {p_order: o.id});
+  if(e1 || !num || !num.ok) return alert((e1&&e1.message) || (num&&num.error) || "erro ao numerar a proforma");
+  ORDER.proforma_no = num.no; ORDER.proforma_date = num.date;
+
+  const {data:tm} = await sb.from("ops_text_defaults").select("*").eq("key","proforma_terms").maybeSingle();
+  const idioma = o.lang === "en" ? "en" : "pt";
+  const texto = d => (d && (d[idioma] || d.pt)) || "";
+  const total = ITEMS.reduce((x,r)=>x+(Number(r.price)||0), 0);
+  const dataBR = (d)=>{ const x=String(d||"").slice(0,10).split("-");
+    return x.length===3 ? (idioma==="en" ? `${x[2]}/${x[1]}/${x[0]}` : `${x[2]}/${x[1]}/${x[0]}`) : ""; };
+
+  const L = idioma === "en"
+    ? {tit:"Proforma invoice", sub:"Issued for payment of the services confirmed for this booking.",
+       para:"Bill to", ref:"Reference", per:"Period", pax:"Travellers", no:"Proforma nº", date:"Date",
+       svc:"Service", val:"Amount €", tot:"Total due", pay:"Payment",
+       nota:"This is a proforma invoice, issued for payment purposes. It is not a fiscal document."}
+    : {tit:"Fatura proforma", sub:"Emitida para pagamento dos serviços confirmados desta reserva.",
+       para:"Faturar a", ref:"Referência", per:"Período", pax:"Passageiros", no:"Proforma nº", date:"Data",
+       svc:"Serviço", val:"Valor €", tot:"Total a pagar", pay:"Pagamento",
+       nota:"Documento emitido para fins de pagamento. Não substitui a fattura fiscal."};
+
+  app.innerHTML = `
+  <div class="topbar noprint">
+    <span class="mark">TUSCAN LANDS TRAVEL</span>
+    <span class="sep">·</span><span class="ctx">${L.tit} ${esc(num.no)} · ${esc(o.order_ref||"")}</span>
+    <div class="right">
+      <button id="pf-back">Voltar</button>
+      <button id="pf-print">Imprimir / PDF</button>
+    </div>
+  </div>
+  ${/* Os dados bancários não moravam em lugar nenhum editável: ficariam
+        para sempre com o texto de exemplo da migração. O campo fica aqui,
+        na tela de quem está emitindo, e vale para TODAS as proformas —
+        por isso o aviso. Não sai na impressão. */""}
+  <div class="docpad noprint" style="padding-bottom:0;">
+    <div class="card" style="max-width:820px;margin:0 auto 14px;">
+      <div class="section-title">${idioma==="en"?"Payment and bank details":"Pagamento e dados bancários"}</div>
+      <div class="hint">Vale para <b>todas</b> as proformas, nos dois idiomas — você está editando o
+        <b>${idioma==="en"?"inglês":"português"}</b>, que é o idioma desta order. Em branco, o bloco
+        não sai no documento.</div>
+      <textarea id="pf-terms" rows="7">${esc(texto(tm))}</textarea>
+      <div style="margin-top:8px;"><button class="btn ghost sm" id="pf-terms-save">Guardar</button></div>
+    </div>
+  </div>
+  <div class="docpad"><div class="doc com">
+    <div class="head">
+      <div class="brand">
+        <img class="logo-img" src="${LOGO}" alt="Tuscan Lands"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="logo-text" style="display:none;">TUSCAN LANDS TRAVEL</div>
+        <div class="contact">${COMPANY.legal}<br>${COMPANY.vat}<br>${COMPANY.email}</div>
+      </div>
+      <div class="to">
+        <div class="lbl">${L.no}</div><div class="val">${esc(num.no)}</div>
+        <div class="lbl">${L.date}</div><div class="val">${esc(dataBR(num.date))}</div>
+      </div>
+    </div>
+
+    <h1 class="doctitle">${L.tit}</h1>
+    <div class="intro" style="text-align:left;">${L.sub}</div>
+
+    <div class="meta">
+      <div class="cell"><div class="k">${L.para}</div><div class="v">${esc(o.agency||o.final_client||"—")}</div></div>
+      <div class="cell"><div class="k">${L.ref}</div><div class="v">${esc(o.order_ref||"—")}</div></div>
+      <div class="cell"><div class="k">${L.per}</div><div class="v">${esc(o.travel_window||"—")}</div></div>
+      <div class="cell"><div class="k">${L.pax}</div><div class="v">${esc(o.pax_summary||"—")}</div></div>
+    </div>
+
+    <table class="svc">
+      <thead><tr><th style="width:110px;">${L.date}</th><th>${L.svc}</th>
+        <th class="money" style="width:130px;">${L.val}</th></tr></thead>
+      <tbody>${ITEMS.map(r=>`<tr>
+        <td class="date-cell">${esc(r.service_date||"")}</td>
+        <td><div class="svc-title">${esc(r.title)}</div>
+          ${r.details?`<div class="svc-sub">${fmtDoc(r.details)}</div>`:""}</td>
+        <td class="money">${eur(r.price)}</td></tr>`).join("")}</tbody>
+    </table>
+
+    <div class="total-row"><div class="total-box">
+      <span class="lbl">${L.tot}</span><span class="amt">${eur(total)}</span></div></div>
+
+    ${texto(tm).trim()?`<div class="instr">
+      <div class="blocktitle">${L.pay}</div>
+      <div class="condicoes">${fmtDoc(texto(tm))}</div>
+    </div>`:""}
+
+    <div class="voucher-note" style="margin-top:20px;">${L.nota}</div>
+
+    <div class="foot">
+      <div class="co">TUSCAN LANDS TRAVEL</div>
+      ${COMPANY.legal} · ${COMPANY.vat.replace(" · Pontassieve (FI), Italy","")} · ${COMPANY.email}
+    </div>
+  </div></div>`;
+
+  el("pf-back").onclick = renderEditor;
+  el("pf-print").onclick = () => window.print();
+  el("pf-terms-save").onclick = async (ev)=>{
+    const btn = ev.currentTarget; btn.disabled = true; btn.textContent = "Guardando…";
+    const linha = {key:"proforma_terms", updated_at:new Date().toISOString()};
+    linha[idioma] = el("pf-terms").value;
+    // O outro idioma não se toca: upsert com o objeto inteiro apagaria o par.
+    const outro = idioma === "en" ? "pt" : "en";
+    if(tm && tm[outro] != null) linha[outro] = tm[outro];
+    const {error} = await sb.from("ops_text_defaults").upsert(linha);
+    btn.disabled = false; btn.textContent = "Guardar";
+    if(error) return alert(explicar(error));
+    renderProforma();
+  };
 }
 
 /* -------------------------------------------------- COMISSÃO --------- */
@@ -2342,11 +2468,24 @@ async function renderCommission(){
       <div class="cell"><div class="k">${L.basel}</div><div class="v">${eur(base)}</div></div>
     </div>
 
-    ${montaTabelas([linhas], L)}
+    ${montaTabelas([linhas], L, idioma !== "en")}
 
     <div class="total-row"><div class="total-box">
       <span class="lbl">${L.tot}</span><span class="amt">${eur(total)}</span></div></div>
 
+    ${/* As instruções de emissão são de nota brasileira — prefeitura,
+          CNPJ, cotação do euro, remessa do exterior. Num relatório em
+          inglês elas não servem a ninguém, e saíam em português no meio
+          do documento. Ficam só no relatório em português. Os DADOS para
+          emissão (nome, VAT, endereço) continuam nos dois: a agência
+          precisa deles para faturar em qualquer idioma. */""}
+    ${idioma === "en" ? `
+    <div class="instr">
+      <div class="dadosnf">
+        <div class="blocktitle">${L.bill}</div>
+        <div class="condicoes">${fmtDoc(texto(bt))}</div>
+      </div>
+    </div>` : `
     <div class="proxpag">${L.next}</div>
 
     <div class="instr">
@@ -2357,7 +2496,7 @@ async function renderCommission(){
 
       <div class="blocktitle">${L.how}</div>
       <div class="condicoes">${fmtDoc(texto(tm))}</div>
-    </div>
+    </div>`}
 
     <div class="foot">
       <div class="co">TUSCAN LANDS TRAVEL</div>
@@ -3943,6 +4082,7 @@ function renderEditor(){
       <button class="btn ghost sm" id="ed-preview">Ver como o cliente vê</button>
       ${CONF?`<button class="btn sm" id="ed-sum">Resumo (PDF)</button>`:""}
       <button class="btn ghost sm" id="ed-com">Comissão (PDF)</button>
+      <button class="btn ghost sm" id="ed-pf">Proforma (PDF)${ORDER && ORDER.proforma_no?` · ${esc(ORDER.proforma_no)}`:""}</button>
       <button class="btn ghost sm" id="ed-crm">Venda para o CRM</button>
     </div>
   </div>
@@ -4052,6 +4192,7 @@ function renderEditor(){
   el("ed-del").onclick = deleteOrder;
   if(el("ed-sum")) el("ed-sum").onclick = renderSummary;
   el("ed-com").onclick = renderCommission;
+  el("ed-pf").onclick = renderProforma;
   el("ed-crm").onclick = renderCRM;
   el("it-com").onclick = comissaoPadrao;
   if(el("lk-copy")) el("lk-copy").onclick = () => {

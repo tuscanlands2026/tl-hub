@@ -57,3 +57,4 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0034 | `0034-conserta-as-fotos-da-v2.sql` | conserta as fotos da v2 do catálogo |
 | 0035 | `0035-idioma-da-venda.sql` | a venda em inglês chega inteira: título resolvido no e-mail e na order, e-mail no idioma da proposta, tipo de quarto no lugar do texto de venda, unidades viram linha |
 | 0036 | `0036-modelos-de-proposta.sql` | folha da curadoria (uma ou mais opções), modo de exibição por seção, tarifa net com link separado de valores, e a volta do "selecione a opção aprovada" |
+| 0037 | `0037-proforma-invoice.sql` | proforma invoice da order: número próprio a partir de 159/26, gravado na order, e o texto de pagamento/dados bancários |
