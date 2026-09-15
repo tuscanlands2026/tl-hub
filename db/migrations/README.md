@@ -59,3 +59,4 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0036 | `0036-modelos-de-proposta.sql` | folha da curadoria (uma ou mais opções), modo de exibição por seção, tarifa net com link separado de valores, e a volta do "selecione a opção aprovada" |
 | 0037 | `0037-proforma-invoice.sql` | proforma invoice da order: número próprio a partir de 159/26, gravado na order, e o texto de pagamento/dados bancários |
 | 0038 | `0038-relatorio-em-ingles.sql` | versão inglesa inteira em inglês: instruções de emissão e dados em inglês, e o "Inclusos" com campo próprio (`commission_basis_en`) |
+| 0039 | `0039-proforma-para-baixar.sql` | a proforma sai em PDF pelo servidor, com o link de pagamento clicável: leitura pública pelo token da order, só depois de emitida |
