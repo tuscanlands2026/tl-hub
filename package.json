@@ -2,10 +2,11 @@
   "name": "tl-hub",
   "private": true,
   "version": "1.0.0",
-  "description": "Hub de vendas e operacoes da Tuscan Lands Travel. O app e o index.html, sem build; estas dependencias sao so das funcoes que montam e entregam o PDF da proposta.",
+  "description": "Hub de vendas e operacoes da Tuscan Lands Travel. O app e o index.html, sem build; estas dependencias sao das funcoes que montam o PDF e da que le o material do fornecedor.",
   "dependencies": {
     "@sparticuz/chromium": "131.0.1",
     "puppeteer-core": "23.10.4",
-    "@netlify/blobs": "^8.1.0"
+    "@netlify/blobs": "^8.1.0",
+    "@anthropic-ai/sdk": "^0.126.0"
   }
 }
