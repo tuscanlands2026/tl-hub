@@ -884,6 +884,16 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .fn-linhasub:first-of-type{border-top:none;}
 .fn-salvar{display:flex;align-items:center;gap:10px;margin:20px 0 40px;position:sticky;bottom:0;
   background:linear-gradient(to top,#f6f3f0 60%,rgba(246,243,240,0));padding:14px 0;}
+
+/* mapa e região */
+.fn-barra-reg{grid-template-columns:1.4fr 120px 1fr;align-items:end;gap:10px;}
+.fn-reg{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;align-items:start;}
+.fn-mapa{padding:0;overflow:hidden;}
+.fn-svg{display:block;width:100%;height:auto;}
+.fn-legenda{display:flex;flex-wrap:wrap;gap:5px 14px;font-size:11.5px;padding:10px 14px;border-top:1px solid #e6e3da;}
+.fn-legenda i{display:inline-block;width:9px;height:9px;margin-right:5px;vertical-align:middle;}
+.fn-km{color:var(--fn-escuro);font-weight:500;white-space:nowrap;}
+@media (max-width:1000px){ .fn-reg{grid-template-columns:1fr;} }
 @media (max-width:900px){
   .fn-barra{grid-template-columns:1fr;}
   .fn-linha{grid-template-columns:1fr;gap:2px;}
@@ -1757,7 +1767,9 @@ const MIGRACOES = [
   {id:"0039-proforma-para-baixar",    arq:"0039-proforma-para-baixar.sql",
    oque:"botão Baixar PDF da proforma, com o link de pagamento clicável dentro do arquivo"},
   {id:"0040-fornecedores",            arq:"0040-fornecedores.sql",
-   oque:"módulo de fornecedores: ficha, serviços com net/gross, faixas por pax, quartos, contatos, fotos e o botão de copiar para o CRM"}
+   oque:"módulo de fornecedores: ficha, serviços com net/gross, faixas por pax, quartos, contatos, fotos e o botão de copiar para o CRM"},
+  {id:"0041-business-suite-do-crm",   arq:"0041-business-suite-do-crm.sql",
+   oque:"business suite passa a ser a lista do CRM (seis linhas), e converte o que já estava gravado"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5038,9 +5050,12 @@ const FORN_LISTA = {
              "Transfer / Transport","Venue / Events","Private Chef / Catering","Other"],
   region:   ["Tuscany","Umbria","Lazio","Other"],
   status:   ["Active","To test","In negotiation","Do not use"],
-  suite:    ["Ground Services","TL Selected Stays","TL Signature Programs",
-             "TL Signature Tours and Experiences","VIP Incentive Travel (MICE)",
-             "Private Events & Milestones","Concierge Atelier for hotels in Florence"],
+  /* A LISTA É A DO CRM, palavra por palavra (public.tipos_servico), porque a
+     linha é o elo entre o fornecedor daqui e a venda lá. Correção dela em
+     setembro/26: são seis, e Consultoria não entra — é serviço que a TL
+     vende, não linha em que fornecedor entrega. */
+  suite:    ["TL Selected Stays","TL Signature Experiences","TL Signature Programs",
+             "Concierge","Ground Services","MICE e Exclusive Events"],
   basis:    ["Net","Gross","Not stated"],
   unit:     ["per person","per group (total)","per vehicle","per hour","per night",
              "per room per night","flat fee"],
@@ -5049,11 +5064,22 @@ const FORN_LISTA = {
 };
 /* Abreviação das sete linhas para caber na lista sem virar parede de texto. */
 const SUITE_CURTA = {
-  "Ground Services":"Ground", "TL Selected Stays":"Stays",
-  "TL Signature Programs":"Programs", "TL Signature Tours and Experiences":"Tours",
-  "VIP Incentive Travel (MICE)":"MICE", "Private Events & Milestones":"Events",
+  "TL Selected Stays":"Stays", "TL Signature Experiences":"Experiences",
+  "TL Signature Programs":"Programs", "Concierge":"Concierge",
+  "Ground Services":"Ground", "MICE e Exclusive Events":"MICE"
+};
+/* Arquivo do protótipo e email antigo vêm com os nomes velhos. Converter na
+   importação, não descartar: linha descartada é fornecedor que sai do filtro
+   sem ninguém perceber. */
+const SUITE_ANTIGA = {
+  "TL Signature Tours and Experiences":"TL Signature Experiences",
+  "VIP Incentive Travel (MICE)":"MICE e Exclusive Events",
+  "Private Events & Milestones":"MICE e Exclusive Events",
   "Concierge Atelier for hotels in Florence":"Concierge"
 };
+const suiteValida = arr => [...new Set((arr||[])
+  .map(s => SUITE_ANTIGA[s] || s)
+  .filter(s => FORN_LISTA.suite.includes(s)))];
 /* O que a proposta mostra por padrão (regra 3.3): hotel e restaurante têm
    nome; o resto é a TL entregando, e o fornecedor não aparece. */
 const FORN_REGRA_PADRAO = c =>
@@ -5115,8 +5141,12 @@ async function renderFornecedores(){
       <button class="btn" id="fn-novo">+ Novo</button>
     </div>
     <div class="fn-acoes-lista">
+      <button class="btn ghost sm" id="fn-regiao">Região e mapa</button>
       <button class="btn ghost sm" id="fn-importar">Importar fichas (JSON)</button>
-      <span class="hint">Arquivo do protótipo ou o que eu te mandar pronto.</span>
+      <button class="btn ghost sm" onclick="exportarFornecedores('json',false)">Exportar JSON</button>
+      <button class="btn ghost sm" onclick="exportarFornecedores('csv',false)">Exportar CSV</button>
+      <span class="hint">O CSV sai com uma linha por serviço, para abrir no Excel.
+        Dados bancários não vão em exportação.</span>
     </div>
     <div id="fn-host" class="muted" style="margin-top:18px;">Carregando…</div>
     <div id="fn-form"></div></div>`, "Fornecedores");
@@ -5127,6 +5157,7 @@ async function renderFornecedores(){
   el("fn-suite").onchange = e => { FF.suite = e.target.value; pintarFornecedores(); };
   el("fn-novo").onclick   = () => editarFornecedor(null);
   el("fn-importar").onclick = abrirImportacao;
+  el("fn-regiao").onclick = () => renderRegiao();
   await carregarFornecedores();
 }
 const optsFn = (lista, sel) => `<option value="">Todas</option>` +
@@ -5227,6 +5258,7 @@ function fichaHtml(){
     <div class="fn-botoes">
       <button class="btn ghost sm" onclick="renderFornecedores()">← Lista</button>
       <button class="btn ghost sm" onclick="editarFornecedor('${f.id}')">Editar</button>
+      ${(f.lat!=null&&f.lng!=null)?`<button class="btn ghost sm" onclick="renderRegiao('${f.id}')">Ver o que tem perto</button>`:""}
       ${(f.lat!=null&&f.lng!=null)||f.address?`<button class="btn ghost sm" onclick="abrirNoMaps()">Abrir no Maps</button>`:""}
       <button class="btn ghost sm" onclick="copiarParaCRM()" title="Cria ou atualiza este fornecedor no cadastro do CRM">
         ${f.crm_fornecedor_id?"✓ No CRM":"Copiar para o CRM"}</button>
@@ -6121,7 +6153,7 @@ function fichaDoJson(o){
   const f = {
     name: (o.nome||"").trim(), legal_name: o.nome_legal||null, category: cat,
     subcategories: o.subcategorias||[],
-    business_suite: (o.business_suite||[]).filter(s=>FORN_LISTA.suite.includes(s)),
+    business_suite: suiteValida(o.business_suite),
     status: daLista(o.status, FORN_LISTA.status, DE_PT.status, "To test"),
     region: daLista(o.regiao, FORN_LISTA.region, DE_PT.regiao, null),
     city: o.cidade||null, service_area: o.area_atendimento||null, address: o.endereco||null,
@@ -6373,6 +6405,216 @@ async function mesclarFicha(x){
     if(error) return error;
   }
   return null;
+}
+
+
+/* ============================================= REGIÃO, MAPA E DISTÂNCIA */
+/* O levantamento por região, do protótipo que ela aprovou: mapa esquemático
+   da Itália central, pino por categoria, círculo do raio e a lista do mais
+   perto ao mais longe. Mapa esquemático de propósito — não é para navegar,
+   é para ela bater o olho e ver quem está perto de quem. Rota de verdade é
+   no Google Maps, num clique. */
+const FORN_LUGARES = [
+  ["Firenze",43.7696,11.2558],["Siena",43.3188,11.3308],["Pisa",43.7228,10.4017],
+  ["Lucca",43.8429,10.5027],["Arezzo",43.4633,11.8797],["Montepulciano",43.0925,11.7808],
+  ["Montalcino",43.0567,11.4893],["Pienza",43.0766,11.6790],["San Gimignano",43.4677,11.0432],
+  ["Greve in Chianti",43.5847,11.3175],["Radda in Chianti",43.4853,11.3767],
+  ["Cortona",43.2753,11.9855],["Grosseto",42.7635,11.1124],["Bolgheri",43.2319,10.6103],
+  ["Perugia",43.1107,12.3908],["Assisi",43.0707,12.6196],["Orvieto",42.7185,12.1107],
+  ["Todi",42.7813,12.4071],["Spoleto",42.7340,12.7386],["Roma",41.9028,12.4964],
+  ["Viterbo",42.4207,12.1077],["Tuscania",42.4190,11.8716],["Civitavecchia",42.0924,11.7959],
+  ["Livorno",43.5485,10.3106]
+];
+/* A cor do pino por categoria, nos verdes da casa. */
+const FORN_COR = {"Hotel / Accommodation":"#002500","Winery":"#0a570a","Restaurant":"#4f8a3c",
+  "Experience / Activity":"#595e49","Guide":"#818967","Transfer / Transport":"#6b6860",
+  "Venue / Events":"#a8ad7a","Private Chef / Catering":"#2f4a2f","Other":"#c8c49b"};
+/* Linha da costa, para a mancha do mar dar referência ao olho. */
+const FORN_COSTA = [[44.30,9.70],[44.10,9.82],[43.87,10.25],[43.55,10.31],[43.25,10.53],
+  [42.93,10.50],[42.76,10.88],[42.44,11.21],[42.35,11.55],[42.09,11.79],[41.90,12.05],
+  [41.77,12.23],[41.45,12.63],[41.29,13.25],[41.21,13.57],[41.10,13.85]];
+const MAPA = {n:44.3, s:41.1, w:9.7, e:14.0, W:560, H:566};
+
+/* Haversine: distância em linha reta. Na estrada dá uns 30% mais, e a tela
+   diz isso — número de mapa que ela usa para decidir logística não pode
+   parecer distância de carro. */
+function distKm(la1, ln1, la2, ln2){
+  const R = 6371, r = x => x*Math.PI/180;
+  const dla = r(la2-la1), dln = r(ln2-ln1);
+  const h = Math.sin(dla/2)**2 + Math.cos(r(la1))*Math.cos(r(la2))*Math.sin(dln/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+const temCoord = f => f && isFinite(parseFloat(f.lat)) && isFinite(parseFloat(f.lng));
+let FREG = {centro:null, raio:30, cat:""};
+
+async function renderRegiao(centroDe){
+  if(!FORNS.length) await carregarFornecedores();
+  if(centroDe){
+    const f = FORNS.find(x=>x.id===centroDe) || (FORN && FORN.id===centroDe ? FORN : null);
+    if(f && temCoord(f)) FREG.centro = {tipo:"forn", id:f.id, nome:f.name, lat:+f.lat, lng:+f.lng};
+  }
+  NAV = "fornecedores";
+  shell(`<div class="fn">
+    <div class="fn-topo">
+      <div><div class="overline">Fornecedores</div>
+        <div class="fn-nome">Região e mapa</div>
+        <div class="fn-sub">Quem está perto de onde, para montar o dia sem quilômetro à toa.</div></div>
+      <div class="fn-botoes"><button class="btn ghost sm" onclick="renderFornecedores()">← Lista</button></div>
+    </div>
+    <div class="addbar fn-barra-reg">
+      <div><label>Centro</label><select id="fr-centro">${centroOpts()}</select></div>
+      <div><label>Raio (km)</label><input id="fr-raio" type="number" min="1" max="500" value="${FREG.raio}"></div>
+      <div><label>Categoria</label><select id="fr-cat">${optsFn(FORN_LISTA.category, FREG.cat)}</select></div>
+    </div>
+    <div id="fr-host"></div></div>`, "Fornecedores");
+  el("fr-centro").onchange = e => { lerCentro(e.target.value); pintarRegiao(); };
+  el("fr-raio").oninput    = e => { FREG.raio = Math.max(1, parseInt(e.target.value,10)||30); pintarRegiao(); };
+  el("fr-cat").onchange    = e => { FREG.cat = e.target.value; pintarRegiao(); };
+  pintarRegiao();
+}
+function centroOpts(){
+  const c = FREG.centro || {};
+  const comCoord = FORNS.filter(temCoord).slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const marca = (v) => (c.tipo==="cidade" && v==="c:"+c.nome) || (c.tipo==="forn" && v==="f:"+c.id) ? " selected":"";
+  return `<option value=""${c.lat?"":" selected"}>— só o mapa —</option>`
+    + `<optgroup label="Cidades">${FORN_LUGARES.map(p=>`<option value="c:${esc(p[0])}"${marca("c:"+p[0])}>${esc(p[0])}</option>`).join("")}</optgroup>`
+    + (comCoord.length?`<optgroup label="A partir de um fornecedor">${comCoord.map(f=>
+        `<option value="f:${f.id}"${marca("f:"+f.id)}>${esc(f.name)}</option>`).join("")}</optgroup>`:"");
+}
+function lerCentro(v){
+  if(!v) return FREG.centro = null;
+  if(v.startsWith("c:")){
+    const p = FORN_LUGARES.find(x=>x[0]===v.slice(2));
+    FREG.centro = p ? {tipo:"cidade", nome:p[0], lat:p[1], lng:p[2]} : null;
+  } else {
+    const f = FORNS.find(x=>x.id===v.slice(2));
+    FREG.centro = (f && temCoord(f)) ? {tipo:"forn", id:f.id, nome:f.name, lat:+f.lat, lng:+f.lng} : null;
+  }
+}
+
+function pintarRegiao(){
+  const host = el("fr-host"); if(!host) return;
+  const c = FREG.centro;
+  const pts = FORNS.filter(f=>temCoord(f) && (!FREG.cat || f.category===FREG.cat));
+  const semCoord = FORNS.filter(f=>!temCoord(f));
+  const perto = c ? pts.map(f=>({f, d: distKm(c.lat, c.lng, +f.lat, +f.lng)}))
+                      .filter(x=>x.d <= FREG.raio && x.f.id !== c.id)
+                      .sort((a,b)=>a.d-b.d) : [];
+  host.innerHTML = `<div class="fn-reg">
+    <div class="card fn-bloco fn-mapa">${mapaSvg(pts, c)}
+      <div class="fn-legenda">${FORN_LISTA.category.map(k=>
+        `<span><i style="background:${FORN_COR[k]||FORN_COR.Other}"></i>${esc(k)}</span>`).join("")}
+        <span class="muted">Clique no quadradinho para abrir a ficha.</span></div></div>
+    <div>${c ? `
+      <div class="card fn-bloco">
+        <div class="overline">Até ${FREG.raio} km de</div>
+        <div class="fn-nome" style="font-size:24px;">${esc(c.nome)}</div>
+        ${perto.length?`<table class="list fn-list"><tbody>${perto.map(x=>`<tr onclick="abrirFornecedor('${x.f.id}')">
+          <td><b>${esc(x.f.name)}</b><div class="muted fn-mini">${esc([x.f.category, x.f.city].filter(Boolean).join(" · "))}</div></td>
+          <td class="fn-num fn-km">${x.d < 10 ? x.d.toFixed(1) : Math.round(x.d)} km</td>
+        </tr>`).join("")}</tbody></table>
+        <div class="hint" style="margin-top:8px;">Distância em <b>linha reta</b>. Na estrada, conte
+          uns 30% a mais — de ${Math.round(FREG.raio)} km em linha reta dá perto de
+          ${Math.round(FREG.raio*1.3)} km de estrada.</div>`
+        :`<div class="fn-falta">Nenhum fornecedor dentro de ${FREG.raio} km${FREG.cat?` na categoria ${esc(FREG.cat)}`:""}.</div>`}
+      </div>`
+      :`<div class="card fn-bloco"><div class="section-title">Levantamento por região</div>
+        <div class="hint">Escolha um centro — uma cidade ou um fornecedor — e o raio. A lista sai
+          do mais perto ao mais longe, com o link para abrir no Google Maps.</div></div>`}
+      ${semCoord.length?`<div class="card fn-bloco fn-pend">
+        <div class="section-title">Fora do mapa</div>
+        <div class="hint">${semCoord.length} fornecedor(es) sem coordenada não aparece(m) aqui:
+          ${semCoord.map(f=>`<a href="#" onclick="event.preventDefault();abrirFornecedor('${f.id}')">${esc(f.name)}</a>`).join(" · ")}.
+          Chef, guia e motorista podem ficar sem endereço mesmo — aí o que vale é a área de atendimento.</div>
+      </div>`:""}
+    </div></div>`;
+}
+
+function mapaSvg(pts, c){
+  const {n,s,w,e,W,H} = MAPA;
+  const proj = (la,ln) => [ (ln-w)/(e-w)*W, (n-la)/(n-s)*H ];
+  const costa = FORN_COSTA.map(([a,b])=>proj(a,b));
+  const mar = `M0,0 L${costa[0][0].toFixed(1)},0 `
+    + costa.map(p=>`L${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ")
+    + ` L${costa[costa.length-1][0].toFixed(1)},${H} L0,${H} Z`;
+  let circulo = "";
+  if(c){
+    const [cx,cy] = proj(c.lat, c.lng);
+    /* 1 grau de longitude nesta latitude ≈ 81,6 km: é o que transforma o
+       raio em km no raio do círculo na tela. */
+    const rpx = FREG.raio/((e-w)*81.6)*W;
+    circulo = `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${rpx.toFixed(1)}"
+        fill="#818967" fill-opacity=".10" stroke="#818967" stroke-dasharray="4 3"/>
+      <circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="3.5" fill="#2a2a28"/>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" class="fn-svg" role="img"
+      aria-label="Mapa esquemático da Itália central com os fornecedores">
+    <rect width="${W}" height="${H}" fill="#fff"/>
+    <path d="${mar}" fill="#e6e4d6"/>
+    <text x="34" y="${H/2}" fill="#6b6860" font-size="12" font-style="italic"
+      font-family="Sorts Mill Goudy, serif">Mar Tirreno</text>
+    ${FORN_LUGARES.map(([nm,la,ln])=>{ const [x,y]=proj(la,ln);
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1.6" fill="#6b6860"/>
+        <text x="${(x+4).toFixed(1)}" y="${(y-3).toFixed(1)}" font-size="9.5" fill="#6b6860">${esc(nm)}</text>`;}).join("")}
+    ${circulo}
+    ${pts.map(f=>{ const [x,y]=proj(+f.lat,+f.lng);
+      return `<g onclick="abrirFornecedor('${f.id}')" style="cursor:pointer">
+        <rect x="${(x-4.5).toFixed(1)}" y="${(y-4.5).toFixed(1)}" width="9" height="9"
+          fill="${FORN_COR[f.category]||FORN_COR.Other}" stroke="#fff" stroke-width="1.2"/>
+        <title>${esc(f.name)} · ${esc(f.category)}${f.city?" · "+esc(f.city):""}</title></g>`;}).join("")}
+  </svg>`;
+}
+
+/* ============================================================= EXPORTAR */
+/* JSON para guardar e reimportar; CSV com uma linha por serviço, que é o que
+   abre no Excel e serve para conferir preço em cima da mesa. Dados bancários
+   ficam FORA por padrão: a spec é clara que não vão em exportação, e quem
+   quiser o arquivo completo para guardar marca a caixinha. */
+async function exportarFornecedores(formato, comBanco){
+  const {data, error} = await sb.from("ops_suppliers").select(`*,
+      contatos:ops_supplier_contacts(*),
+      servicos:ops_supplier_services(*, tiers:ops_service_price_tiers(*)),
+      quartos:ops_room_types(*, tarifas:ops_room_rates(*)),
+      fotos:ops_supplier_photos(*)`).order("name");
+  if(error) return recado(explicar(error), true);
+  const lista = (data||[]).map(f=>{ const o = Object.assign({}, f);
+    if(!comBanco) delete o.bank_details;
+    return o; });
+  const dia = new Date().toISOString().slice(0,10);
+  if(formato === "json") return baixarArquivo(`fornecedores-tl-${dia}.json`,
+    JSON.stringify(lista, null, 1), "application/json");
+
+  const col = ["fornecedor","categoria","status","região","cidade","serviço","tipo","preço adulto",
+    "preço criança","base","unidade","faixas (pax:total)","mín pax","máx pax","duração","IVA",
+    "tarifa","business suite","nome na proposta","nome neutro","descrição neutra","pendências"];
+  const linhas = [];
+  lista.forEach(f=>{
+    const base = [f.name, f.category, f.status, f.region||"", f.city||f.service_area||""];
+    const fim = [f.vat_status, f.rate_type||"", (f.business_suite||[]).join("; "), f.name_rule];
+    if(!(f.servicos||[]).length) linhas.push(base.concat(["(sem serviço lançado)","","","","","","","",""],fim,["","",(f.open_points||[]).join("; ")]));
+    (f.servicos||[]).forEach(s=>{
+      linhas.push(base.concat([s.name, s.type||"",
+        s.price_adult==null?"":s.price_adult, s.price_child==null?"":s.price_child,
+        s.price_basis, s.price_unit||"",
+        (s.tiers||[]).slice().sort((a,b)=>a.pax-b.pax).map(t=>`${t.pax}:${t.total_price}`).join(" "),
+        s.min_pax==null?"":s.min_pax, s.max_pax==null?"":s.max_pax, s.duration||""],
+        fim, [s.proposal_name||"", s.proposal_description||"", (f.open_points||[]).join("; ")]));
+    });
+  });
+  const csv = [col].concat(linhas).map(l=>l.map(v=>{
+    const t = v==null ? "" : String(v);
+    return /[";\n]/.test(t) ? '"'+t.replace(/"/g,'""')+'"' : t;
+  }).join(";")).join("\r\n");
+  /* BOM e ponto-e-vírgula: é o que o Excel em português abre sem pedir nada. */
+  baixarArquivo(`fornecedores-tl-${dia}.csv`, "﻿"+csv, "text/csv;charset=utf-8");
+}
+function baixarArquivo(nome, texto, tipo){
+  const b = new Blob([texto], {type: tipo});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(b); a.download = nome;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  recado("Arquivo gerado: " + nome);
 }
 
 /* ==================================================================== */
