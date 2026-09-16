@@ -24,3 +24,4 @@
 [functions."proforma-pdf"]
   external_node_modules = ["@sparticuz/chromium", "puppeteer-core"]
   included_files = []
+
