@@ -145,6 +145,7 @@ export default async (req) => {
       if (!bin || !bin.length) {
         await loja.setJSON(marca, {pronto: true, erro:
           `O anexo "${a.nome || ""}" não chegou inteiro no servidor. Mande de novo.`});
+        await limparPedacos(marca, anexos);
         return new Response("", { status: 202 });
       }
       bytes += bin.length;
@@ -152,6 +153,7 @@ export default async (req) => {
         await loja.setJSON(marca, {pronto: true, erro:
           "Os anexos passam de 20 MB juntos. Mande o tarifário e deixe as fotos para depois — "
           + "foto entra na ficha pelo botão de fotos."});
+        await limparPedacos(marca, anexos);
         return new Response("", { status: 202 });
       }
       const dados = bin.toString("base64");
@@ -164,6 +166,7 @@ export default async (req) => {
         await loja.setJSON(marca, {pronto: true, erro:
           `Não sei ler "${a.nome || ""}". Mande PDF ou imagem (JPG, PNG, WEBP) — `
           + "Word e Excel, salve como PDF antes."});
+        await limparPedacos(marca, anexos);
         return new Response("", { status: 202 });
       }
     }
@@ -186,6 +189,7 @@ export default async (req) => {
       await loja.setJSON(marca, {pronto: true, erro:
         "O modelo respondeu, mas não em JSON. Tente de novo; se repetir, me avise.",
         bruto: bruto.slice(0, 2000)});
+      await limparPedacos(marca, anexos);
       return new Response("", { status: 202 });
     }
     /* O que a leitura custou, em euro, para ela ver na tela. Sonnet 5:
