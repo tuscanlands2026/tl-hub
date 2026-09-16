@@ -24,8 +24,3 @@
 [functions."proforma-pdf"]
   external_node_modules = ["@sparticuz/chromium", "puppeteer-core"]
   included_files = []
-
-# A leitura do material do fornecedor usa o SDK da Anthropic.
-[functions."fornecedor-extrair-background"]
-  external_node_modules = ["@anthropic-ai/sdk"]
-  included_files = []

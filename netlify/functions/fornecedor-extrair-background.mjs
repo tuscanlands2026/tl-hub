@@ -18,8 +18,19 @@
    NÃO GRAVA NADA no banco: devolve o rascunho, e quem decide é ela na
    tela de revisão. IA não salva fornecedor.
    ===================================================================== */
-import Anthropic from "@anthropic-ai/sdk";
 import { getStore } from "@netlify/blobs";
+
+/* POR QUE HTTP PURO E NÃO O SDK DA ANTHROPIC: a primeira versão desta função
+   importava @anthropic-ai/sdk e a publicação morreu em "Install dependencies"
+   com ETARGET — a versão que eu pinei não existe no npm. O registro de
+   pacotes que eu alcanço daqui não é o mesmo que a Netlify alcança, então
+   número de versão que eu leio aqui não é promessa nenhuma lá.
+
+   Uma chamada HTTP não tem esse problema: /v1/messages com a versão da API
+   no cabeçalho é contrato estável e documentado, e o fetch já vem no Node do
+   servidor. Uma dependência a menos é uma publicação que não quebra. */
+const API = "https://api.anthropic.com/v1/messages";
+const VERSAO_API = "2023-06-01";
 
 /* As listas fechadas, iguais às do banco (tl_forn_listas) e às da tela.
    Escritas aqui de novo de propósito: é o prompt que precisa delas, e o
@@ -140,11 +151,10 @@ export default async (req) => {
     }
     blocos.push({type:"text", text: PROMPT + (texto.trim() || "(sem texto colado; o material está nos anexos)")});
 
-    const client = new Anthropic({ apiKey: chave });
     /* Sonnet 5 é o modelo pedido na especificação dela. Esforço médio:
        extração de tarifário é trabalho de leitura, não de raciocínio longo,
        e cada centavo aqui sai do bolso dela. */
-    const resp = await client.messages.create({
+    const resp = await pedir(chave, {
       model: "claude-sonnet-5",
       max_tokens: 16000,
       thinking: { type: "adaptive" },
@@ -179,6 +189,31 @@ export default async (req) => {
     return new Response("", { status: 202 });
   }
 };
+
+/* Uma chamada, e uma rede de segurança: se a API recusar um campo que ela
+   não conhece (um 400 falando do thinking ou do output_config), tenta de novo
+   sem esses dois em vez de devolver erro. O que importa é a ficha sair; o
+   ajuste fino de esforço é acessório. */
+async function pedir(chave, corpo){
+  const bater = async (c) => {
+    const r = await fetch(API, {method:"POST", headers:{
+      "content-type":"application/json", "x-api-key": chave, "anthropic-version": VERSAO_API
+    }, body: JSON.stringify(c)});
+    const t = await r.text();
+    let j = null; try { j = JSON.parse(t); } catch (e) {}
+    return {ok: r.ok, status: r.status, j, t};
+  };
+  let r = await bater(corpo);
+  if(!r.ok && r.status === 400 && /thinking|output_config|effort|unexpected|unrecognized/i.test(r.t||"")){
+    const {thinking, output_config, ...simples} = corpo;
+    r = await bater(simples);
+  }
+  if(!r.ok){
+    const msg = (r.j && r.j.error && r.j.error.message) || r.t || ("HTTP " + r.status);
+    const e = new Error(msg); e.status = r.status; throw e;
+  }
+  return r.j || {};
+}
 
 /* O modelo às vezes embrulha o JSON em cerca de código ou escreve uma frase
    antes. Pega do primeiro { ao último } e tenta. */
