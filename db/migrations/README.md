@@ -61,4 +61,7 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0038 | `0038-relatorio-em-ingles.sql` | versão inglesa inteira em inglês: instruções de emissão e dados em inglês, e o "Inclusos" com campo próprio (`commission_basis_en`) |
 | 0039 | `0039-proforma-para-baixar.sql` | a proforma sai em PDF pelo servidor, com o link de pagamento clicável: leitura pública pelo token da order, só depois de emitida |
 | 0040 | `0040-fornecedores.sql` | módulo de fornecedores: ficha, serviços com net/gross, faixas por pax, quartos e tarifas, contatos, fotos e anexos; listas fechadas por check e ligação opcional com o cadastro do CRM |
+<<<<<<< HEAD
 | 0041 | `0041-business-suite-do-crm.sql` | business suite passa a ser a lista do CRM (seis linhas, sem Consultoria) e converte as fichas já gravadas |
+=======
+>>>>>>> origin/main
