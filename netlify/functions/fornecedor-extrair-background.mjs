@@ -11,6 +11,12 @@
    resultado no Blobs do próprio site; a tela pergunta "ficou pronto?" a
    cada dois segundos. É o mesmo caminho do PDF da proposta, que já roda.
 
+   O PREÇO DISSO: função de fundo é chamada de forma assíncrona, e aí o
+   pedido inteiro tem de caber em 256 KB — dois PDFs somando 627 KB não
+   cabem, e a resposta é um 413 seco. Por isso o anexo não vem mais dentro
+   deste pedido: sobe antes, em pedaços, pela fornecedor-anexo.mjs, e aqui
+   chega só a lista. Quem junta os pedaços é o servidor.
+
    A CHAVE DA ANTHROPIC fica só aqui, nas variáveis de ambiente do site.
    Sem ela a função responde dizendo o que falta, em português — e a tela
    mostra esse recado em vez de um erro seco.
@@ -104,7 +110,7 @@ const LIMITE = 20 * 1024 * 1024;   // o pedido inteiro da API cabe em 32 MB
 
 export default async (req) => {
   const loja = getStore("fornecedor-extracao");
-  let marca = "";
+  let marca = "", anexosVistos = [];
   try {
     const corpo = await req.json();
     marca = String(corpo.marca || "").replace(/[^a-z0-9]/gi, "").slice(0, 40);
@@ -121,8 +127,9 @@ export default async (req) => {
     }
 
     const texto = String(corpo.texto || "").slice(0, 400000);
-    const arquivos = Array.isArray(corpo.arquivos) ? corpo.arquivos.slice(0, 8) : [];
-    if (!texto.trim() && !arquivos.length) {
+    const anexos = Array.isArray(corpo.anexos) ? corpo.anexos.slice(0, 8) : [];
+    anexosVistos = anexos;
+    if (!texto.trim() && !anexos.length) {
       await loja.setJSON(marca, {pronto: true, erro: "Não veio material nenhum para ler."});
       return new Response("", { status: 202 });
     }
@@ -133,21 +140,32 @@ export default async (req) => {
        que é como a API recomenda. */
     let bytes = 0;
     const blocos = [];
-    for (const a of arquivos) {
-      const dados = String(a.dados || "").replace(/^data:[^,]*,/, "").replace(/\s/g, "");
-      if (!dados) continue;
-      bytes += Math.floor(dados.length * 3 / 4);
+    for (const a of anexos) {
+      const bin = await juntarPedacos(marca, a);
+      if (!bin || !bin.length) {
+        await loja.setJSON(marca, {pronto: true, erro:
+          `O anexo "${a.nome || ""}" não chegou inteiro no servidor. Mande de novo.`});
+        return new Response("", { status: 202 });
+      }
+      bytes += bin.length;
       if (bytes > LIMITE) {
         await loja.setJSON(marca, {pronto: true, erro:
           "Os anexos passam de 20 MB juntos. Mande o tarifário e deixe as fotos para depois — "
           + "foto entra na ficha pelo botão de fotos."});
         return new Response("", { status: 202 });
       }
+      const dados = bin.toString("base64");
       const tipo = String(a.tipo || "");
       if (tipo === "application/pdf")
         blocos.push({type:"document", source:{type:"base64", media_type:"application/pdf", data:dados}});
       else if (TIPOS_IMG.includes(tipo))
         blocos.push({type:"image", source:{type:"base64", media_type:tipo, data:dados}});
+      else {
+        await loja.setJSON(marca, {pronto: true, erro:
+          `Não sei ler "${a.nome || ""}". Mande PDF ou imagem (JPG, PNG, WEBP) — `
+          + "Word e Excel, salve como PDF antes."});
+        return new Response("", { status: 202 });
+      }
     }
     blocos.push({type:"text", text: PROMPT + (texto.trim() || "(sem texto colado; o material está nos anexos)")});
 
@@ -177,6 +195,7 @@ export default async (req) => {
     await loja.setJSON(marca, {pronto: true, ficha,
       custo: Math.round(custo*100)/100,
       tokens: {entrada: u.input_tokens||0, saida: u.output_tokens||0}});
+    await limparPedacos(marca, anexos);
     return new Response("", { status: 202 });
   } catch (e) {
     const m = (e && e.message) || String(e);
@@ -186,9 +205,36 @@ export default async (req) => {
         ? "A conta da Anthropic está sem crédito. Adicione crédito em console.anthropic.com → Billing."
         : "Não consegui ler o material: " + m);
     try { await loja.setJSON(marca || "sem-marca", {pronto: true, erro: recado}); } catch (e2) {}
+    try { await limparPedacos(marca, anexosVistos); } catch (e2) {}
     return new Response("", { status: 202 });
   }
 };
+
+/* O arquivo subiu em pedaços de 3 MB (ver fornecedor-anexo.mjs). Aqui eles
+   voltam na ordem e viram um só. Pedaço que falta é erro, não remendo: meia
+   tarifa lida é pior do que tarifa nenhuma. */
+async function juntarPedacos(marca, a){
+  const material = getStore("fornecedor-material");
+  const n = Math.max(1, Math.min(41, parseInt(a.partes, 10) || 1));
+  const partes = [];
+  for (let p = 0; p < n; p++) {
+    const b = await material.get(`${marca}/${a.i}/${p}`, {type: "arrayBuffer"}).catch(() => null);
+    if (!b) return null;
+    partes.push(Buffer.from(b));
+  }
+  return Buffer.concat(partes);
+}
+
+/* Tarifário de fornecedor não fica guardado no servidor depois de lido. */
+async function limparPedacos(marca, anexos){
+  if (!marca || !Array.isArray(anexos) || !anexos.length) return;
+  const material = getStore("fornecedor-material");
+  for (const a of anexos) {
+    const n = Math.max(1, Math.min(41, parseInt(a.partes, 10) || 1));
+    for (let p = 0; p < n; p++)
+      await material.delete(`${marca}/${a.i}/${p}`).catch(() => {});
+  }
+}
 
 /* Uma chamada, e uma rede de segurança: se a API recusar um campo que ela
    não conhece (um 400 falando do thinking ou do output_config), tenta de novo

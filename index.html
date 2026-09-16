@@ -6669,8 +6669,8 @@ function renderProcessar(){
         <span id="fn-recado" class="fn-recado"></span>
       </div>
       <div class="hint" style="margin-top:8px;">O PDF vai inteiro para a leitura, inclusive
-        escaneado. Leva de vinte segundos a um minuto, e custa alguns centavos por ficha —
-        a tela mostra quanto custou.</div>
+        escaneado, até 20 MB de anexo por vez. Leva de vinte segundos a um minuto, e custa
+        alguns centavos por ficha — a tela mostra quanto custou.</div>
     </div>
     <div id="fp-saida"></div></div>`, "Fornecedores");
   el("fp-destino").onchange = e => { FPROC.destino = e.target.value; };
@@ -6688,10 +6688,15 @@ const destinoOpts = () => `<option value="">— criar ficha nova —</option>`
   + FORNS.slice().sort((a,b)=>a.name.localeCompare(b.name))
       .map(f=>`<option value="${f.id}">atualizar: ${esc(f.name)}</option>`).join("");
 
+const TIPOS_LEITURA = ["application/pdf","image/jpeg","image/png","image/gif","image/webp"];
 function juntarArquivos(fl){
   for(const f of Array.from(fl||[])){
-    if(f.type !== "application/pdf" && !/^image\//.test(f.type)){
-      recado(`${f.name} não é PDF nem imagem — não entra na leitura.`, true); continue; }
+    if(!TIPOS_LEITURA.includes(f.type)){
+      /* HEIC do iPhone é o caso comum: o navegador manda o arquivo, e o
+         modelo não lê. Melhor recusar aqui do que gastar a leitura. */
+      recado(`${f.name} não entra na leitura. Vale PDF, JPG, PNG, GIF e WEBP`
+        + (/heic|heif/i.test(f.type+f.name) ? " — foto de iPhone em HEIC, abra e salve como JPG." : "."), true);
+      continue; }
     FPROC.arquivos.push(f);
   }
   el("fp-lista").innerHTML = FPROC.arquivos.length
@@ -6710,17 +6715,18 @@ async function processarMaterial(){
   FPROC.andando = true; recado("Lendo o material… isto leva de vinte segundos a um minuto.");
 
   try{
-    const arquivos = [];
-    for(const f of FPROC.arquivos) arquivos.push({nome:f.name, tipo:f.type, dados: await base64De(f)});
     /* A marca deste pedido. Comparar por relógio não serve: o do navegador
        e o do servidor discordam, e ela poderia receber o resultado da vez
        anterior. */
     const marca = Math.random().toString(36).slice(2) + Date.now().toString(36);
     FPROC.marca = marca;
+    const anexos = await subirAnexos(marca);
+    if(FPROC.marca !== marca) return;
+    recado("Lendo o material… isto leva de vinte segundos a um minuto.");
     const r = await fetch("/api/fornecedor-extrair", {method:"POST",
       headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({marca, texto, arquivos})});
-    if(!r.ok && r.status !== 202) throw new Error(await r.text());
+      body: JSON.stringify({marca, texto, anexos})});
+    if(!r.ok && r.status !== 202) throw new Error(recadoHttp(r.status, await r.text().catch(()=>"")));
     await esperarFicha(marca);
   }catch(e){
     recado("Não consegui mandar o material: " + (e.message||e), true);
@@ -6728,12 +6734,47 @@ async function processarMaterial(){
   FPROC.andando = false;
   const b = el("fp-ir"); if(b){ b.disabled = false; b.textContent = "Processar"; }
 }
-const base64De = f => new Promise((ok,err)=>{
-  const fr = new FileReader();
-  fr.onload = () => ok(String(fr.result).replace(/^data:[^,]*,/, ""));
-  fr.onerror = () => err(new Error("não consegui ler " + f.name));
-  fr.readAsDataURL(f);
-});
+
+/* O ANEXO SOBE ANTES, EM PEDAÇOS.
+   O anexo não vai mais dentro do pedido da leitura: aquele pedido é
+   assíncrono e só aceita 256 KB — dois PDFs de 627 KB voltavam um 413 com
+   o corpo "Error", que foi o erro seco que apareceu na tela. Agora cada
+   arquivo sobe em pedaços de 3 MB, por um pedido normal, e a leitura
+   recebe só a lista do que subiu. */
+const PEDACO = 3 * 1024 * 1024;
+async function subirAnexos(marca){
+  const total = FPROC.arquivos.reduce((a,f)=>a+f.size, 0);
+  if(total > 20*1024*1024)
+    throw new Error("os anexos somam " + Math.round(total/1024/1024) + " MB e o limite é 20 MB. "
+      + "Mande o tarifário e deixe as fotos para depois — foto entra na ficha pelo botão de fotos.");
+  const anexos = [];
+  for(let i=0;i<FPROC.arquivos.length;i++){
+    const f = FPROC.arquivos[i];
+    const partes = Math.max(1, Math.ceil(f.size / PEDACO));
+    for(let p=0;p<partes;p++){
+      if(FPROC.marca !== marca) return anexos;            // ela mandou outro
+      recado(partes>1 ? `Mandando ${f.name} — pedaço ${p+1} de ${partes}…` : `Mandando ${f.name}…`);
+      const r = await fetch(`/api/fornecedor-anexo?marca=${encodeURIComponent(marca)}&i=${i}&p=${p}`,
+        {method:"POST", headers:{"Content-Type":"application/octet-stream"},
+         body: f.slice(p*PEDACO, (p+1)*PEDACO)});
+      if(!r.ok) throw new Error(`${f.name}: ` + recadoHttp(r.status, await r.text().catch(()=>"")));
+    }
+    anexos.push({i, nome:f.name, tipo:f.type||"", partes});
+  }
+  return anexos;
+}
+/* "Error" sozinho não diz nada a quem está usando. Aqui o número do erro
+   vira frase. */
+const recadoHttp = (status, corpo) => {
+  if(status === 413) return "o arquivo é grande demais para subir de uma vez. "
+    + "Mande um anexo por vez, ou salve o PDF em qualidade menor.";
+  if(status === 404) return "o site ainda não tem esta função publicada. "
+    + "Espere a publicação terminar (Deploys, na Netlify) e tente de novo.";
+  let t = "";
+  try{ const j = JSON.parse(corpo); t = j.erro || j.error || ""; }catch(e){ t = String(corpo||"").trim(); }
+  t = t.replace(/\s+/g," ").slice(0,200);
+  return (t && t !== "Error" ? t : "o servidor recusou o envio") + " (erro " + status + ")";
+};
 
 /* Pergunta se ficou pronto a cada dois segundos, por até quatro minutos.
    Tarifário grande demora; desistir em trinta segundos seria jogar fora um
