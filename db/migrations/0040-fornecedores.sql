@@ -171,7 +171,15 @@ create table if not exists ops_room_types (
   id          uuid primary key default gen_random_uuid(),
   supplier_id uuid not null references ops_suppliers(id) on delete cascade,
   name        text not null,
-  size        text,            -- sempre em m² (converter de sq ft)
+  -- METRAGEM EM DOIS MODOS. Ela pediu m² e sq ft juntos: o cliente é
+  -- americano e não faz a conta de cabeça. O texto guarda o que a fonte
+  -- disse ("approx. 22-24 m²", com faixa e tudo), e os dois números são
+  -- o que a tela usa para mostrar as duas unidades — inclusive na faixa
+  -- ("22–24 m² · 237–258 sq ft"). Converter na hora de exibir seria
+  -- refazer a leitura do texto a cada tela.
+  size        text,            -- como a fonte diz, sempre em m²
+  size_m2_min numeric(8,2),
+  size_m2_max numeric(8,2),    -- igual ao min quando não é faixa
   max_occupancy text,
   beds        text,
   view        text,
@@ -180,6 +188,8 @@ create table if not exists ops_room_types (
   highlights  text[] not null default '{}',   -- o que distingue esta categoria
   sort_order  int not null default 0
 );
+comment on column ops_room_types.size_m2_min is
+  'Metragem em m² para a tela mostrar m² e sq ft. Faixa usa min e max; valor único repete nos dois.';
 create index if not exists ops_room_types_sup_idx on ops_room_types (supplier_id, sort_order);
 
 create table if not exists ops_room_rates (
