@@ -807,6 +807,89 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
    IMPRESSÃO — Ctrl+P sai só com o documento. Interface, navegação e
    formulário somem. Vale para o documento do cliente e para o resumo.
    ===================================================================== */
+/* ===================== FORNECEDORES =====================
+   Acento nos verdes da paleta, sem terracota: instrução dela para esta
+   tela. Nada arredondado, como no resto da casa. */
+.fn{--fn-verde:#595e49;--fn-escuro:#0a570a;--fn-medio:#818967;--fn-claro:#c8c49b;}
+.fn .overline{color:var(--fn-verde);}
+.fn .rule{background:var(--fn-verde);}
+.fn .section-title{color:var(--fn-verde);letter-spacing:.14em;}
+.fn-barra{grid-template-columns:1.4fr 1fr 1fr 1fr 1fr auto;align-items:end;gap:10px;}
+.fn-acoes-lista{display:flex;align-items:center;gap:10px;margin-top:10px;}
+.fn-list tbody tr{cursor:pointer;}
+.fn-list tbody tr:hover{background:#f7f7f3;}
+.fn-mini{font-size:11.5px;line-height:1.5;}
+.fn-falta{font-size:11.5px;color:#9a5b2e;font-weight:500;}
+.fn-num{text-align:right;font-variant-numeric:tabular-nums;}
+.fn-tag{display:inline-block;border:1px solid var(--fn-claro);background:#f6f7f1;
+  color:var(--fn-verde);font-size:10.5px;letter-spacing:.06em;padding:2px 6px;margin:1px 3px 1px 0;}
+.fn-st{font-size:11px;letter-spacing:.06em;padding:2px 7px;border:1px solid #ddd;white-space:nowrap;}
+.fn-st-active{border-color:var(--fn-escuro);color:var(--fn-escuro);background:#f1f7f1;}
+.fn-st-totest{border-color:var(--fn-medio);color:var(--fn-medio);}
+.fn-st-innegotiation{border-color:#b8860b;color:#8a6508;background:#fdf8ec;}
+.fn-st-donotuse{border-color:#b0392c;color:#b0392c;background:#fbf1f0;}
+
+.fn-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;}
+.fn-nome{font-family:"Sorts Mill Goudy",Georgia,serif;font-size:30px;line-height:1.15;color:#2a2a28;}
+.fn-sub{font-size:13px;color:#6b6860;margin-top:4px;}
+.fn-botoes{display:flex;gap:6px;flex-wrap:wrap;}
+.fn-del{color:#b0392c;border-color:#e0c9c5;}
+.fn-recado{display:block;min-height:18px;font-size:12.5px;margin:10px 0;}
+.fn-recado-ok{color:var(--fn-escuro);}
+.fn-recado-err{color:#b0392c;font-weight:500;}
+.fn-bloco{margin-top:16px;}
+.fn-pend{margin-top:16px;border-left:3px solid #b8860b;}
+.fn-pend .section-title{color:#8a6508;}
+.fn-linha{display:grid;grid-template-columns:190px 1fr;gap:12px;padding:6px 0;border-top:1px solid #efece6;}
+.fn-linha:first-of-type{border-top:none;}
+.fn-rot{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--fn-medio);padding-top:3px;}
+.fn-val{font-size:13.5px;line-height:1.6;white-space:pre-wrap;}
+.fn-banco{border-left:2px solid var(--fn-claro);padding-left:10px;}
+.fn-ul{margin:4px 0 4px 18px;padding:0;}
+.fn-ul li{font-size:13px;line-height:1.6;}
+.fn-item{border-top:1px solid #efece6;padding:12px 0;}
+.fn-item-topo{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+.fn-item-acoes{display:flex;gap:5px;flex-wrap:wrap;}
+.fn-desc{font-size:13.5px;line-height:1.65;margin:5px 0;max-width:70ch;}
+.fn-preco{font-size:14px;margin-top:3px;}
+.fn-basis{font-size:10.5px;letter-spacing:.1em;color:var(--fn-escuro);}
+.fn-basis.fraca{color:#9a5b2e;font-weight:400;}
+.fn-campos{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:#6b6860;margin:4px 0;}
+.fn-inclui,.fn-item .fn-mini{font-size:12px;line-height:1.55;margin:3px 0;}
+.fn-faixas summary{cursor:pointer;font-size:12px;color:var(--fn-verde);margin:6px 0;}
+.fn-tar{margin:4px 0 0;}
+.fn-tar td,.fn-tar th{padding:4px 8px;font-size:12px;}
+.fn-neutro,.fn-neutro-ed{border-left:2px solid var(--fn-claro);padding:8px 0 8px 12px;margin-top:8px;background:#fafbf6;}
+.fn-suites{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:4px 14px;}
+.fn-check{display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;
+  text-transform:none;letter-spacing:normal;color:#2a2a28;font-weight:400;margin:0;}
+.fn-check span{text-transform:none;letter-spacing:normal;font-size:13px;color:#2a2a28;}
+.fn-check input{width:15px;height:15px;accent-color:var(--fn-escuro);}
+.fn-regra{font-size:13px;line-height:1.6;padding:8px 10px;border-left:3px solid var(--fn-medio);background:#f7f7f3;}
+.fn-regra-on{border-left-color:var(--fn-escuro);}
+.fn-regra-off{border-left-color:var(--fn-medio);}
+.fn-fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;}
+.fn-foto{border:1px solid #e6e3da;background:#fff;}
+.fn-foto img{width:100%;height:130px;object-fit:cover;display:block;}
+.fn-foto-erro{height:130px;display:flex;align-items:center;justify-content:center;
+  font-size:11.5px;color:#9a9a92;background:#f4f2ec;}
+.fn-foto-pe{padding:7px 8px;display:flex;flex-direction:column;gap:5px;}
+.fn-cap{font-size:12px;padding:3px 5px;}
+.fn-addfoto{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;}
+.fn-addfoto input[type=text],.fn-addfoto input:not([type]){flex:1 1 320px;}
+.fn-lbl{position:relative;overflow:hidden;cursor:pointer;}
+.fn-lbl input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.fn-campo{margin-bottom:10px;}
+.fn-linhasub{border-top:1px solid #efece6;padding:14px 0;}
+.fn-linhasub:first-of-type{border-top:none;}
+.fn-salvar{display:flex;align-items:center;gap:10px;margin:20px 0 40px;position:sticky;bottom:0;
+  background:linear-gradient(to top,#f6f3f0 60%,rgba(246,243,240,0));padding:14px 0;}
+@media (max-width:900px){
+  .fn-barra{grid-template-columns:1fr;}
+  .fn-linha{grid-template-columns:1fr;gap:2px;}
+  .fn-nome{font-size:24px;}
+}
+
 @media print{
   @page{margin:14mm;}
   body{background:#fff;}
@@ -1672,7 +1755,9 @@ const MIGRACOES = [
   {id:"0038-relatorio-em-ingles",     arq:"0038-relatorio-em-ingles.sql",
    oque:"relatório de comissão inteiro em inglês: instruções, dados e o Inclusos com par em inglês"},
   {id:"0039-proforma-para-baixar",    arq:"0039-proforma-para-baixar.sql",
-   oque:"botão Baixar PDF da proforma, com o link de pagamento clicável dentro do arquivo"}
+   oque:"botão Baixar PDF da proforma, com o link de pagamento clicável dentro do arquivo"},
+  {id:"0040-fornecedores",            arq:"0040-fornecedores.sql",
+   oque:"módulo de fornecedores: ficha, serviços com net/gross, faixas por pax, quartos, contatos, fotos e o botão de copiar para o CRM"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -1778,6 +1863,7 @@ const NAVMAP = {
     {k:"orders",        rotulo:"Orders",        ir:()=>renderApp()}
   ]},
   operacoes: {rotulo:"Operações", itens:[
+    {k:"fornecedores", rotulo:"Fornecedores", ir:()=>renderFornecedores()},
     {k:"catalogo",  rotulo:"Catálogo",  ir:()=>renderCatalogo()},
     {k:"checklist", rotulo:"Checklist", breve:true}
   ]}
@@ -1919,11 +2005,12 @@ async function renderPainel(){
   </div></div>`;
   el("tb-out").onclick = async () => { await sb.auth.signOut(); renderLogin(); };
 
-  const [{data:board},{data:props},{data:ords},{data:cat}] = await Promise.all([
+  const [{data:board},{data:props},{data:ords},{data:cat},{data:fn}] = await Promise.all([
     sb.from("ops_opportunities_board").select("*"),
     sb.from("ops_proposals_box").select("situacao"),
     sb.from("ops_orders").select("id,status"),
-    sb.from("ops_catalog").select("id,active")
+    sb.from("ops_catalog").select("id,active"),
+    sb.from("ops_suppliers").select("id,lat,lng")
   ]);
   const b = board||[], pr = props||[], od = ords||[], ct = cat||[];
 
@@ -1952,12 +2039,20 @@ async function renderPainel(){
        pede nada a ninguém — é o banco de onde ela puxa. */
     + caixa("Catálogo",      ct.filter(c=>c.active!==false).length, null,
             "Hospedagens, transfers e experiências", "catalogo")
+    /* Fornecedores também não pede nada a ninguém: é banco de consulta.
+       O número que importa é o de fichas sem localização, que somem da
+       busca por região sem avisar. */
+    + caixa("Fornecedores",  (fn||[]).length, null,
+            ((fn||[]).filter(f=>f.lat==null||f.lng==null).length
+              ? (fn||[]).filter(f=>f.lat==null||f.lng==null).length + " sem localização"
+              : "Quem presta o serviço e o que cobra"), "fornecedores")
     + caixa("Checklist",     "—",        null,      "Depois do checkout. Em breve", null);
 
   app.querySelectorAll(".caixa[data-ir]").forEach(c=>c.onclick=()=>{
     const ir = c.dataset.ir;
     if(ir==="orders") renderApp();
     else if(ir==="catalogo") renderCatalogo();
+    else if(ir==="fornecedores") renderFornecedores();
     else renderOpportunities();
   });
 }
@@ -4914,6 +5009,1370 @@ async function duplicateOrder(){
   btn.disabled = false; btn.textContent = "Duplicar";
   if(erros.length) alert("A cópia foi criada, mas parte do conteúdo não veio:\n"+erros.join("\n"));
   openOrder(novo.id);
+}
+
+/* ====================================================================
+   FORNECEDORES
+   Spec de setembro/26. Antes disto os fornecedores dela moravam na
+   memória, no Google Maps e em emails — e o CRM só guardava nome e
+   telefone de quem ela já usa no Booking.
+
+   Três regras que estão no código e não em manual:
+
+   1) O CONTEÚDO É EM INGLÊS. A ficha inteira, inclusive legenda de foto,
+      destaques e tags: é o que vai para proposta. A TELA é em português,
+      porque quem preenche é ela.
+
+   2) O NOME DO FORNECEDOR NÃO VAI PARA A PROPOSTA por padrão — só hotel e
+      restaurante mostram. Por isso todo serviço tem bloco neutro, e é ele
+      que o botão de copiar usa quando o nome está escondido. Link de foto
+      e endereço do site NUNCA saem no texto copiado: é por eles que o
+      cliente acha o fornecedor no Google.
+
+   3) NET OU GROSS ANDA COLADO NO PREÇO na tela. "€ 33" sozinho não diz se
+      sobra margem; "€ 33 · NET" diz. Sem base declarada aparece
+      "basis not stated", e não um net presumido.
+   ==================================================================== */
+const FORN_LISTA = {
+  category: ["Hotel / Accommodation","Winery","Restaurant","Experience / Activity","Guide",
+             "Transfer / Transport","Venue / Events","Private Chef / Catering","Other"],
+  region:   ["Tuscany","Umbria","Lazio","Other"],
+  status:   ["Active","To test","In negotiation","Do not use"],
+  suite:    ["Ground Services","TL Selected Stays","TL Signature Programs",
+             "TL Signature Tours and Experiences","VIP Incentive Travel (MICE)",
+             "Private Events & Milestones","Concierge Atelier for hotels in Florence"],
+  basis:    ["Net","Gross","Not stated"],
+  unit:     ["per person","per group (total)","per vehicle","per hour","per night",
+             "per room per night","flat fee"],
+  vat:      ["included","excluded","exempt","not stated"],
+  rule:     ["Show supplier name","Hide supplier name"]
+};
+/* Abreviação das sete linhas para caber na lista sem virar parede de texto. */
+const SUITE_CURTA = {
+  "Ground Services":"Ground", "TL Selected Stays":"Stays",
+  "TL Signature Programs":"Programs", "TL Signature Tours and Experiences":"Tours",
+  "VIP Incentive Travel (MICE)":"MICE", "Private Events & Milestones":"Events",
+  "Concierge Atelier for hotels in Florence":"Concierge"
+};
+/* O que a proposta mostra por padrão (regra 3.3): hotel e restaurante têm
+   nome; o resto é a TL entregando, e o fornecedor não aparece. */
+const FORN_REGRA_PADRAO = c =>
+  (c === "Hotel / Accommodation" || c === "Restaurant") ? "Show supplier name" : "Hide supplier name";
+
+let FORNS = [], FORN = null, FEDIT = null, FIMP = null;
+let FQ = "", FF = {cat:"", reg:"", st:"", suite:""};
+
+/* ------------------------------------------------- medidas nos dois modos */
+/* Ela pediu m² e sq ft juntos: o cliente é americano e não converte de
+   cabeça. Faixa sai como faixa nas duas unidades. */
+const sqft = m2 => Math.round(Number(m2) * 10.7639);
+function medida(min, max){
+  if(min == null || min === "") return "";
+  const a = Number(min), b = (max == null || max === "") ? a : Number(max);
+  const n = x => (Math.round(x*10)/10).toString().replace(/\.0$/,"");
+  return (a === b)
+    ? `${n(a)} m² · ${sqft(a)} sq ft`
+    : `${n(a)}–${n(b)} m² · ${sqft(a)}–${sqft(b)} sq ft`;
+}
+/* Distância: km para ela procurar, milha entre parênteses para o texto que
+   vai ao cliente. */
+const km2mi = km => Math.round(Number(km) * 0.621371);
+
+/* --------------------------------------------------- preço com a marcação */
+const eurNum = v => (v == null || v === "") ? "" :
+  "€ " + Number(v).toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:2});
+const BASIS_CURTA = {"Net":"NET","Gross":"GROSS","Not stated":"basis not stated"};
+function precoDoServico(s){
+  const p = [];
+  if(s.price_adult != null) p.push(eurNum(s.price_adult) + " adult");
+  if(s.price_child != null) p.push(eurNum(s.price_child) + " child");
+  if(!p.length && (s.tiers||[]).length){
+    const t = (s.tiers||[]).slice().sort((a,b)=>a.pax-b.pax);
+    p.push(`${eurNum(t[0].total_price)} (${t[0].pax} pax) → ${eurNum(t[t.length-1].total_price)} (${t[t.length-1].pax} pax)`);
+  }
+  if(!p.length) return `<span class="muted">${esc(s.price_notes||"sem preço lançado")}</span>`;
+  const marca = BASIS_CURTA[s.price_basis] || "basis not stated";
+  const forte = s.price_basis === "Net" || s.price_basis === "Gross";
+  return `${esc(p.join(" · "))} · <b class="fn-basis${forte?"":" fraca"}">${esc(marca)}</b>`
+    + (s.price_unit?` <span class="muted">${esc(s.price_unit)}</span>`:"");
+}
+
+/* ================================================================= LISTA */
+async function renderFornecedores(){
+  NAV = "fornecedores"; FORN = null; FEDIT = null; FIMP = null;
+  shell(`<div class="fn">
+    <div class="overline">Fornecedores</div><div class="rule"></div>
+    <div class="hint" style="margin-bottom:16px;">Quem presta o serviço, o que cobra e em que
+      condições. O conteúdo da ficha é em <b>inglês</b>, porque é dele que sai a proposta.
+      O custo mora aqui; margem, comissão e IVA são da proposta.</div>
+    <div class="addbar fn-barra">
+      <div><label>Buscar</label><input id="fn-q" value="${esc(FQ)}"
+        placeholder="nome, cidade, serviço, contato…"></div>
+      <div><label>Categoria</label><select id="fn-cat">${optsFn(FORN_LISTA.category, FF.cat)}</select></div>
+      <div><label>Região</label><select id="fn-reg">${optsFn(FORN_LISTA.region, FF.reg)}</select></div>
+      <div><label>Status</label><select id="fn-st">${optsFn(FORN_LISTA.status, FF.st)}</select></div>
+      <div><label>Business suite</label><select id="fn-suite">${optsFn(FORN_LISTA.suite, FF.suite)}</select></div>
+      <button class="btn" id="fn-novo">+ Novo</button>
+    </div>
+    <div class="fn-acoes-lista">
+      <button class="btn ghost sm" id="fn-importar">Importar fichas (JSON)</button>
+      <span class="hint">Arquivo do protótipo ou o que eu te mandar pronto.</span>
+    </div>
+    <div id="fn-host" class="muted" style="margin-top:18px;">Carregando…</div>
+    <div id="fn-form"></div></div>`, "Fornecedores");
+  el("fn-q").oninput      = e => { FQ = e.target.value; pintarFornecedores(); };
+  el("fn-cat").onchange   = e => { FF.cat = e.target.value; pintarFornecedores(); };
+  el("fn-reg").onchange   = e => { FF.reg = e.target.value; pintarFornecedores(); };
+  el("fn-st").onchange    = e => { FF.st = e.target.value; pintarFornecedores(); };
+  el("fn-suite").onchange = e => { FF.suite = e.target.value; pintarFornecedores(); };
+  el("fn-novo").onclick   = () => editarFornecedor(null);
+  el("fn-importar").onclick = abrirImportacao;
+  await carregarFornecedores();
+}
+const optsFn = (lista, sel) => `<option value="">Todas</option>` +
+  lista.map(v=>`<option value="${esc(v)}"${sel===v?" selected":""}>${esc(v)}</option>`).join("");
+
+/* A busca varre nome, cidade, serviço e contato — ela lembra do fornecedor
+   pelo que ele faz ("aquele do sidecar"), não pela razão social. Por isso a
+   consulta já desce com serviços e contatos: buscar no banco a cada letra
+   digitada seria uma consulta por tecla. */
+async function carregarFornecedores(){
+  const host = el("fn-host"); if(!host) return;
+  const {data, error} = await sb.from("ops_suppliers")
+    .select("*, servicos:ops_supplier_services(id,name,type), contatos:ops_supplier_contacts(id,name,email)")
+    .order("name");
+  if(error) return host.innerHTML = `<div class="msg">${esc(explicar(error))}</div>`;
+  FORNS = data || [];
+  pintarFornecedores();
+}
+
+function pintarFornecedores(){
+  const host = el("fn-host"); if(!host) return;
+  const t = FQ.trim().toLowerCase();
+  const casa = f => !t || [f.name, f.legal_name, f.city, f.region, f.service_area,
+      (f.tags||[]).join(" "), (f.subcategories||[]).join(" "),
+      (f.servicos||[]).map(s=>s.name+" "+(s.type||"")).join(" "),
+      (f.contatos||[]).map(c=>(c.name||"")+" "+(c.email||"")).join(" ")]
+    .join(" ").toLowerCase().includes(t);
+  const lista = FORNS.filter(f => casa(f)
+    && (!FF.cat   || f.category === FF.cat)
+    && (!FF.reg   || f.region === FF.reg)
+    && (!FF.st    || f.status === FF.st)
+    && (!FF.suite || (f.business_suite||[]).includes(FF.suite)));
+
+  if(!FORNS.length) return host.innerHTML = `<div class="muted">Nenhum fornecedor ainda.
+    Clique em <b>+ Novo</b> para preencher à mão, ou em <b>Importar fichas</b> se você já tem o arquivo.</div>`;
+  if(!lista.length) return host.innerHTML = `<div class="muted">Nada com esse filtro.
+    ${FORNS.length} fornecedor(es) no total.</div>`;
+
+  host.innerHTML = `<div class="hint" style="margin-bottom:8px;">${lista.length} de ${FORNS.length}</div>
+    <table class="list fn-list"><thead><tr>
+      <th>Fornecedor</th><th style="width:150px;">Categoria</th><th style="width:150px;">Onde</th>
+      <th>Business suite</th><th style="width:120px;">Status</th></tr></thead><tbody>
+    ${lista.map(f=>`<tr onclick="abrirFornecedor('${f.id}')">
+      <td><b>${esc(f.name)}</b>
+        ${(f.servicos||[]).length?`<div class="muted fn-mini">${esc((f.servicos||[]).map(s=>s.name).slice(0,3).join(" · "))}${(f.servicos||[]).length>3?" …":""}</div>`:
+          `<div class="fn-falta">sem serviço lançado</div>`}</td>
+      <td class="muted">${esc(f.category)}</td>
+      <td class="muted">${esc(f.city || f.service_area || "—")}
+        ${(f.lat==null||f.lng==null)?`<div class="fn-falta">sem localização</div>`:
+          (f.coords_approximate?`<div class="muted fn-mini">coordenada aproximada</div>`:"")}</td>
+      <td>${(f.business_suite||[]).map(s=>`<span class="fn-tag">${esc(SUITE_CURTA[s]||s)}</span>`).join("")
+            || `<span class="fn-falta">nenhuma linha marcada</span>`}</td>
+      <td><span class="fn-st fn-st-${esc((f.status||"").replace(/[^a-z]/gi,"").toLowerCase())}">${esc(f.status)}</span></td>
+    </tr>`).join("")}</tbody></table>`;
+}
+
+/* ================================================================= FICHA */
+/* Uma consulta só, com os filhos embutidos: a ficha abre inteira ou não
+   abre. Meia ficha na tela é ela decidindo com metade da informação. */
+async function abrirFornecedor(id){
+  FEDIT = null;
+  const {data, error} = await sb.from("ops_suppliers").select(`*,
+      contatos:ops_supplier_contacts(*),
+      servicos:ops_supplier_services(*, tiers:ops_service_price_tiers(*)),
+      quartos:ops_room_types(*, tarifas:ops_room_rates(*)),
+      fotos:ops_supplier_photos(*),
+      anexos:ops_supplier_files(*)`).eq("id", id).single();
+  if(error) return alert(explicar(error));
+  FORN = data;
+  ["contatos","fotos","anexos"].forEach(k => (FORN[k]||[]).sort(ordem));
+  (FORN.servicos||[]).sort(ordem).forEach(s => (s.tiers||[]).sort((a,b)=>a.pax-b.pax));
+  (FORN.quartos||[]).sort(ordem).forEach(q => (q.tarifas||[]).sort(ordem));
+  shell(fichaHtml(), "Fornecedores");
+}
+const ordem = (a,b) => (a.sort_order||0) - (b.sort_order||0) ||
+  String(a.name||a.created_at||"").localeCompare(String(b.name||b.created_at||""));
+
+function fichaHtml(){
+  const f = FORN;
+  const mostra = f.name_rule === "Show supplier name";
+  const bloco = (titulo, corpo, extra) => corpo
+    ? `<div class="card fn-bloco"><div class="section-title">${titulo}${extra||""}</div>${corpo}</div>` : "";
+  const linha = (rot, val) => (val == null || val === "" || (Array.isArray(val) && !val.length))
+    ? "" : `<div class="fn-linha"><div class="fn-rot">${rot}</div><div class="fn-val">${
+        Array.isArray(val) ? val.map(v=>esc(v)).join(" · ") : esc(val)}</div></div>`;
+  const listaUl = arr => (arr||[]).length
+    ? `<ul class="fn-ul">${arr.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>` : "";
+
+  return `<div class="fn">
+  <div class="fn-topo">
+    <div>
+      <div class="overline">${esc(f.category)}</div>
+      <div class="fn-nome">${esc(f.name)}</div>
+      ${f.legal_name?`<div class="muted">${esc(f.legal_name)}</div>`:""}
+      <div class="fn-sub">${[f.city, f.region, f.service_area].filter(Boolean).map(esc).join(" · ")||"—"}
+        · <span class="fn-st fn-st-${esc((f.status||"").replace(/[^a-z]/gi,"").toLowerCase())}">${esc(f.status)}</span></div>
+    </div>
+    <div class="fn-botoes">
+      <button class="btn ghost sm" onclick="renderFornecedores()">← Lista</button>
+      <button class="btn ghost sm" onclick="editarFornecedor('${f.id}')">Editar</button>
+      ${(f.lat!=null&&f.lng!=null)||f.address?`<button class="btn ghost sm" onclick="abrirNoMaps()">Abrir no Maps</button>`:""}
+      <button class="btn ghost sm" onclick="copiarParaCRM()" title="Cria ou atualiza este fornecedor no cadastro do CRM">
+        ${f.crm_fornecedor_id?"✓ No CRM":"Copiar para o CRM"}</button>
+      <button class="btn ghost sm fn-del" onclick="excluirFornecedor()">Excluir</button>
+    </div>
+  </div>
+  <div id="fn-recado" class="fn-recado"></div>
+
+  ${(f.open_points||[]).length?`<div class="card fn-pend">
+    <div class="section-title">Pendências — confirmar com o fornecedor</div>
+    ${listaUl(f.open_points)}</div>`:""}
+
+  ${/* A suite marca aqui mesmo, sem abrir edição: instrução dela. Marcar é
+        um clique e salva na hora. */""}
+  <div class="card fn-bloco"><div class="section-title">Business suite</div>
+    <div class="hint" style="margin-bottom:8px;">Onde este fornecedor pode ser usado. Marca e salva na hora.</div>
+    <div class="fn-suites">${FORN_LISTA.suite.map(s=>`
+      <label class="fn-check"><input type="checkbox" ${(f.business_suite||[]).includes(s)?"checked":""}
+        onchange="marcarSuite(this, ${JSON.stringify(s).replace(/"/g,"&quot;")})"> <span>${esc(s)}</span></label>`).join("")}</div>
+  </div>
+
+  <div class="card fn-bloco"><div class="section-title">Nome na proposta</div>
+    <div class="fn-regra ${mostra?"fn-regra-on":"fn-regra-off"}">
+      <b>${mostra?"O nome do fornecedor aparece na proposta.":"O nome do fornecedor NÃO aparece na proposta."}</b>
+      ${mostra?"Hotel e restaurante o cliente precisa saber qual é."
+             :"O que vai para a proposta é o bloco neutro de cada serviço, abaixo."}
+    </div>
+    <div class="hint" style="margin-top:6px;">Troca em Editar. Link de foto e endereço do site nunca
+      saem no texto copiado, em nenhuma das duas opções.</div>
+  </div>
+
+  ${bloco("Onde", linha("Endereço", f.address) + linha("Cidade", f.city) + linha("Região", f.region)
+      + linha("Área de atendimento", f.service_area)
+      + (f.lat!=null&&f.lng!=null ? linha("Coordenada", `${f.lat}, ${f.lng}${f.coords_approximate?" (aproximada)":""}`)
+                                  : `<div class="fn-falta">Sem coordenada: este fornecedor não aparece na busca por região.</div>`)
+      + linha("Site", f.website) + linha("Instagram", f.instagram))}
+
+  ${bloco("Comercial", linha("Tipo de tarifa", f.rate_type) + linha("Comissão do fornecedor", f.supplier_commission)
+      + linha("IVA", f.vat_status) + linha("Tarifas válidas para", f.rates_valid_for)
+      + linha("Idiomas", f.languages) + linha("Pagamento", f.payment_terms)
+      + linha("Reserva", f.booking_terms) + linha("Cancelamento", f.cancellation_policy)
+      + linha("Capacidades", f.capacities)
+      + (f.bank_details?`<div class="fn-linha"><div class="fn-rot">Dados bancários</div>
+          <div class="fn-val fn-banco">${esc(f.bank_details)}
+          <div class="hint">Só aqui. Não sai em proposta nem em exportação.</div></div></div>`:""))}
+
+  ${(f.accommodation_summary||f.accommodation_notes||(f.quartos||[]).length)?`
+  <div class="card fn-bloco"><div class="section-title">Hospedagem</div>
+    ${linha("Unidades", f.accommodation_summary)}
+    ${f.accommodation_notes?`<div class="fn-linha"><div class="fn-rot">Em todos os quartos</div>
+      <div class="fn-val">${esc(f.accommodation_notes)}</div></div>`:""}
+    ${(f.quartos||[]).map(q=>`<div class="fn-item">
+      <div class="fn-item-topo">
+        <div><b>${esc(q.name)}</b>
+          <span class="muted">${[medida(q.size_m2_min,q.size_m2_max)||q.size, q.max_occupancy, q.beds, q.view, q.units?("× "+q.units):""]
+            .filter(Boolean).map(esc).join(" · ")}</span></div>
+        <div class="fn-item-acoes">
+          <button class="btn ghost sm" onclick="copiarQuarto('${q.id}','en')">Copiar EN</button>
+          <button class="btn ghost sm" onclick="copiarQuarto('${q.id}','pt')">Copiar PT</button>
+        </div>
+      </div>
+      ${q.description?`<div class="fn-desc">${esc(q.description)}</div>`:""}
+      ${listaUl(q.highlights)}
+      ${(q.tarifas||[]).length?`<table class="list fn-tar"><tbody>${q.tarifas.map(t=>`<tr>
+        <td>${esc([t.season,t.dates].filter(Boolean).join(" · ")||"—")}</td>
+        <td>${esc(t.board||"—")}</td>
+        <td class="fn-num">${t.price!=null?eurNum(t.price):"—"} <b class="fn-basis${t.price_basis==="Not stated"?" fraca":""}">${esc(BASIS_CURTA[t.price_basis]||"")}</b>
+          <span class="muted">${esc(t.price_unit||"")}</span></td></tr>`).join("")}</tbody></table>`
+        :`<div class="fn-falta">Sem tarifa lançada.</div>`}
+    </div>`).join("")}
+  </div>`:""}
+
+  ${(f.servicos||[]).length?`<div class="card fn-bloco"><div class="section-title">Serviços e preços</div>
+    ${(f.servicos||[]).map(s=>servicoHtml(s, mostra)).join("")}</div>`:
+    `<div class="card fn-bloco"><div class="section-title">Serviços e preços</div>
+      <div class="fn-falta">Nenhum serviço lançado. Sem serviço a ficha não serve para proposta.</div></div>`}
+
+  <div class="card fn-bloco"><div class="section-title">Fotos</div>
+    <div class="hint" style="margin-bottom:8px;">Cole o link (Drive, site, qualquer um) e clique em
+      <b>Trazer para o Hub</b>: o arquivo passa a ser seu e não depende do link continuar de pé.
+      O endereço de origem fica só aqui — nunca sai no texto que vai para o cliente.</div>
+    <div class="fn-fotos">${(f.fotos||[]).map(fotoHtml).join("") ||
+      `<div class="fn-falta">Nenhuma foto.</div>`}</div>
+    <div class="fn-addfoto">
+      <input id="fn-foto-link" placeholder="https://drive.google.com/… ou endereço da foto">
+      <button class="btn ghost sm" onclick="addFotoLink(false)">Guardar o link</button>
+      <button class="btn sm" onclick="addFotoLink(true)">Trazer para o Hub</button>
+      <label class="btn ghost sm fn-lbl">Enviar do computador
+        <input type="file" accept="image/*" multiple onchange="subirFotos(this)"></label>
+    </div>
+  </div>
+
+  ${bloco("Contatos", (f.contatos||[]).length?`<table class="list"><tbody>${(f.contatos||[]).map(c=>`<tr>
+      <td><b>${esc(c.name||"—")}</b>${c.role?`<div class="muted fn-mini">${esc(c.role)}</div>`:""}</td>
+      <td>${c.email?`<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:`<span class="muted">—</span>`}</td>
+      <td class="muted">${esc(c.phone||"—")}</td>
+      <td>${c.whatsapp?`<a href="https://wa.me/${esc((c.whatsapp||"").replace(/\D/g,""))}" target="_blank" rel="noopener">WhatsApp</a>`:""}</td>
+    </tr>`).join("")}</tbody></table>`:"")}
+
+  <div class="card fn-bloco"><div class="section-title">Outros</div>
+    ${linha("Resumo", f.summary)}
+    ${linha("Subcategorias", f.subcategories)}
+    ${(f.highlights||[]).length?`<div class="fn-linha"><div class="fn-rot">Destaques</div><div class="fn-val">${listaUl(f.highlights)}</div></div>`:""}
+    ${(f.tags||[]).length?`<div class="fn-linha"><div class="fn-rot">Tags</div><div class="fn-val">${(f.tags||[]).map(t=>`<span class="fn-tag">${esc(t)}</span>`).join("")}</div></div>`:""}
+    ${f.internal_notes?`<div class="fn-linha"><div class="fn-rot">Notas internas</div><div class="fn-val">${esc(f.internal_notes)}</div></div>`:""}
+    ${(f.anexos||[]).length?`<div class="fn-linha"><div class="fn-rot">Anexos</div><div class="fn-val">
+      ${(f.anexos||[]).map(a=>`<div><a href="${esc(urlDoBalde(a))}" target="_blank" rel="noopener">${esc(a.file_name||"arquivo")}</a></div>`).join("")}</div></div>`:""}
+    <div class="fn-addfoto" style="margin-top:10px;">
+      <label class="btn ghost sm fn-lbl">Anexar arquivo (tarifário, contrato)
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" multiple onchange="subirAnexosForn(this)"></label>
+    </div>
+  </div>
+  </div>`;
+}
+
+/* Um serviço na ficha: o que ela vê por dentro, e o que sai para proposta. */
+function servicoHtml(s, mostraNome){
+  const pt = (s.proposal_name_pt||"").trim() || (s.proposal_description_pt||"").trim();
+  return `<div class="fn-item">
+    <div class="fn-item-topo">
+      <div><b>${esc(s.name)}</b>${s.type?` <span class="muted">${esc(s.type)}</span>`:""}
+        <div class="fn-preco">${precoDoServico(s)}</div></div>
+      <div class="fn-item-acoes">
+        <button class="btn ghost sm" onclick="copiarServico('${s.id}','en')">Proposta EN</button>
+        <button class="btn ghost sm" onclick="copiarServico('${s.id}','pt')">Proposta PT</button>
+        <button class="btn ghost sm" onclick="copiarServico('${s.id}','int')">Ficha interna</button>
+      </div>
+    </div>
+    ${s.description?`<div class="fn-desc">${esc(s.description)}</div>`:""}
+    <div class="fn-campos">
+      ${[["Duração",s.duration],["Idiomas",(s.languages||[]).join(" · ")],
+         ["Pax",[s.min_pax,s.max_pax].filter(v=>v!=null).join("–")],
+         ["Horários",s.schedule],["Ponto de encontro",s.meeting_point]]
+        .filter(([,v])=>v!=null&&v!=="").map(([r,v])=>`<span><b>${r}:</b> ${esc(v)}</span>`).join("")}
+    </div>
+    ${(s.includes||[]).length?`<div class="fn-inclui"><b>Inclui:</b> ${(s.includes||[]).map(esc).join(" · ")}</div>`:""}
+    ${s.price_notes?`<div class="fn-mini muted">${esc(s.price_notes)}</div>`:""}
+    ${s.extras?`<div class="fn-mini"><b>Extras:</b> ${esc(s.extras)}</div>`:""}
+    ${s.restrictions?`<div class="fn-mini"><b>Restrições:</b> ${esc(s.restrictions)}</div>`:""}
+    ${s.notes?`<div class="fn-mini muted">${esc(s.notes)}</div>`:""}
+    ${(s.tiers||[]).length?`<details class="fn-faixas"><summary>Tabela por pax · ${(s.tiers||[]).length} faixas</summary>
+      <table class="list fn-tar"><thead><tr><th>pax</th><th class="fn-num">total</th><th class="fn-num">por pessoa</th></tr></thead>
+      <tbody>${(s.tiers||[]).map(t=>`<tr><td>${t.pax}</td><td class="fn-num">${eurNum(t.total_price)}</td>
+        <td class="fn-num muted">${eurNum(Math.round(Number(t.total_price)/t.pax*100)/100)}</td></tr>`).join("")}</tbody></table>
+      </details>`:""}
+    <div class="fn-neutro">
+      <div class="fn-rot">Bloco neutro — o que a proposta mostra${mostraNome?" quando você esconde o nome":""}</div>
+      ${s.proposal_name?`<div><b>${esc(s.proposal_name)}</b></div>`:`<div class="fn-falta">Sem nome neutro.</div>`}
+      ${s.proposal_description?`<div class="fn-desc">${esc(s.proposal_description)}</div>`:""}
+      <div class="fn-mini ${pt?"muted":"fn-falta"}">${pt?"Tem versão em português.":"Sem versão em português — Proposta PT vai avisar."}</div>
+    </div>
+  </div>`;
+}
+
+function fotoHtml(p){
+  const src = p.url || urlDoBalde(p) || p.drive_url || p.source_url;
+  return `<div class="fn-foto">
+    ${src?`<img src="${esc(src)}" alt="${esc(p.caption||"")}" loading="lazy"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <div class="fn-foto-erro" style="display:none;">não carregou</div>`:`<div class="fn-foto-erro">sem imagem</div>`}
+    <div class="fn-foto-pe">
+      <label class="fn-check"><input type="checkbox" ${p.ok_for_proposal?"checked":""}
+        onchange="marcarFoto('${p.id}','ok_for_proposal',this.checked)"> <span>pode ir para proposta</span></label>
+      <input class="fn-cap" value="${esc(p.caption||"")}" placeholder="legenda em inglês"
+        onchange="marcarFoto('${p.id}','caption',this.value)">
+      <div class="fn-mini muted">${p.storage_path?"no Hub":(p.source_url||p.drive_url?"só link":"—")}</div>
+      <button class="btn ghost sm fn-del" onclick="apagarFoto('${p.id}')">Apagar</button>
+    </div>
+  </div>`;
+}
+const urlDoBalde = r => r && r.storage_path
+  ? `${SUPABASE_URL}/storage/v1/object/public/${r.bucket||"ops-anexos"}/${r.storage_path}` : "";
+
+/* ============================================== AÇÕES DIRETAS NA FICHA */
+function recado(txt, erro){
+  const d = el("fn-recado"); if(!d) return alert(txt);
+  d.className = "fn-recado " + (erro ? "fn-recado-err" : "fn-recado-ok");
+  d.textContent = txt;
+  clearTimeout(window._fnT);
+  window._fnT = setTimeout(()=>{ d.textContent = ""; d.className = "fn-recado"; }, erro ? 9000 : 4000);
+}
+
+/* Marcar a linha da suite salva NA HORA, sem abrir edição — instrução dela.
+   Se o banco recusar, a caixinha volta: caixa marcada e banco sem a linha é
+   pior do que caixa desmarcada. */
+async function marcarSuite(elCheck, linha){
+  const atual = (FORN.business_suite||[]).slice();
+  const novo = elCheck.checked ? atual.concat([linha]) : atual.filter(x=>x!==linha);
+  const {error} = await sb.from("ops_suppliers").update({business_suite:novo}).eq("id", FORN.id);
+  if(error){ elCheck.checked = !elCheck.checked; return recado(explicar(error), true); }
+  FORN.business_suite = novo;
+  const i = FORNS.findIndex(x=>x.id===FORN.id); if(i>=0) FORNS[i].business_suite = novo;
+  recado(elCheck.checked ? `Marcado: ${linha}.` : `Desmarcado: ${linha}.`);
+}
+
+function abrirNoMaps(){
+  const f = FORN;
+  const onde = (f.lat!=null&&f.lng!=null) ? `${f.lat},${f.lng}`
+    : [f.name, f.address, f.city].filter(Boolean).join(", ");
+  window.open("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(onde), "_blank");
+}
+
+/* O botão que ela desenhou: a ficha nasce no Hub e só vai para o CRM quando
+   ela quiser. Quem escreve na tabela do outro módulo é a função do banco. */
+async function copiarParaCRM(){
+  if(!confirm(`Copiar "${FORN.name}" para o cadastro de fornecedores do CRM?\n\n`
+    + "Se já existir um com esse nome lá, eu amarro no que existe e não crio um segundo. "
+    + "Nada que você escreveu no CRM é apagado.")) return;
+  const {data, error} = await sb.rpc("tl_fornecedor_para_crm", {p_supplier: FORN.id});
+  if(error) return recado(explicar(error), true);
+  if(!data || !data.ok) return recado((data&&data.error) || "não deu para copiar", true);
+  FORN.crm_fornecedor_id = data.id;
+  recado(data.novo ? "Criado no CRM. Agora ele aparece no Booking e nos custos."
+                   : "Já existia no CRM: amarrado no cadastro que estava lá.");
+  shell(fichaHtml(), "Fornecedores");
+}
+
+async function excluirFornecedor(){
+  if(!confirm(`Excluir "${FORN.name}" e tudo dentro da ficha — serviços, quartos, contatos, fotos?\n\n`
+    + "Isto não tem volta. Se é fornecedor que você não quer mais usar, "
+    + "prefira mudar o status para \"Do not use\": a ficha fica e o histórico não some.")) return;
+  const {error} = await sb.from("ops_suppliers").delete().eq("id", FORN.id);
+  if(error) return recado(explicar(error), true);
+  await renderFornecedores();
+}
+
+/* ------------------------------------------------ copiar para a proposta */
+/* Regra 3.4: o texto copiado não pode permitir achar o fornecedor. Quando o
+   nome está escondido é o bloco neutro que sai — e link nenhum sai nunca,
+   nem de foto, nem do site: é por ele que o cliente acha o fornecedor. */
+function copiarServico(id, modo){
+  const s = (FORN.servicos||[]).find(x=>x.id===id); if(!s) return;
+  const mostra = FORN.name_rule === "Show supplier name";
+  let txt = "";
+  if(modo === "int"){
+    txt = [`${FORN.name} — ${s.name}`, s.type, s.description,
+      (s.includes||[]).length ? "Includes: " + (s.includes||[]).join("; ") : "",
+      precoTexto(s), s.price_notes, s.extras ? "Extras: " + s.extras : "",
+      s.duration ? "Duration: " + s.duration : "",
+      s.schedule ? "Schedule: " + s.schedule : "",
+      s.meeting_point ? "Meeting point: " + s.meeting_point : "",
+      s.restrictions ? "Restrictions: " + s.restrictions : "",
+      (s.tiers||[]).length ? "Per group: " + (s.tiers||[]).map(t=>`${t.pax} pax € ${t.total_price}`).join(" · ") : "",
+      FORN.payment_terms ? "Payment: " + FORN.payment_terms : "",
+      FORN.cancellation_policy ? "Cancellation: " + FORN.cancellation_policy : "",
+      s.notes].filter(Boolean).join("\n");
+  } else if(modo === "pt"){
+    const nome = (s.proposal_name_pt||"").trim(), desc = (s.proposal_description_pt||"").trim();
+    if(!nome && !desc) return recado("Este serviço não tem versão em português. "
+      + "Traduza no Editar (ou me manda o texto em inglês e cola a tradução lá) — "
+      + "eu não copio o inglês fingindo que é português.", true);
+    txt = [nome || s.proposal_name, desc || ""].filter(Boolean).join("\n");
+  } else {
+    txt = mostra
+      ? [`${FORN.name} — ${s.name}`, s.description].filter(Boolean).join("\n")
+      : [s.proposal_name || s.name, s.proposal_description || ""].filter(Boolean).join("\n");
+    if(!mostra && !s.proposal_name && !s.proposal_description)
+      return recado("Este serviço esconde o nome do fornecedor e não tem bloco neutro. "
+        + "Escreva o bloco neutro no Editar antes de levar para a proposta.", true);
+  }
+  copiarTexto(txt, modo === "int" ? "Ficha interna copiada." : "Texto copiado — cole na proposta.");
+}
+const precoTexto = s => {
+  const p = [];
+  if(s.price_adult != null) p.push(`€ ${s.price_adult} adult`);
+  if(s.price_child != null) p.push(`€ ${s.price_child} child`);
+  if(!p.length) return "";
+  return p.join(" · ") + " · " + (s.price_basis === "Not stated" ? "basis not stated" : s.price_basis.toUpperCase())
+       + (s.price_unit ? " · " + s.price_unit : "");
+};
+
+/* O quarto sai com as duas unidades: o cliente é americano. */
+function copiarQuarto(id, idioma){
+  const q = (FORN.quartos||[]).find(x=>x.id===id); if(!q) return;
+  const mostra = FORN.name_rule === "Show supplier name";
+  const cabeca = mostra ? `${FORN.name} — ${q.name}` : q.name;
+  const med = medida(q.size_m2_min, q.size_m2_max) || q.size || "";
+  if(idioma === "pt"){
+    const desc = (q.description_pt||"").trim();
+    if(!desc) return recado("Este quarto não tem descrição em português. "
+      + "Traduza no Editar — eu não copio o inglês como se fosse português.", true);
+    const ficha = [med, q.max_occupancy?("até "+q.max_occupancy):"", q.beds, q.view].filter(Boolean).join(" · ");
+    return copiarTexto([cabeca, ficha, desc, (q.highlights_pt||[]).map(h=>"• "+h).join("\n")]
+      .filter(Boolean).join("\n"), "Quarto copiado em português.");
+  }
+  const ficha = [med, q.max_occupancy?("max "+q.max_occupancy):"", q.beds, q.view].filter(Boolean).join(" · ");
+  copiarTexto([cabeca, ficha, q.description, (q.highlights||[]).map(h=>"• "+h).join("\n")]
+    .filter(Boolean).join("\n"), "Quarto copiado em inglês.");
+}
+
+function copiarTexto(txt, ok){
+  const feito = () => recado(ok || "Copiado.");
+  if(navigator.clipboard && navigator.clipboard.writeText)
+    return navigator.clipboard.writeText(txt).then(feito).catch(()=>caixaDeCopia(txt));
+  caixaDeCopia(txt);
+}
+/* Navegador que recusa a área de transferência não pode virar botão que não
+   faz nada: o texto aparece selecionado para ela copiar à mão. */
+function caixaDeCopia(txt){
+  const t = document.createElement("textarea");
+  t.value = txt; t.style.cssText = "position:fixed;left:12px;bottom:12px;width:420px;height:180px;z-index:9999";
+  document.body.appendChild(t); t.focus(); t.select();
+  try{ document.execCommand("copy"); recado("Copiado."); }catch(e){ recado("Selecione o texto da caixa e copie com Ctrl+C.", true); }
+  setTimeout(()=>t.remove(), 6000);
+}
+
+/* ------------------------------------------------------------- as fotos */
+async function marcarFoto(id, campo, valor){
+  const {error} = await sb.from("ops_supplier_photos").update({[campo]: valor}).eq("id", id);
+  if(error) return recado(explicar(error), true);
+  const p = (FORN.fotos||[]).find(x=>x.id===id); if(p) p[campo] = valor;
+  recado(campo === "caption" ? "Legenda salva." : (valor ? "Liberada para proposta." : "Fora da proposta."));
+}
+async function apagarFoto(id){
+  const p = (FORN.fotos||[]).find(x=>x.id===id);
+  if(!confirm("Apagar esta foto da ficha?")) return;
+  if(p && p.storage_path){ try{ await sb.storage.from(p.bucket||"ops-anexos").remove([p.storage_path]); }catch(e){} }
+  const {error} = await sb.from("ops_supplier_photos").delete().eq("id", id);
+  if(error) return recado(explicar(error), true);
+  FORN.fotos = (FORN.fotos||[]).filter(x=>x.id!==id);
+  shell(fichaHtml(), "Fornecedores");
+}
+
+/* "Trazer para o Hub": o servidor busca o arquivo (o Drive e a maioria dos
+   sites recusam busca direta do navegador por CORS), o navegador reduz e
+   grava no balde com o login dela. Sem chave nova em lugar nenhum. */
+async function addFotoLink(trazer){
+  const campo = el("fn-foto-link"); const url = (campo.value||"").trim();
+  if(!/^https?:\/\//i.test(url)) return recado("Cole um endereço que comece com http.", true);
+  campo.value = "";
+  if(!trazer){
+    const {error} = await sb.from("ops_supplier_photos").insert({
+      supplier_id: FORN.id, url, source_url: url,
+      drive_url: /drive\.google|docs\.google/i.test(url) ? url : null,
+      ok_for_proposal: true, sort_order: (FORN.fotos||[]).length});
+    if(error) return recado(explicar(error), true);
+    return abrirFornecedor(FORN.id);
+  }
+  recado("Buscando o arquivo…");
+  try{
+    const r = await fetch("/api/buscar-arquivo?url=" + encodeURIComponent(url));
+    if(!r.ok) throw new Error(await r.text());
+    const blob = await r.blob();
+    await gravarFoto(new File([blob], nomeDoLink(url), {type: blob.type || "image/jpeg"}), url);
+    abrirFornecedor(FORN.id);
+  }catch(e){
+    recado("Não consegui trazer este arquivo: " + (e.message||e) + " — o link fica guardado do mesmo jeito.", true);
+    await sb.from("ops_supplier_photos").insert({supplier_id: FORN.id, url, source_url: url,
+      ok_for_proposal: true, sort_order: (FORN.fotos||[]).length});
+    abrirFornecedor(FORN.id);
+  }
+}
+const nomeDoLink = u => {
+  const base = (u.split("?")[0].split("/").pop() || "foto").slice(-50);
+  return /\.(jpe?g|png|webp|gif)$/i.test(base) ? base : (base + ".jpg");
+};
+
+async function subirFotos(input){
+  const fs = Array.from(input.files||[]); input.value = "";
+  if(!fs.length) return;
+  for(const f of fs){
+    recado(`Enviando ${f.name}…`);
+    try{ await gravarFoto(f, null); }
+    catch(e){ return recado(explicarAnexo(e) || (e.message||e), true); }
+  }
+  abrirFornecedor(FORN.id);
+}
+
+/* Reduz para 1800 px antes de subir (spec 5): foto de press kit vem com 6 MB
+   e a proposta não precisa disso — o PDF ia pesar o que pesava antes. */
+async function gravarFoto(file, origem){
+  const menor = await reduzirImagem(file, 1800);
+  const limpo = (file.name||"foto.jpg").normalize("NFD").replace(/[̀-ͯ]/g,"")
+    .replace(/[^A-Za-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"").slice(-60) || "foto.jpg";
+  const caminho = `fornecedores/${FORN.id}/${Date.now()}-${limpo}`;
+  const {error} = await sb.storage.from("ops-anexos").upload(caminho, menor, {upsert:false, contentType: menor.type||"image/jpeg"});
+  if(error) throw error;
+  const {data} = sb.storage.from("ops-anexos").getPublicUrl(caminho);
+  const {error: e2} = await sb.from("ops_supplier_photos").insert({
+    supplier_id: FORN.id, url: data.publicUrl, storage_path: caminho, bucket: "ops-anexos",
+    source_url: origem || null, drive_url: (origem && /drive\.google/i.test(origem)) ? origem : null,
+    ok_for_proposal: true, usage_cleared: !origem, sort_order: (FORN.fotos||[]).length});
+  if(e2) throw e2;
+}
+function reduzirImagem(file, maxLado){
+  return new Promise((ok) => {
+    if(!/^image\//.test(file.type||"")) return ok(file);
+    const img = new Image(), fr = new FileReader();
+    fr.onload = () => { img.src = fr.result; };
+    img.onload = () => {
+      const esc0 = Math.min(1, maxLado / Math.max(img.width, img.height));
+      if(esc0 >= 1) return ok(file);
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width*esc0); c.height = Math.round(img.height*esc0);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(b => ok(b ? new File([b], file.name, {type:"image/jpeg"}) : file), "image/jpeg", 0.85);
+    };
+    img.onerror = () => ok(file);
+    fr.onerror = () => ok(file);
+    fr.readAsDataURL(file);
+  });
+}
+
+async function subirAnexosForn(input){
+  const fs = Array.from(input.files||[]); input.value = "";
+  for(const f of fs){
+    if(f.size > 10*1024*1024){ recado(`${f.name} tem ${Math.round(f.size/1048576)} MB; o limite é 10 MB.`, true); continue; }
+    const limpo = (f.name||"arquivo").normalize("NFD").replace(/[̀-ͯ]/g,"")
+      .replace(/[^A-Za-z0-9._-]+/g,"-").slice(-60) || "arquivo";
+    const caminho = `fornecedores/${FORN.id}/anexos/${Date.now()}-${limpo}`;
+    recado(`Enviando ${f.name}…`);
+    const {error} = await sb.storage.from("ops-anexos").upload(caminho, f, {upsert:false});
+    if(error) return recado(explicarAnexo(error), true);
+    const {error:e2} = await sb.from("ops_supplier_files").insert({
+      supplier_id: FORN.id, bucket: "ops-anexos", storage_path: caminho, file_name: f.name});
+    if(e2) return recado(explicar(e2), true);
+  }
+  abrirFornecedor(FORN.id);
+}
+
+/* ================================================================ EDITOR */
+/* Um formulário só, com subformulários de contato, serviço e quarto. Nada
+   aqui redesenha a tela a cada tecla: quem digita escreve direto no rascunho
+   (FEDIT) e só somar ou tirar linha redesenha — senão o cursor salta. */
+const linhasDe = t => String(t||"").split("\n").map(x=>x.trim()).filter(Boolean);
+const virgulasDe = t => String(t||"").split(",").map(x=>x.trim()).filter(Boolean);
+const num = v => (v === "" || v == null) ? null : (isNaN(parseFloat(v)) ? null : parseFloat(v));
+const inteiro = v => (v === "" || v == null) ? null : (isNaN(parseInt(v,10)) ? null : parseInt(v,10));
+
+function editarFornecedor(id){
+  const base = id ? (FORNS.find(x=>x.id===id) || (FORN && FORN.id===id ? FORN : null)) : null;
+  if(id && (!FORN || FORN.id !== id)) return abrirFornecedor(id).then(()=>editarFornecedor(id));
+  const f = id ? JSON.parse(JSON.stringify(FORN)) : {
+    name:"", category:"Experience / Activity", status:"To test", vat_status:"not stated",
+    name_rule:"Hide supplier name", coords_approximate:true,
+    subcategories:[], business_suite:[], languages:[], highlights:[], tags:[], open_points:[],
+    contatos:[], servicos:[], quartos:[]
+  };
+  FEDIT = {f, apagar:{contatos:[], servicos:[], quartos:[], tiers:[], tarifas:[]}, novo: !id};
+  shell(`<div class="fn"><div class="overline">${id?"Editar fornecedor":"Novo fornecedor"}</div>
+    <div class="rule"></div>
+    <div class="hint" style="margin-bottom:14px;">Conteúdo em <b>inglês</b> — é daqui que sai a proposta.
+      O que você não souber, deixe em branco e escreva na lista de pendências: em branco é "falta confirmar",
+      inventado é erro que viaja para a proposta.</div>
+    <div id="fn-ed"></div>
+    <div class="fn-salvar">
+      <button class="btn" id="fn-save">Salvar</button>
+      <button class="btn ghost" id="fn-cancel">Cancelar</button>
+      <span id="fn-recado" class="fn-recado"></span>
+    </div></div>`, "Fornecedores");
+  el("fn-save").onclick = salvarFornecedor;
+  el("fn-cancel").onclick = () => FEDIT.novo ? renderFornecedores() : abrirFornecedor(FEDIT.f.id);
+  drawFornEditor();
+}
+
+/* Os campos do fornecedor. `cam` escreve no rascunho sem redesenhar. */
+function cam(chave, rot, dica, linhas, tipo){
+  const v = FEDIT.f[chave];
+  const val = Array.isArray(v) ? v.join(chave==="highlights"||chave==="open_points" ? "\n" : ", ") : (v==null?"":v);
+  const set = `onchange="mexeForn('${chave}', this.value)"`;
+  return `<div class="fn-campo"><label>${rot}</label>${linhas
+    ? `<textarea rows="${linhas}" placeholder="${esc(dica||"")}" ${set}>${esc(val)}</textarea>`
+    : `<input type="${tipo||"text"}" value="${esc(val)}" placeholder="${esc(dica||"")}" ${set}>`}
+    ${dica&&linhas?`<div class="hint">${esc(dica)}</div>`:""}</div>`;
+}
+function selForn(chave, rot, lista, permiteVazio){
+  const v = FEDIT.f[chave]||"";
+  return `<div class="fn-campo"><label>${rot}</label>
+    <select onchange="mexeForn('${chave}', this.value)">
+      ${permiteVazio?`<option value=""${v?"":" selected"}>—</option>`:""}
+      ${lista.map(o=>`<option value="${esc(o)}"${v===o?" selected":""}>${esc(o)}</option>`).join("")}
+    </select></div>`;
+}
+function mexeForn(chave, valor){
+  const listaLinha = ["highlights","open_points"], listaVirgula = ["subcategories","tags","languages"];
+  if(listaLinha.includes(chave))        FEDIT.f[chave] = linhasDe(valor);
+  else if(listaVirgula.includes(chave)) FEDIT.f[chave] = virgulasDe(valor);
+  else if(chave === "lat" || chave === "lng") FEDIT.f[chave] = num(valor);
+  else FEDIT.f[chave] = valor === "" ? null : valor;
+  /* A categoria decide o padrão do nome na proposta (regra 3.3). Muda a
+     categoria e a regra ainda não foi tocada à mão: acompanha. */
+  if(chave === "category" && !FEDIT.regraNaMao){
+    FEDIT.f.name_rule = FORN_REGRA_PADRAO(valor);
+    drawFornEditor();
+  }
+  if(chave === "name_rule") FEDIT.regraNaMao = true;
+}
+
+function drawFornEditor(){
+  const f = FEDIT.f;
+  el("fn-ed").innerHTML = `
+  <div class="card fn-bloco"><div class="section-title">Identidade</div>
+    <div class="grid3">
+      ${cam("name","Nome <span class='req'>*</span>","trade name")}
+      ${cam("legal_name","Razão social","legal company name")}
+      ${selForn("category","Categoria", FORN_LISTA.category)}
+    </div>
+    <div class="grid3">
+      ${selForn("status","Status", FORN_LISTA.status)}
+      ${selForn("name_rule","Nome na proposta", FORN_LISTA.rule)}
+      ${cam("subcategories","Subcategorias","wine tasting, cooking class")}
+    </div>
+    <div class="hint">O padrão do nome na proposta vem da categoria: hotel e restaurante mostram,
+      o resto esconde. Você pode trocar aqui — o que você escolher fica.</div>
+  </div>
+
+  <div class="card fn-bloco"><div class="section-title">Onde</div>
+    <div class="grid3">
+      ${selForn("region","Região", FORN_LISTA.region, true)}
+      ${cam("city","Cidade","comune / town")}
+      ${cam("service_area","Área de atendimento","para chef, guia, motorista: onde ele atende")}
+    </div>
+    ${cam("address","Endereço","endereço completo")}
+    <div class="grid3">
+      ${cam("lat","Latitude","43.7155","","number")}
+      ${cam("lng","Longitude","11.2985","","number")}
+      <div class="fn-campo"><label>Coordenada</label>
+        <label class="fn-check" style="margin-top:8px;"><input type="checkbox" ${f.coords_approximate?"checked":""}
+          onchange="FEDIT.f.coords_approximate=this.checked"> <span>é aproximada</span></label></div>
+    </div>
+    <div class="hint">Sem coordenada o fornecedor não aparece na busca por região. Se você não tiver,
+      cole o link do Google Maps do lugar no endereço e eu tiro a coordenada de lá.</div>
+    <div class="grid3">${cam("website","Site","https://…")}${cam("instagram","Instagram","@conta")}
+      ${cam("languages","Idiomas","English, Italian")}</div>
+  </div>
+
+  <div class="card fn-bloco"><div class="section-title">Comercial</div>
+    <div class="grid3">
+      ${cam("rate_type","Tipo de tarifa","Dedicated agency rate (net)")}
+      ${cam("supplier_commission","Comissão do fornecedor","10% — só quando a tarifa é gross")}
+      ${selForn("vat_status","IVA", FORN_LISTA.vat)}
+    </div>
+    <div class="grid3">
+      ${cam("rates_valid_for","Tarifas válidas para","2027")}
+      ${cam("vat_number","Partita IVA / VAT no.","")}
+      <div></div>
+    </div>
+    ${cam("payment_terms","Pagamento","30% deposit on confirmation…",2)}
+    ${cam("booking_terms","Reserva","advance booking only…",2)}
+    ${cam("cancellation_policy","Cancelamento","free cancellation up to 48h…",2)}
+    ${cam("capacities","Capacidades","Sala Granaio: 90 seated / 110 standing…",2)}
+    ${cam("bank_details","Dados bancários","account holder, IBAN, SWIFT",2)}
+    <div class="hint">Dados bancários ficam só na ficha: não saem em proposta nem em exportação.</div>
+  </div>
+
+  <div class="card fn-bloco"><div class="section-title">Hospedagem</div>
+    ${cam("accommodation_summary","Unidades e capacidade","28 rooms and suites, 7 categories",2)}
+    ${cam("accommodation_notes","Em todos os quartos","o que é comum a todas as categorias",3)}
+  </div>
+
+  ${subContatos()}
+  ${subServicos()}
+  ${subQuartos()}
+
+  <div class="card fn-bloco"><div class="section-title">Outros</div>
+    ${cam("summary","Resumo","1 ou 2 frases, em inglês",2)}
+    ${cam("highlights","Destaques — um por linha","5-star relais in a 13th-century hamlet\n28 rooms in the original buildings",4)}
+    ${cam("tags","Tags","Chianti, near Florence, groups")}
+    ${cam("open_points","Pendências — uma por linha","Cancellation policy not stated\nAgency rates 2027",4)}
+    ${cam("internal_notes","Notas internas (não saem em proposta)","como chegou, o que combinar",3)}
+    ${cam("source_text","Material de origem","o email ou o tarifário de onde a ficha saiu",3)}
+  </div>`;
+}
+
+/* ------------------------------------------------------------- contatos */
+function subContatos(){
+  const l = FEDIT.f.contatos||[];
+  return `<div class="card fn-bloco"><div class="section-title">Contatos</div>
+    ${l.map((c,i)=>`<div class="fn-linhasub">
+      <div class="grid3">
+        <div class="fn-campo"><label>Nome</label><input value="${esc(c.name||"")}" onchange="FEDIT.f.contatos[${i}].name=this.value"></div>
+        <div class="fn-campo"><label>Função</label><input value="${esc(c.role||"")}" onchange="FEDIT.f.contatos[${i}].role=this.value"></div>
+        <div class="fn-campo"><label>Email</label><input value="${esc(c.email||"")}" onchange="FEDIT.f.contatos[${i}].email=this.value"></div>
+      </div>
+      <div class="grid3">
+        <div class="fn-campo"><label>Telefone</label><input value="${esc(c.phone||"")}" onchange="FEDIT.f.contatos[${i}].phone=this.value"></div>
+        <div class="fn-campo"><label>WhatsApp</label><input value="${esc(c.whatsapp||"")}" onchange="FEDIT.f.contatos[${i}].whatsapp=this.value"></div>
+        <div class="fn-campo" style="align-self:end;"><button class="btn ghost sm fn-del" onclick="tirarLinha('contatos',${i})">Tirar este contato</button></div>
+      </div></div>`).join("")}
+    <button class="btn ghost sm" onclick="addLinha('contatos')">+ Contato</button></div>`;
+}
+
+/* -------------------------------------------------------------- serviços */
+function subServicos(){
+  const l = FEDIT.f.servicos||[];
+  const c = (i,k,rot,dica,linhas,tipo) => {
+    const v = l[i][k];
+    const val = Array.isArray(v) ? v.join("\n") : (v==null?"":v);
+    return `<div class="fn-campo"><label>${rot}</label>${linhas
+      ? `<textarea rows="${linhas}" placeholder="${esc(dica||"")}" onchange="mexeFilho('servicos',${i},'${k}',this.value)">${esc(val)}</textarea>`
+      : `<input type="${tipo||"text"}" value="${esc(val)}" placeholder="${esc(dica||"")}" onchange="mexeFilho('servicos',${i},'${k}',this.value)">`}</div>`;
+  };
+  return `<div class="card fn-bloco"><div class="section-title">Serviços e preços</div>
+    ${l.map((s,i)=>`<div class="fn-linhasub">
+      <div class="grid3">${c(i,"name","Nome do serviço <span class='req'>*</span>","Classic Wine Tour")}
+        ${c(i,"type","Tipo","Wine tasting")}${c(i,"duration","Duração","1h")}</div>
+      ${c(i,"description","Descrição (inglês, 1 a 3 frases fiéis)","",3)}
+      <div class="grid3">
+        ${c(i,"price_adult","Preço adulto €","33","","number")}
+        ${c(i,"price_child","Preço criança €","16","","number")}
+        <div class="fn-campo"><label>Base do preço</label>
+          <select onchange="mexeFilho('servicos',${i},'price_basis',this.value)">
+            ${FORN_LISTA.basis.map(o=>`<option value="${esc(o)}"${(s.price_basis||"Not stated")===o?" selected":""}>${esc(o)}</option>`).join("")}
+          </select></div>
+      </div>
+      <div class="grid3">
+        <div class="fn-campo"><label>Preço por</label>
+          <select onchange="mexeFilho('servicos',${i},'price_unit',this.value)">
+            <option value=""${s.price_unit?"":" selected"}>—</option>
+            ${FORN_LISTA.unit.map(o=>`<option value="${esc(o)}"${s.price_unit===o?" selected":""}>${esc(o)}</option>`).join("")}
+          </select></div>
+        ${c(i,"min_pax","Mín. pax","","","number")}${c(i,"max_pax","Máx. pax","","","number")}
+      </div>
+      ${c(i,"price_notes","Condições do preço","Children 6-17 € 16; under 6 free. VAT excluded.",2)}
+      ${c(i,"includes","Inclui — um por linha","Guided tour of the cellar\nTasting of 3 wines",3)}
+      <div class="grid3">${c(i,"languages","Idiomas do serviço","English, Italian")}
+        ${c(i,"schedule","Horários","Mon-Sat 09:00 and 14:30")}${c(i,"meeting_point","Ponto de encontro","")}</div>
+      ${c(i,"extras","Extras com preço","Optional Tuscan lunch € 25",2)}
+      ${c(i,"restrictions","Restrições","idade, peso, acessibilidade",2)}
+      ${c(i,"notes","Observações internas","",2)}
+      ${/* Faixa por pax como texto: com 38 faixas, 38 pares de caixinhas é
+            tela impossível de conferir. Uma linha por faixa, "pax = preço". */""}
+      <div class="fn-campo"><label>Tabela por pax — uma linha, <code>pax = preço total</code></label>
+        <textarea rows="4" placeholder="1 = 400&#10;2 = 414&#10;3 = 581"
+          onchange="mexeTiers(${i}, this.value)">${esc((s.tiers||[]).slice().sort((a,b)=>a.pax-b.pax).map(t=>`${t.pax} = ${t.total_price}`).join("\n"))}</textarea>
+        <div class="hint">Use quando o preço é <b>total do grupo</b> e muda com o tamanho.
+          A ficha mostra o total e o por pessoa de cada faixa.</div></div>
+      <div class="fn-neutro-ed">
+        <div class="fn-rot">Bloco neutro — o que a proposta mostra quando o nome do fornecedor fica escondido</div>
+        <div class="hint" style="margin-bottom:6px;">Sem nome de empresa, de villa, de parceiro, sem prêmio,
+          sem data de fundação, sem endereço exato. Cidade ou região e o que o hóspede faz, pode.</div>
+        ${c(i,"proposal_name","Nome neutro (EN)","Historic Cellar Visit & Chianti Wine Tasting")}
+        ${c(i,"proposal_description","Descrição neutra (EN)","",3)}
+        ${c(i,"proposal_name_pt","Nome neutro (PT)","Visita à adega histórica e degustação de Chianti")}
+        ${c(i,"proposal_description_pt","Descrição neutra (PT)","",3)}
+        <div class="hint">O português é para as propostas que você faz em português. Em branco,
+          o botão Proposta PT avisa em vez de entregar o inglês.</div>
+      </div>
+      <button class="btn ghost sm fn-del" onclick="tirarLinha('servicos',${i})">Tirar este serviço</button>
+    </div>`).join("")}
+    <button class="btn ghost sm" onclick="addLinha('servicos')">+ Serviço</button></div>`;
+}
+
+/* --------------------------------------------------------------- quartos */
+function subQuartos(){
+  const l = FEDIT.f.quartos||[];
+  const c = (i,k,rot,dica,linhas,tipo) => {
+    const v = l[i][k];
+    const val = Array.isArray(v) ? v.join("\n") : (v==null?"":v);
+    return `<div class="fn-campo"><label>${rot}</label>${linhas
+      ? `<textarea rows="${linhas}" placeholder="${esc(dica||"")}" onchange="mexeFilho('quartos',${i},'${k}',this.value)">${esc(val)}</textarea>`
+      : `<input type="${tipo||"text"}" value="${esc(val)}" placeholder="${esc(dica||"")}" onchange="mexeFilho('quartos',${i},'${k}',this.value)">`}</div>`;
+  };
+  return `<div class="card fn-bloco"><div class="section-title">Tipos de quarto</div>
+    ${l.length?"":`<div class="hint">Só para hotel e casa de aluguel. Um por categoria.</div>`}
+    ${l.map((q,i)=>`<div class="fn-linhasub">
+      <div class="grid3">${c(i,"name","Categoria <span class='req'>*</span>","Superior Suite with Patio")}
+        ${c(i,"units","Quantos quartos deste tipo","3")}${c(i,"max_occupancy","Ocupação máxima","2 + 2")}</div>
+      <div class="grid3">
+        ${c(i,"size_m2_min","Metragem m² (de)","40","","number")}
+        ${c(i,"size_m2_max","(até) — deixe igual se não é faixa","55","","number")}
+        ${c(i,"size","Como a fonte diz","approx. 55 m² plus private patio")}
+      </div>
+      <div class="hint">${medida(q.size_m2_min,q.size_m2_max)
+        ? `Na tela e na proposta vai sair: <b>${esc(medida(q.size_m2_min,q.size_m2_max))}</b>`
+        : "Preencha os m² e a tela mostra m² e sq ft juntos."}</div>
+      <div class="grid3">${c(i,"beds","Camas","King 180x190 cm")}${c(i,"view","Vista","Hills or the village square")}<div></div></div>
+      ${c(i,"description","Descrição (EN)","",3)}
+      ${c(i,"highlights","Diferenciais (EN) — um por linha","Private patio\nSeparate sitting room",3)}
+      ${c(i,"description_pt","Descrição (PT)","",3)}
+      ${c(i,"highlights_pt","Diferenciais (PT) — um por linha","",3)}
+      <div class="fn-campo"><label>Tarifas — uma por linha, <code>temporada | datas | regime | preço | Net/Gross</code></label>
+        <textarea rows="3" placeholder="High season | 01/05–30/09 | BB | 480 | Net"
+          onchange="mexeTarifas(${i}, this.value)">${esc((q.tarifas||[]).map(t=>
+            [t.season||"", t.dates||"", t.board||"", t.price==null?"":t.price, t.price_basis||"Not stated"].join(" | ")).join("\n"))}</textarea>
+        <div class="hint">O que faltar, deixe vazio entre as barras. Sem base declarada fica
+          <i>Not stated</i> — e a ficha mostra "basis not stated" em vez de fingir net.</div></div>
+      <button class="btn ghost sm fn-del" onclick="tirarLinha('quartos',${i})">Tirar este quarto</button>
+    </div>`).join("")}
+    <button class="btn ghost sm" onclick="addLinha('quartos')">+ Tipo de quarto</button></div>`;
+}
+
+/* ------------------------------------------------- mexer nos filhos */
+const VAZIO = {
+  contatos: {name:"", role:"", email:"", phone:"", whatsapp:""},
+  servicos: {name:"", price_basis:"Not stated", includes:[], languages:[], tiers:[]},
+  quartos:  {name:"", highlights:[], highlights_pt:[], tarifas:[]}
+};
+function addLinha(qual){
+  FEDIT.f[qual] = (FEDIT.f[qual]||[]).concat([JSON.parse(JSON.stringify(VAZIO[qual]))]);
+  drawFornEditor();
+}
+function tirarLinha(qual, i){
+  const l = FEDIT.f[qual]||[]; const alvo = l[i];
+  if(alvo && alvo.name && !confirm(`Tirar "${alvo.name}"?`)) return;
+  if(alvo && alvo.id) FEDIT.apagar[qual].push(alvo.id);
+  FEDIT.f[qual] = l.filter((_,k)=>k!==i);
+  drawFornEditor();
+}
+function mexeFilho(qual, i, chave, valor){
+  const listaLinha = ["includes","highlights","highlights_pt"], listaVirgula = ["languages"];
+  const numericos = ["price_adult","price_child","size_m2_min","size_m2_max"];
+  const inteiros = ["min_pax","max_pax"];
+  const o = FEDIT.f[qual][i];
+  if(listaLinha.includes(chave))        o[chave] = linhasDe(valor);
+  else if(listaVirgula.includes(chave)) o[chave] = virgulasDe(valor);
+  else if(numericos.includes(chave))    o[chave] = num(valor);
+  else if(inteiros.includes(chave))     o[chave] = inteiro(valor);
+  else o[chave] = valor === "" ? null : valor;
+  if(chave === "size_m2_min" || chave === "size_m2_max") drawFornEditor();
+}
+/* "4 = 770" por linha. Faixa sem número dos dois lados é descartada, e a
+   ordem não importa: a ficha ordena por pax. */
+function mexeTiers(i, txt){
+  const s = FEDIT.f.servicos[i];
+  const antigos = s.tiers||[];
+  (antigos||[]).forEach(t => { if(t.id) FEDIT.apagar.tiers.push(t.id); });
+  s.tiers = linhasDe(txt).map(l=>{
+    const m = l.split(/[=:;|]/);
+    const pax = inteiro((m[0]||"").replace(/[^\d]/g,""));
+    const val = num((m[1]||"").replace(/[^\d.,]/g,"").replace(",","."));
+    return (pax && val != null) ? {pax, total_price: val} : null;
+  }).filter(Boolean);
+  if(s.tiers.length && !s.price_unit) s.price_unit = "per group (total)";
+}
+function mexeTarifas(i, txt){
+  const q = FEDIT.f.quartos[i];
+  (q.tarifas||[]).forEach(t => { if(t.id) FEDIT.apagar.tarifas.push(t.id); });
+  q.tarifas = linhasDe(txt).map((l,k)=>{
+    const p = l.split("|").map(x=>x.trim());
+    const base = FORN_LISTA.basis.includes(p[4]) ? p[4] : "Not stated";
+    return {season:p[0]||null, dates:p[1]||null, board:p[2]||null,
+            price:num((p[3]||"").replace(/[^\d.,]/g,"").replace(",",".")),
+            price_basis: base, price_unit:"per room per night", sort_order:k};
+  });
+}
+
+/* ================================================================ SALVAR */
+const CAMPOS_FORN = ["name","legal_name","category","subcategories","business_suite","status",
+  "region","city","service_area","address","lat","lng","coords_approximate","website","instagram",
+  "languages","rate_type","supplier_commission","vat_status","rates_valid_for","name_rule",
+  "vat_number","bank_details","payment_terms","booking_terms","cancellation_policy","capacities",
+  "accommodation_summary","accommodation_notes","highlights","tags","summary","open_points",
+  "internal_notes","source_text"];
+const CAMPOS_CONTATO = ["name","role","email","phone","whatsapp","sort_order"];
+const CAMPOS_SERVICO = ["name","type","description","duration","languages","includes","price_adult",
+  "price_child","price_basis","price_unit","price_notes","min_pax","max_pax","extras","schedule",
+  "meeting_point","restrictions","notes","proposal_name","proposal_description",
+  "proposal_name_pt","proposal_description_pt","sort_order"];
+const CAMPOS_QUARTO = ["name","size","size_m2_min","size_m2_max","max_occupancy","beds","view",
+  "units","description","highlights","description_pt","highlights_pt","sort_order"];
+const sopesar = (o, campos) => {
+  const r = {};
+  campos.forEach(k => { const v = o[k];
+    r[k] = (v === "" || v === undefined) ? (Array.isArray(o[k]) ? [] : null) : v; });
+  return r;
+};
+
+async function salvarFornecedor(){
+  const f = FEDIT.f;
+  if(!(f.name||"").trim()) return recado("O fornecedor precisa de um nome.", true);
+  const semNome = (f.servicos||[]).some(s=>!(s.name||"").trim())
+               || (f.quartos||[]).some(q=>!(q.name||"").trim());
+  if(semNome) return recado("Tem serviço ou quarto sem nome. Nomeie ou tire a linha — "
+    + "linha sem nome não dá para encontrar depois, nem para mesclar numa importação.", true);
+
+  const corpo = sopesar(f, CAMPOS_FORN);
+  corpo.name = f.name.trim();
+  corpo.updated_at = new Date().toISOString();
+  let id = f.id;
+  if(id){
+    const {error} = await sb.from("ops_suppliers").update(corpo).eq("id", id);
+    if(error) return recado(explicar(error), true);
+  } else {
+    const {data, error} = await sb.from("ops_suppliers").insert(corpo).select("id").single();
+    if(error) return recado(explicar(error), true);
+    id = data.id;
+  }
+
+  // o que ela tirou na tela sai do banco
+  for(const [qual, tabela] of [["contatos","ops_supplier_contacts"],["servicos","ops_supplier_services"],
+      ["quartos","ops_room_types"],["tiers","ops_service_price_tiers"],["tarifas","ops_room_rates"]]){
+    const ids = (FEDIT.apagar[qual]||[]).filter(Boolean);
+    if(ids.length){ const {error} = await sb.from(tabela).delete().in("id", ids);
+      if(error) return recado(explicar(error), true); }
+  }
+
+  const erro = await gravarFilhos(id, f);
+  if(erro) return recado(explicar(erro), true);
+  FEDIT = null;
+  await carregarFornecedores();
+  await abrirFornecedor(id);
+  recado("Fornecedor salvo.");
+}
+
+/* Contato, serviço (com faixas) e quarto (com tarifas). Linha com id é
+   atualizada; linha sem id nasce. */
+async function gravarFilhos(id, f){
+  for(let i=0;i<(f.contatos||[]).length;i++){
+    const c = f.contatos[i]; c.sort_order = i;
+    const corpo = sopesar(c, CAMPOS_CONTATO);
+    const r = c.id ? await sb.from("ops_supplier_contacts").update(corpo).eq("id", c.id)
+                   : await sb.from("ops_supplier_contacts").insert(Object.assign({supplier_id:id}, corpo));
+    if(r.error) return r.error;
+  }
+  for(let i=0;i<(f.servicos||[]).length;i++){
+    const s = f.servicos[i]; s.sort_order = i;
+    const corpo = sopesar(s, CAMPOS_SERVICO);
+    let sid = s.id;
+    if(sid){ const r = await sb.from("ops_supplier_services").update(corpo).eq("id", sid); if(r.error) return r.error; }
+    else {
+      const r = await sb.from("ops_supplier_services").insert(Object.assign({supplier_id:id}, corpo)).select("id").single();
+      if(r.error) return r.error; sid = r.data.id;
+    }
+    const faixas = (s.tiers||[]).filter(t=>t.pax && t.total_price != null);
+    if(faixas.length){
+      const r = await sb.from("ops_service_price_tiers")
+        .upsert(faixas.map(t=>({service_id:sid, pax:t.pax, total_price:t.total_price})),
+                {onConflict:"service_id,pax"});
+      if(r.error) return r.error;
+    }
+  }
+  for(let i=0;i<(f.quartos||[]).length;i++){
+    const q = f.quartos[i]; q.sort_order = i;
+    const corpo = sopesar(q, CAMPOS_QUARTO);
+    let qid = q.id;
+    if(qid){ const r = await sb.from("ops_room_types").update(corpo).eq("id", qid); if(r.error) return r.error; }
+    else {
+      const r = await sb.from("ops_room_types").insert(Object.assign({supplier_id:id}, corpo)).select("id").single();
+      if(r.error) return r.error; qid = r.data.id;
+    }
+    const tar = (q.tarifas||[]).filter(t=>t.price != null || t.season || t.dates || t.board);
+    if(tar.length){
+      const r = await sb.from("ops_room_rates").insert(tar.map((t,k)=>({
+        room_type_id: qid, season:t.season||null, dates:t.dates||null, board:t.board||null,
+        price: t.price==null?null:t.price, price_unit: t.price_unit||"per room per night",
+        price_basis: t.price_basis||"Not stated", sort_order:k})));
+      if(r.error) return r.error;
+    }
+  }
+  return null;
+}
+
+/* ============================================================ IMPORTAÇÃO */
+/* O protótipo dela exporta JSON com as chaves em português. O mapeamento da
+   seção 8 da spec vive aqui — e é o MESMO caminho para o arquivo que eu
+   monto a partir de um email, então só existe uma tradução para manter. */
+const DE_PT = {
+  categoria: {"Vinícola":"Winery","Hotel":"Hotel / Accommodation","Hospedagem":"Hotel / Accommodation",
+    "Restaurante":"Restaurant","Experiência":"Experience / Activity","Guia":"Guide",
+    "Transfer":"Transfer / Transport","Transporte":"Transfer / Transport","Espaço":"Venue / Events",
+    "Eventos":"Venue / Events","Chef":"Private Chef / Catering","Outro":"Other"},
+  regiao: {"Toscana":"Tuscany","Úmbria":"Umbria","Umbria":"Umbria","Lácio":"Lazio","Lazio":"Lazio","Outra":"Other"},
+  status: {"Ativo":"Active","Testar":"To test","A testar":"To test","Em negociação":"In negotiation",
+    "Não usar":"Do not use"}
+};
+const daLista = (v, lista, mapa, padrao) => {
+  const t = (v==null?"":String(v)).trim();
+  if(lista.includes(t)) return t;
+  if(mapa && mapa[t]) return mapa[t];
+  return padrao;
+};
+/* "110 standing (Sala Granaio)" → 110, e o texto vai para as observações:
+   número no campo de número, frase onde frase se lê (nota da spec 8). */
+function paxETexto(v){
+  if(v == null || v === "") return [null, ""];
+  if(typeof v === "number") return [Math.round(v), ""];
+  const s = String(v).trim();
+  const m = s.match(/\d+/);
+  const n = m ? parseInt(m[0],10) : null;
+  const resto = s.replace(/^\s*\d+\s*/, "").trim();
+  return [n, (n != null && resto) ? resto : (n == null ? s : "")];
+}
+/* Metragem: "approx. 22-24 m²" → 22 e 24. sq ft convertido para m². */
+function metrosDoTexto(t){
+  const s = String(t||"");
+  /* O número tem de COMEÇAR em dígito. Com [\d.,]+ o ponto de "approx."
+     casava como se fosse número, e "approx. 55 m²" virava min NaN, max 55 —
+     apareceu no teste com o quarto do Borgo Vescine. */
+  const sf = s.match(/(\d[\d.,]*)\s*(?:[-–]|\bto\b|\ba\b)?\s*(\d[\d.,]*)?\s*(?:sq\s*ft|sqft|ft²)/i);
+  const m2 = s.match(/(\d[\d.,]*)\s*(?:[-–]|\bto\b|\ba\b)?\s*(\d[\d.,]*)?\s*(?:m²|m2|mq|metros)/i);
+  const n = x => x==null?null:parseFloat(String(x).replace(",","."));
+  if(m2) return [n(m2[1]), n(m2[2]) ?? n(m2[1])];
+  if(sf){ const a = n(sf[1]), b = n(sf[2]) ?? n(sf[1]);
+    return [Math.round(a/10.7639*10)/10, Math.round(b/10.7639*10)/10]; }
+  const so = s.match(/(\d[\d.,]*)/);
+  return so ? [n(so[1]), n(so[1])] : [null, null];
+}
+
+function fichaDoJson(o){
+  const cat = daLista(o.categoria, FORN_LISTA.category, DE_PT.categoria, "Other");
+  const f = {
+    name: (o.nome||"").trim(), legal_name: o.nome_legal||null, category: cat,
+    subcategories: o.subcategorias||[],
+    business_suite: (o.business_suite||[]).filter(s=>FORN_LISTA.suite.includes(s)),
+    status: daLista(o.status, FORN_LISTA.status, DE_PT.status, "To test"),
+    region: daLista(o.regiao, FORN_LISTA.region, DE_PT.regiao, null),
+    city: o.cidade||null, service_area: o.area_atendimento||null, address: o.endereco||null,
+    lat: o.lat==null?null:Number(o.lat), lng: o.lng==null?null:Number(o.lng),
+    coords_approximate: o.coords_aproximadas !== false,
+    website: o.site||null, instagram: o.instagram||null, languages: o.idiomas||[],
+    rate_type: o.tarifa_tipo||null, supplier_commission: o.comissao||null,
+    vat_status: daLista(o.iva, FORN_LISTA.vat, null, "not stated"),
+    rates_valid_for: o.validade||null,
+    name_rule: daLista(o.nome_na_proposta, FORN_LISTA.rule, null, FORN_REGRA_PADRAO(cat)),
+    bank_details: o.dados_bancarios||null, payment_terms: o.condicoes_pagamento||null,
+    booking_terms: o.condicoes_reserva||null, cancellation_policy: o.politica_cancelamento||null,
+    capacities: o.capacidades||null,
+    accommodation_summary: o.hospedagem ? [o.hospedagem.unidades, o.hospedagem.max_hospedes
+        ? ("Máx. " + o.hospedagem.max_hospedes) : ""].filter(Boolean).join(" · ") || null : null,
+    accommodation_notes: o.hospedagem ? (o.hospedagem.observacoes||null) : null,
+    highlights: o.destaques||[], tags: o.tags||[], summary: o.resumo||null,
+    open_points: o.pendencias||[], internal_notes: o.notas_internas||null, source_text: o.fonte||null
+  };
+  const contatos = (o.contatos||[]).map((c,i)=>({name:c.nome||null, role:c.funcao||null,
+    email:c.email||null, phone:c.telefone||null, whatsapp:c.whatsapp||null, sort_order:i}));
+  const servicos = (o.servicos||[]).map((s,i)=>{
+    const [mn, tmn] = paxETexto(s.min_pax), [mx, tmx] = paxETexto(s.max_pax);
+    const notas = [s.observacoes||"", tmn?("Min pax: "+tmn):"", tmx?("Max pax: "+tmx):""]
+      .filter(Boolean).join(" · ");
+    return {
+      name: s.nome||"(sem nome)", type: s.tipo||null, description: s.descricao||null,
+      duration: s.duracao||null, languages: s.idiomas||[], includes: s.inclui||[],
+      price_adult: s.preco_adulto==null?null:Number(s.preco_adulto),
+      price_child: s.preco_crianca==null?null:Number(s.preco_crianca),
+      price_basis: daLista(s.price_basis, FORN_LISTA.basis, null, "Not stated"),
+      price_unit: daLista(s.unidade, FORN_LISTA.unit, null, null),
+      price_notes: s.preco_texto||null, min_pax: mn, max_pax: mx,
+      extras: s.extras||null, schedule: s.horarios||null, meeting_point: s.ponto_encontro||null,
+      restrictions: s.restricoes||null, notes: notas||null,
+      proposal_name: (s.proposta&&s.proposta.nome)||null,
+      proposal_description: (s.proposta&&s.proposta.descricao)||null,
+      proposal_name_pt: (s.proposta&&s.proposta.nome_pt)||null,
+      proposal_description_pt: (s.proposta&&s.proposta.descricao_pt)||null,
+      sort_order: i,
+      tiers: (s.faixas||[]).map(t=>({pax: parseInt(t.pax,10), total_price: Number(t.preco)}))
+              .filter(t=>t.pax && !isNaN(t.total_price))
+    };
+  });
+  const quartos = (o.quartos||[]).map((q,i)=>{
+    const [a,b] = metrosDoTexto(q.metragem);
+    return {name: q.nome||"(sem nome)", size: q.metragem||null, size_m2_min: a, size_m2_max: b,
+      max_occupancy: q.ocupacao_max||null, beds: q.camas||null, view: q.vista||null,
+      units: q.quantidade||null, description: q.descricao||null, highlights: q.diferenciais||[],
+      description_pt: q.descricao_pt||null, highlights_pt: q.diferenciais_pt||[], sort_order:i,
+      tarifas: (q.tarifas||[]).map((t,k)=>({season:t.temporada||null, dates:t.datas||null,
+        board:t.regime||null, price: t.preco==null?null:Number(t.preco),
+        price_unit: daLista(t.unidade, FORN_LISTA.unit, null, "per room per night"),
+        price_basis: daLista(t.price_basis, FORN_LISTA.basis, null, "Not stated"), sort_order:k}))};
+  });
+  /* Das fotos vem só o metadado e o link: a imagem em si está no protótipo,
+     e trazer para o Hub é um clique na ficha. */
+  const fotos = (o.fotos||[]).map((p,i)=>({url: p.drive_url||p.url||null, drive_url: p.drive_url||null,
+    source_url: p.url||null, caption: p.legenda||null,
+    ok_for_proposal: p.ok_proposta !== false, usage_cleared: !!p.uso_liberado, sort_order:i}));
+  return {f, contatos, servicos, quartos, fotos};
+}
+const chaveDoNome = n => String(n||"").toLowerCase().replace(/[^a-z0-9]+/g,"");
+
+/* --------------------------------------------------- a tela da importação */
+function abrirImportacao(){
+  FIMP = null;
+  shell(`<div class="fn"><div class="overline">Importar fichas</div><div class="rule"></div>
+    <div class="hint" style="margin-bottom:14px;">Escolha o arquivo do protótipo
+      (<code>fornecedores-tl-AAAA-MM-DD.json</code>), o <code>fornecedores-seed.json</code>,
+      ou cole o conteúdo que eu te mandar. Nada é gravado antes de você conferir a lista.</div>
+    <div class="card fn-bloco">
+      <label class="btn ghost sm fn-lbl">Escolher arquivo
+        <input type="file" accept=".json,application/json" onchange="lerArquivoImport(this)"></label>
+      <div class="fn-campo" style="margin-top:12px;"><label>Ou cole o JSON aqui</label>
+        <textarea id="fn-imp-txt" rows="8" placeholder="[ { &quot;nome&quot;: … } ]"></textarea></div>
+      <button class="btn" onclick="conferirImport(el('fn-imp-txt').value)">Conferir</button>
+      <button class="btn ghost" onclick="renderFornecedores()">Voltar</button>
+      <span id="fn-recado" class="fn-recado"></span>
+    </div>
+    <div id="fn-imp-host"></div></div>`, "Fornecedores");
+}
+function lerArquivoImport(input){
+  const f = input.files && input.files[0]; if(!f) return;
+  const fr = new FileReader();
+  fr.onload = () => { el("fn-imp-txt").value = fr.result; conferirImport(fr.result); };
+  fr.onerror = () => recado("Não consegui ler o arquivo.", true);
+  fr.readAsText(f);
+  input.value = "";
+}
+
+/* Conferir: mostra o que vai ser criado e o que vai ser atualizado, com a
+   contagem de serviços, quartos e faixas. A IA e o protótipo erram; a tela
+   que grava sem mostrar é a que multiplica o erro. */
+function conferirImport(texto){
+  let bruto;
+  try{ bruto = JSON.parse(texto); }
+  catch(e){ return recado("Este texto não é um JSON válido: " + e.message, true); }
+  const lista = Array.isArray(bruto) ? bruto : [bruto];
+  const fichas = lista.filter(o=>o && (o.nome||o.name)).map(fichaDoJson);
+  if(!fichas.length) return recado("Não achei ficha nenhuma nesse arquivo.", true);
+  const porChave = {}; FORNS.forEach(f => { porChave[chaveDoNome(f.name)] = f; });
+  fichas.forEach(x => { x.existente = porChave[chaveDoNome(x.f.name)] || null; });
+  FIMP = fichas;
+  el("fn-imp-host").innerHTML = `<div class="card fn-bloco">
+    <div class="section-title">O que vai entrar</div>
+    <table class="list"><thead><tr><th>Fornecedor</th><th>Categoria</th>
+      <th class="fn-num">serviços</th><th class="fn-num">faixas</th><th class="fn-num">quartos</th>
+      <th class="fn-num">contatos</th><th class="fn-num">fotos</th><th>o que acontece</th></tr></thead><tbody>
+      ${fichas.map(x=>`<tr>
+        <td><b>${esc(x.f.name)}</b></td><td class="muted">${esc(x.f.category)}</td>
+        <td class="fn-num">${x.servicos.length}</td>
+        <td class="fn-num">${x.servicos.reduce((s,v)=>s+(v.tiers||[]).length,0)}</td>
+        <td class="fn-num">${x.quartos.length}</td><td class="fn-num">${x.contatos.length}</td>
+        <td class="fn-num">${x.fotos.length}</td>
+        <td>${x.existente
+          ? `<b>atualiza</b> a ficha que já existe <span class="muted">— suas fotos, marcações de
+             business suite, status e notas internas ficam</span>`
+          : "cria ficha nova"}</td></tr>`).join("")}
+    </tbody></table>
+    <button class="btn" onclick="gravarImport()">Gravar</button>
+    <span class="hint">Rodar duas vezes o mesmo arquivo não duplica nada.</span>
+  </div>`;
+}
+
+/* Mescla: só valor preenchido de fora substitui o de dentro. Campo vazio no
+   arquivo não apaga o que ela escreveu à mão. */
+const cheio = v => !(v == null || v === "" || (Array.isArray(v) && !v.length));
+function mesclar(destino, origem, campos){
+  const r = {};
+  campos.forEach(k => { if(cheio(origem[k])) r[k] = origem[k]; });
+  return r;
+}
+/* Estes quatro são dela, não do arquivo (regra 3.9): só entram se estiverem
+   vazios no banco. */
+const CAMPOS_DELA = ["business_suite","status","internal_notes"];
+
+async function gravarImport(){
+  if(!FIMP || !FIMP.length) return;
+  recado("Gravando…");
+  let criados = 0, atualizados = 0;
+  for(const x of FIMP){
+    const erro = x.existente ? await mesclarFicha(x) : await criarFicha(x);
+    if(erro) return recado(explicar(erro), true);
+    x.existente ? atualizados++ : criados++;
+  }
+  FIMP = null;
+  await carregarFornecedores();
+  await renderFornecedores();
+  recado(`${criados} ficha(s) criada(s), ${atualizados} atualizada(s).`);
+}
+
+async function criarFicha(x){
+  const corpo = sopesar(x.f, CAMPOS_FORN);
+  const {data, error} = await sb.from("ops_suppliers").insert(corpo).select("id").single();
+  if(error) return error;
+  const id = data.id;
+  const e1 = await gravarFilhos(id, {contatos:x.contatos, servicos:x.servicos, quartos:x.quartos});
+  if(e1) return e1;
+  if(x.fotos.length){
+    const {error:e2} = await sb.from("ops_supplier_photos")
+      .insert(x.fotos.map(p=>Object.assign({supplier_id:id}, p)));
+    if(e2) return e2;
+  }
+  return null;
+}
+
+/* Atualizar a ficha que existe: campos novos entram, os dela ficam, e
+   serviço, quarto e contato são casados por nome (contato, por email).
+   Nada é apagado — o que ela tem e o arquivo não tem continua ali. */
+async function mesclarFicha(x){
+  const alvo = x.existente;
+  const {data: atual, error: e0} = await sb.from("ops_suppliers").select(`*,
+      contatos:ops_supplier_contacts(*), servicos:ops_supplier_services(id,name),
+      quartos:ops_room_types(id,name), fotos:ops_supplier_photos(id,url,source_url)`)
+    .eq("id", alvo.id).single();
+  if(e0) return e0;
+
+  const corpo = mesclar(atual, x.f, CAMPOS_FORN.filter(k=>!CAMPOS_DELA.includes(k)));
+  CAMPOS_DELA.forEach(k => { if(!cheio(atual[k]) && cheio(x.f[k])) corpo[k] = x.f[k]; });
+  corpo.updated_at = new Date().toISOString();
+  const {error:e1} = await sb.from("ops_suppliers").update(corpo).eq("id", alvo.id);
+  if(e1) return e1;
+
+  // contatos: casa por email, senão por nome
+  for(const c of x.contatos){
+    const achado = (atual.contatos||[]).find(a =>
+      (c.email && a.email && a.email.toLowerCase() === c.email.toLowerCase()) ||
+      (c.name && a.name && chaveDoNome(a.name) === chaveDoNome(c.name)));
+    if(achado){
+      const corpo2 = mesclar(achado, c, CAMPOS_CONTATO);
+      if(Object.keys(corpo2).length){
+        const {error} = await sb.from("ops_supplier_contacts").update(corpo2).eq("id", achado.id);
+        if(error) return error; }
+    } else {
+      const {error} = await sb.from("ops_supplier_contacts")
+        .insert(Object.assign({supplier_id:alvo.id}, sopesar(c, CAMPOS_CONTATO)));
+      if(error) return error;
+    }
+  }
+  // serviços: casa por nome; faixa do arquivo substitui a faixa daquele serviço
+  for(const s of x.servicos){
+    const achado = (atual.servicos||[]).find(a => chaveDoNome(a.name) === chaveDoNome(s.name));
+    let sid = achado && achado.id;
+    if(sid){
+      const corpo2 = mesclar({}, s, CAMPOS_SERVICO);
+      const {error} = await sb.from("ops_supplier_services").update(corpo2).eq("id", sid);
+      if(error) return error;
+    } else {
+      const {data, error} = await sb.from("ops_supplier_services")
+        .insert(Object.assign({supplier_id:alvo.id}, sopesar(s, CAMPOS_SERVICO))).select("id").single();
+      if(error) return error; sid = data.id;
+    }
+    if((s.tiers||[]).length){
+      const {error} = await sb.from("ops_service_price_tiers")
+        .upsert(s.tiers.map(t=>({service_id:sid, pax:t.pax, total_price:t.total_price})),
+                {onConflict:"service_id,pax"});
+      if(error) return error;
+    }
+  }
+  // quartos: casa por nome; tarifa nova entra em quarto que ainda não tem
+  for(const q of x.quartos){
+    const achado = (atual.quartos||[]).find(a => chaveDoNome(a.name) === chaveDoNome(q.name));
+    let qid = achado && achado.id;
+    if(qid){
+      const corpo2 = mesclar({}, q, CAMPOS_QUARTO);
+      const {error} = await sb.from("ops_room_types").update(corpo2).eq("id", qid);
+      if(error) return error;
+    } else {
+      const {data, error} = await sb.from("ops_room_types")
+        .insert(Object.assign({supplier_id:alvo.id}, sopesar(q, CAMPOS_QUARTO))).select("id").single();
+      if(error) return error; qid = data.id;
+    }
+    if((q.tarifas||[]).length){
+      const {data: temr} = await sb.from("ops_room_rates").select("id").eq("room_type_id", qid).limit(1);
+      if(!temr || !temr.length){
+        const {error} = await sb.from("ops_room_rates").insert(q.tarifas.map((t,k)=>
+          Object.assign({room_type_id:qid, sort_order:k}, t)));
+        if(error) return error;
+      }
+    }
+  }
+  // fotos: só entra link que ainda não está ali; nenhuma é apagada
+  const jaTem = new Set((atual.fotos||[]).flatMap(p=>[p.url,p.source_url].filter(Boolean)));
+  const novas = x.fotos.filter(p => !jaTem.has(p.url) && !jaTem.has(p.source_url));
+  if(novas.length){
+    const {error} = await sb.from("ops_supplier_photos")
+      .insert(novas.map(p=>Object.assign({supplier_id:alvo.id}, p)));
+    if(error) return error;
+  }
+  return null;
 }
 
 /* ==================================================================== */
