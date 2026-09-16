@@ -240,12 +240,15 @@ comment on column ops_supplier_photos.usage_cleared is
 create index if not exists ops_supplier_photos_sup_idx on ops_supplier_photos (supplier_id, sort_order);
 
 -- ------------------------------------------------------------------ anexos
--- Tarifário, contrato, PDF que chegou por email. Balde PRIVADO: documento
--- comercial não fica de pé aberto para quem descobre o endereço.
+-- Tarifário, contrato, PDF que chegou por email. Vão para o MESMO balde do
+-- resto do Hub (ops-anexos), e não para um segundo balde privado: cada balde
+-- novo é uma tarefa de painel do Supabase na mão dela, e ela é usuária, não
+-- administradora de banco. A coluna existe para o dia em que valer a pena
+-- separar — aí muda o default, sem migração de estrutura.
 create table if not exists ops_supplier_files (
   id          uuid primary key default gen_random_uuid(),
   supplier_id uuid not null references ops_suppliers(id) on delete cascade,
-  bucket      text not null default 'ops-fornecedores',
+  bucket      text not null default 'ops-anexos',
   storage_path text not null,
   file_name   text,
   created_at  timestamptz not null default now()
