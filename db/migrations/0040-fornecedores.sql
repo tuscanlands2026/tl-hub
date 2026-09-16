@@ -69,6 +69,7 @@ create table if not exists ops_suppliers (
   vat_status    text not null default 'not stated',
   rates_valid_for text,        -- "2027"
   name_rule     text not null default 'Hide supplier name',
+  vat_number    text,          -- Partita IVA / VAT no., o piva_cf do CRM
   bank_details  text,          -- SENSÍVEL: não sai em proposta nem em export
   payment_terms text,
   booking_terms text,
@@ -147,6 +148,14 @@ create table if not exists ops_supplier_services (
   -- Não pode permitir achar o fornecedor no Google (regra 3.4 da spec).
   proposal_name        text,
   proposal_description text,
+  -- A FICHA É EM INGLÊS, A PROPOSTA NEM SEMPRE. Ela faz proposta em
+  -- português também, e a tradução não pode ser refeita a cada proposta —
+  -- nem ficar sujeita a sair diferente da vez anterior. O par em português
+  -- é gravado quando ela pede a tradução, e ela pode corrigir à mão. Em
+  -- branco, o botão de copiar em português avisa que falta traduzir em vez
+  -- de entregar o texto em inglês fingindo que é o português.
+  proposal_name_pt        text,
+  proposal_description_pt text,
   sort_order  int not null default 0,
   constraint ops_services_basis_ck check (price_basis = any(tl_forn_listas('price_basis'))),
   constraint ops_services_unit_ck  check (price_unit is null or price_unit = any(tl_forn_listas('price_unit')))
@@ -186,6 +195,10 @@ create table if not exists ops_room_types (
   units       text,            -- quantos quartos deste tipo
   description text,
   highlights  text[] not null default '{}',   -- o que distingue esta categoria
+  -- O par em português, para quando a proposta é em português (ver a
+  -- observação no bloco neutro dos serviços).
+  description_pt text,
+  highlights_pt  text[] not null default '{}',
   sort_order  int not null default 0
 );
 comment on column ops_room_types.size_m2_min is
@@ -263,5 +276,96 @@ begin
     execute format('revoke all on %I from anon', t);
   end loop;
 end $$;
+
+-- ============================================ O BOTÃO "COPIAR PARA O CRM"
+-- O CRM veio antes do Hub e tem o cadastro dele (fornecedores_db), que
+-- alimenta Booking e custos. Decisão dela: a ficha nasce no Hub e só vai
+-- para o CRM quando ela clicar — não faz sentido encher o CRM de gente com
+-- quem ela não trabalha sempre.
+--
+-- A travessia entre os dois apps mora AQUI, numa função com nome, e não
+-- espalhada em consulta na página: é o único lugar que escreve na tabela do
+-- outro módulo, e é por aqui que se audita.
+--
+-- Nunca duplica: se já houver fornecedor com o mesmo nome no CRM, amarra no
+-- que existe. E nunca apaga o que o CRM já sabe — campo vazio do Hub não
+-- sobrescreve campo preenchido lá (coalesce em cima do valor antigo), porque
+-- o CRM tem telefone e nota que ela escreveu à mão nesses anos.
+create or replace function tl_fornecedor_para_crm(p_supplier uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  s ops_suppliers%rowtype;
+  c record;
+  v_id uuid; v_novo boolean := false;
+  v_tipo text; v_idioma text; v_notas text;
+begin
+  select * into s from ops_suppliers where id = p_supplier;
+  if not found then return jsonb_build_object('ok', false, 'error', 'fornecedor não encontrado'); end if;
+
+  -- o primeiro contato da ficha é o contato do CRM
+  select * into c from ops_supplier_contacts
+   where supplier_id = s.id order by sort_order, name limit 1;
+
+  -- o tipo do CRM é texto livre e em português; a categoria do Hub é a lista
+  v_tipo := case s.category
+    when 'Hotel / Accommodation'     then 'hotel'
+    when 'Winery'                    then 'vinícola'
+    when 'Restaurant'                then 'restaurante'
+    when 'Experience / Activity'     then 'experiência'
+    when 'Guide'                     then 'guia'
+    when 'Transfer / Transport'      then 'transfer'
+    when 'Venue / Events'            then 'evento'
+    when 'Private Chef / Catering'   then 'chef'
+    else 'outro' end;
+
+  -- idioma do voucher: o primeiro idioma da ficha que o CRM entende
+  v_idioma := case
+    when 'Italian'    = any(s.languages) then 'IT'
+    when 'English'    = any(s.languages) then 'EN'
+    when 'Portuguese' = any(s.languages) then 'PT'
+    else null end;
+
+  v_notas := nullif(trim(both ' · ' from
+      concat_ws(' · ', nullif(s.rate_type,''), nullif(s.payment_terms,''))), '');
+
+  -- 1) já amarrado? 2) mesmo nome no CRM? 3) cria
+  if s.crm_fornecedor_id is not null
+     and exists (select 1 from fornecedores_db f where f.id = s.crm_fornecedor_id) then
+    v_id := s.crm_fornecedor_id;
+  else
+    select f.id into v_id from fornecedores_db f where lower(f.nome) = lower(s.name) limit 1;
+  end if;
+
+  if v_id is null then
+    insert into fornecedores_db (nome, tipo, telefone, email, contato, endereco, piva_cf, idioma, notas)
+    values (s.name, v_tipo, coalesce(c.phone, c.whatsapp), c.email, c.name,
+            s.address, s.vat_number, v_idioma, v_notas)
+    returning id into v_id;
+    v_novo := true;
+  else
+    update fornecedores_db f set
+      tipo     = coalesce(f.tipo, v_tipo),
+      telefone = coalesce(f.telefone, nullif(coalesce(c.phone, c.whatsapp),'')),
+      email    = coalesce(f.email, nullif(c.email,'')),
+      contato  = coalesce(f.contato, nullif(c.name,'')),
+      endereco = coalesce(f.endereco, nullif(s.address,'')),
+      piva_cf  = coalesce(f.piva_cf, nullif(s.vat_number,'')),
+      idioma   = coalesce(f.idioma, v_idioma),
+      notas    = coalesce(f.notas, v_notas),
+      updated_at = now()
+     where f.id = v_id;
+  end if;
+
+  update ops_suppliers set crm_fornecedor_id = v_id where id = s.id;
+
+  return jsonb_build_object('ok', true, 'id', v_id, 'novo', v_novo, 'nome', s.name);
+end $$;
+
+revoke all on function tl_fornecedor_para_crm(uuid) from public;
+grant execute on function tl_fornecedor_para_crm(uuid) to authenticated;
 
 insert into ops_migrations (id) values ('0040-fornecedores') on conflict (id) do nothing;
