@@ -894,6 +894,12 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .fn-legenda i{display:inline-block;width:9px;height:9px;margin-right:5px;vertical-align:middle;}
 .fn-km{color:var(--fn-escuro);font-weight:500;white-space:nowrap;}
 @media (max-width:1000px){ .fn-reg{grid-template-columns:1fr;} }
+
+/* processar material */
+.fn-solta{border:1px dashed var(--fn-medio);padding:18px;text-align:center;color:#6b6860;
+  font-size:13px;cursor:pointer;background:#fafbf6;position:relative;overflow:hidden;}
+.fn-solta-on{background:#f1f4e8;}
+.fn-solta input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
 @media (max-width:900px){
   .fn-barra{grid-template-columns:1fr;}
   .fn-linha{grid-template-columns:1fr;gap:2px;}
@@ -5155,7 +5161,9 @@ async function renderFornecedores(){
   el("fn-reg").onchange   = e => { FF.reg = e.target.value; pintarFornecedores(); };
   el("fn-st").onchange    = e => { FF.st = e.target.value; pintarFornecedores(); };
   el("fn-suite").onchange = e => { FF.suite = e.target.value; pintarFornecedores(); };
-  el("fn-novo").onclick   = () => editarFornecedor(null);
+  /* + Novo abre o Processar: o caminho normal dela é colar o email, não
+     digitar 40 campos. Preencher à mão fica lá dentro, num botão. */
+  el("fn-novo").onclick   = () => renderProcessar();
   el("fn-importar").onclick = abrirImportacao;
   el("fn-regiao").onclick = () => renderRegiao();
   await carregarFornecedores();
@@ -6615,6 +6623,208 @@ function baixarArquivo(nome, texto, tipo){
   document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
   recado("Arquivo gerado: " + nome);
+}
+
+
+/* ========================================================== PROCESSAR */
+/* Ela cola o email, arrasta o tarifário, clica em Processar. A ficha volta
+   preenchida e ela revisa no MESMO editor de sempre — não existe uma
+   segunda tela de revisão para manter, e o que ela aprende num lugar vale
+   no outro.
+
+   A IA nunca salva: o que volta é rascunho. Salvar é clique dela.
+
+   Destino: ficha nova ou atualizar uma que já existe. Quando o nome bate
+   com uma ficha da base, a tela sugere atualizar antes de criar a segunda —
+   fornecedor duplicado é preço duplicado e contato desencontrado. */
+let FPROC = {arquivos:[], marca:null, andando:false, destino:""};
+
+function renderProcessar(){
+  NAV = "fornecedores"; FEDIT = null;
+  FPROC = {arquivos:[], marca:null, andando:false, destino:""};
+  shell(`<div class="fn">
+    <div class="fn-topo">
+      <div><div class="overline">Fornecedores</div>
+        <div class="fn-nome">Novo fornecedor</div>
+        <div class="fn-sub">Cole o email e anexe o tarifário. Eu preencho, você confere.</div></div>
+      <div class="fn-botoes">
+        <button class="btn ghost sm" onclick="renderFornecedores()">← Lista</button>
+        <button class="btn ghost sm" onclick="editarFornecedor(null)">Preencher à mão</button>
+      </div>
+    </div>
+    <div class="card fn-bloco">
+      <div class="fn-campo"><label>Email, tarifário, notas, link do Google Maps — o que tiver</label>
+        <textarea id="fp-texto" rows="10" placeholder="Cole aqui. Pode misturar: email de apresentação, condições, preços, endereço, link do Maps, suas observações."></textarea></div>
+      <div class="fn-solta" id="fp-solta">
+        Arraste o PDF do tarifário ou prints aqui — ou clique para escolher
+        <input type="file" id="fp-arqs" multiple accept="application/pdf,image/*">
+      </div>
+      <div id="fp-lista" class="fn-mini muted" style="margin-top:8px;"></div>
+      <div class="fn-campo" style="margin-top:12px;"><label>Destino</label>
+        <select id="fp-destino">${destinoOpts()}</select>
+        <div class="hint">Atualizar mantém suas fotos, a business suite marcada, o status e as
+          notas internas; o que vier do material preenche o que estiver vazio ou desatualizado.</div></div>
+      <div class="fn-botoes" style="margin-top:12px;">
+        <button class="btn" id="fp-ir">Processar</button>
+        <span id="fn-recado" class="fn-recado"></span>
+      </div>
+      <div class="hint" style="margin-top:8px;">O PDF vai inteiro para a leitura, inclusive
+        escaneado. Leva de vinte segundos a um minuto, e custa alguns centavos por ficha —
+        a tela mostra quanto custou.</div>
+    </div>
+    <div id="fp-saida"></div></div>`, "Fornecedores");
+  el("fp-destino").onchange = e => { FPROC.destino = e.target.value; };
+  el("fp-ir").onclick = processarMaterial;
+  const solta = el("fp-solta"), inp = el("fp-arqs");
+  solta.onclick = e => { if(e.target !== inp) inp.click(); };
+  inp.onchange = () => { juntarArquivos(inp.files); inp.value = ""; };
+  ["dragover","dragenter"].forEach(ev => solta.addEventListener(ev, e => {
+    e.preventDefault(); solta.classList.add("fn-solta-on"); }));
+  ["dragleave","drop"].forEach(ev => solta.addEventListener(ev, e => {
+    e.preventDefault(); solta.classList.remove("fn-solta-on"); }));
+  solta.addEventListener("drop", e => juntarArquivos(e.dataTransfer.files));
+}
+const destinoOpts = () => `<option value="">— criar ficha nova —</option>`
+  + FORNS.slice().sort((a,b)=>a.name.localeCompare(b.name))
+      .map(f=>`<option value="${f.id}">atualizar: ${esc(f.name)}</option>`).join("");
+
+function juntarArquivos(fl){
+  for(const f of Array.from(fl||[])){
+    if(f.type !== "application/pdf" && !/^image\//.test(f.type)){
+      recado(`${f.name} não é PDF nem imagem — não entra na leitura.`, true); continue; }
+    FPROC.arquivos.push(f);
+  }
+  el("fp-lista").innerHTML = FPROC.arquivos.length
+    ? FPROC.arquivos.map((f,i)=>`${esc(f.name)} <span class="muted">(${Math.round(f.size/1024)} KB)</span>
+        <button class="btn ghost sm" onclick="tirarArquivo(${i})">tirar</button>`).join("<br>")
+    : "";
+}
+function tirarArquivo(i){ FPROC.arquivos.splice(i,1); juntarArquivos([]); }
+
+async function processarMaterial(){
+  if(FPROC.andando) return;
+  const texto = (el("fp-texto").value||"").trim();
+  if(!texto && !FPROC.arquivos.length)
+    return recado("Cole o email ou anexe o tarifário — sem material eu não tenho o que ler.", true);
+  const btn = el("fp-ir"); btn.disabled = true; btn.textContent = "Lendo…";
+  FPROC.andando = true; recado("Lendo o material… isto leva de vinte segundos a um minuto.");
+
+  try{
+    const arquivos = [];
+    for(const f of FPROC.arquivos) arquivos.push({nome:f.name, tipo:f.type, dados: await base64De(f)});
+    /* A marca deste pedido. Comparar por relógio não serve: o do navegador
+       e o do servidor discordam, e ela poderia receber o resultado da vez
+       anterior. */
+    const marca = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    FPROC.marca = marca;
+    const r = await fetch("/api/fornecedor-extrair", {method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({marca, texto, arquivos})});
+    if(!r.ok && r.status !== 202) throw new Error(await r.text());
+    await esperarFicha(marca);
+  }catch(e){
+    recado("Não consegui mandar o material: " + (e.message||e), true);
+  }
+  FPROC.andando = false;
+  const b = el("fp-ir"); if(b){ b.disabled = false; b.textContent = "Processar"; }
+}
+const base64De = f => new Promise((ok,err)=>{
+  const fr = new FileReader();
+  fr.onload = () => ok(String(fr.result).replace(/^data:[^,]*,/, ""));
+  fr.onerror = () => err(new Error("não consegui ler " + f.name));
+  fr.readAsDataURL(f);
+});
+
+/* Pergunta se ficou pronto a cada dois segundos, por até quatro minutos.
+   Tarifário grande demora; desistir em trinta segundos seria jogar fora um
+   trabalho que já está sendo pago. */
+async function esperarFicha(marca){
+  for(let i=0;i<120;i++){
+    await new Promise(r=>setTimeout(r, 2000));
+    if(FPROC.marca !== marca) return;                 // ela mandou outro
+    let r;
+    try{ r = await (await fetch("/api/fornecedor-extrair-status?marca="+encodeURIComponent(marca))).json(); }
+    catch(e){ continue; }
+    if(!r || !r.pronto){ if(i%5===4) recado("Ainda lendo… " + ((i+1)*2) + "s."); continue; }
+    if(r.erro) return recado(r.erro, true);
+    if(!r.ficha) return recado("Voltou vazio. Tente de novo.", true);
+    return abrirRevisao(r);
+  }
+  recado("Passou de quatro minutos sem resposta. Tente com menos anexos.", true);
+}
+
+/* A ficha volta no formato do protótipo, então passa pelo MESMO mapeamento
+   da importação — uma tradução só para manter — e cai no editor de sempre,
+   com as pendências no topo. */
+function abrirRevisao(r){
+  const x = fichaDoJson(r.ficha);
+  const destino = FPROC.destino
+    || (FORNS.find(f => chaveDoNome(f.name) === chaveDoNome(x.f.name))||{}).id || "";
+  const custo = r.custo != null ? `Custo desta leitura: € ${r.custo.toFixed(2)}.` : "";
+
+  if(destino){
+    /* Atualizar ficha que existe: mescla e abre para revisar, sem gravar. */
+    const velha = FORNS.find(f=>f.id===destino);
+    recado(`Li o material e vou atualizar "${velha?velha.name:""}". Confira antes de salvar. ${custo}`);
+    return abrirFornecedor(destino).then(()=>{
+      FEDIT = null;
+      editarFornecedor(destino);
+      setTimeout(()=>{ mesclarNoRascunho(x); }, 0);
+    });
+  }
+  FORN = null;
+  FEDIT = {f: Object.assign({contatos:[], servicos:[], quartos:[]}, x.f,
+            {contatos:x.contatos, servicos:x.servicos, quartos:x.quartos}),
+           apagar:{contatos:[], servicos:[], quartos:[], tiers:[], tarifas:[]}, novo:true,
+           regraNaMao:true, vindoDaIA:true, custo:r.custo};
+  shell(`<div class="fn"><div class="overline">Novo fornecedor</div>
+    <div class="fn-nome" style="font-size:24px;">${esc(x.f.name||"(sem nome)")}</div>
+    <div class="rule"></div>
+    <div class="card fn-bloco fn-pend">
+      <div class="section-title">Li o material — confira antes de salvar</div>
+      <div class="hint">Nada foi gravado ainda. O que eu não achei no material ficou em branco e
+        está na lista de pendências, no fim da página. ${esc(custo)}</div>
+      ${(x.f.open_points||[]).length?`<ul class="fn-ul">${(x.f.open_points||[]).map(p=>`<li>${esc(p)}</li>`).join("")}</ul>`:""}
+    </div>
+    <div id="fn-ed"></div>
+    <div class="fn-salvar">
+      <button class="btn" id="fn-save">Salvar fornecedor</button>
+      <button class="btn ghost" id="fn-cancel">Jogar fora</button>
+      <span id="fn-recado" class="fn-recado"></span>
+    </div></div>`, "Fornecedores");
+  el("fn-save").onclick = salvarFornecedor;
+  el("fn-cancel").onclick = () => { if(confirm("Jogar fora esta leitura?")) renderProcessar(); };
+  drawFornEditor();
+  recado(`Ficha montada: ${x.servicos.length} serviço(s), ${x.quartos.length} quarto(s), `
+    + `${x.contatos.length} contato(s). ${custo}`);
+}
+
+/* Atualizar: o que veio do material entra no rascunho sem apagar o que ela
+   escreveu. Serviço e quarto casam por nome, como na importação. */
+function mesclarNoRascunho(x){
+  if(!FEDIT) return;
+  const f = FEDIT.f;
+  Object.keys(x.f).forEach(k=>{
+    if(["business_suite","status","internal_notes"].includes(k)) return;   // é dela
+    if(cheio(x.f[k])) f[k] = x.f[k];
+  });
+  const casa = (lista, novo) => {
+    (novo||[]).forEach(n=>{
+      const i = lista.findIndex(a => chaveDoNome(a.name) === chaveDoNome(n.name));
+      if(i>=0) Object.keys(n).forEach(k=>{ if(cheio(n[k]) && k!=="id") lista[i][k] = n[k]; });
+      else lista.push(n);
+    });
+  };
+  casa(f.servicos = f.servicos||[], x.servicos);
+  casa(f.quartos  = f.quartos||[],  x.quartos);
+  (x.contatos||[]).forEach(c=>{
+    const i = (f.contatos||[]).findIndex(a =>
+      (c.email && a.email && a.email.toLowerCase()===c.email.toLowerCase()) ||
+      (c.name && a.name && chaveDoNome(a.name)===chaveDoNome(c.name)));
+    if(i>=0) Object.keys(c).forEach(k=>{ if(cheio(c[k]) && k!=="id") f.contatos[i][k] = c[k]; });
+    else (f.contatos = f.contatos||[]).push(c);
+  });
+  drawFornEditor();
 }
 
 /* ==================================================================== */
