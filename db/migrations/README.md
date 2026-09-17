@@ -17,6 +17,15 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 4. Só objetos com prefixo `ops_` e funções `tl_`. Vale a seção 7 do plano.
 5. Rodar em ordem crescente, no SQL Editor do Supabase.
 
+## Falta rodar
+
+| # | arquivo | o que faz |
+|---|---------|-----------|
+| 0042 | [`0042-puxar-da-ficha.sql`](0042-puxar-da-ficha.sql) | a linha da proposta guarda de qual ficha de fornecedor ela foi puxada (procedência, não referência viva) |
+
+Rodada, a linha desce para a tabela de baixo. Enquanto não roda, a proposta salva
+normalmente e avisa que a procedência não foi gravada.
+
 ## Aplicadas
 
 | # | arquivo | o que faz |

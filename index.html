@@ -232,6 +232,8 @@ input.interno{border-left:2px solid var(--brown);}
 .rotulos table.rows td.ondelbl{font-size:11px;color:var(--muted);vertical-align:middle;letter-spacing:.04em;}
 .buscacat{margin-top:10px;border:1px solid var(--cream);padding:10px 12px;background:var(--cream-light);}
 .cat-res{margin-top:6px;}
+.cat-de{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--copper);
+  border:1px solid var(--linha);border-radius:3px;padding:1px 5px;margin-left:6px;white-space:nowrap;}
 .cat-item{padding:8px 10px;border-bottom:1px solid var(--cream);cursor:pointer;background:#fff;}
 .cat-item:hover{background:var(--cream);}
 .apres-box{border-left:2px solid var(--sage);padding-left:10px;margin-top:8px;}
@@ -1775,7 +1777,9 @@ const MIGRACOES = [
   {id:"0040-fornecedores",            arq:"0040-fornecedores.sql",
    oque:"módulo de fornecedores: ficha, serviços com net/gross, faixas por pax, quartos, contatos, fotos e o botão de copiar para o CRM"},
   {id:"0041-business-suite-do-crm",   arq:"0041-business-suite-do-crm.sql",
-   oque:"business suite passa a ser a lista do CRM (seis linhas), e converte o que já estava gravado"}
+   oque:"business suite passa a ser a lista do CRM (seis linhas), e converte o que já estava gravado"},
+  {id:"0042-puxar-da-ficha",          arq:"0042-puxar-da-ficha.sql",
+   oque:"a linha da proposta guarda de qual ficha de fornecedor ela foi puxada"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -2779,6 +2783,10 @@ async function openProposal(id){
      e Opção 2. Cópia própria, como as seções — o que ela digita só vira
      banco no Salvar. */
   PCUR = Array.isArray(p.curations) ? p.curations.map(x=>Object.assign({},x)) : [];
+  /* Abrir a proposta esquece as fichas que estavam na memória: tarifa
+     corrigida na ficha tem de aparecer no puxar da próxima proposta, sem
+     recarregar a página. */
+  FPUXAR = null;
   renderProposal();
 }
 
@@ -3042,8 +3050,8 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
       do cliente, e desce para a order quando a proposta virar venda.</div>
     <div id="qi-host"></div>
     <div class="buscacat">
-      <input id="cat-busca" placeholder="Buscar no catálogo pelo nome — villa, hotel, experiência…"
-        oninput="buscarCatalogo(this.value)">
+      <input id="cat-busca" placeholder="Puxar pelo nome — catálogo ou ficha de fornecedor…"
+        oninput="buscarParaPuxar(this.value)">
       <div id="cat-res" class="cat-res"></div>
     </div>
     <button class="btn ghost sm" id="qi-add" style="margin-top:6px;">+ Serviço</button>
@@ -3748,27 +3756,173 @@ function capaDaSecao(i){
   if(sec && !(sec.photo||"").trim()){ sec.photo = r._capa; if(el("qs-host")) drawSections(); }
 }
 
-function buscarCatalogo(termo){
+/* PUXAR, NÃO COPIAR E COLAR.
+   Instrução dela, setembro/26: "eu não quero copiar e colar, quero puxar
+   algo e dali eu altero se quiser". O catálogo já era assim; a ficha de
+   fornecedor não era, e o único caminho passava pela área de
+   transferência. Agora a mesma caixa procura nos dois e a linha nasce
+   preenchida, para ela mexer.
+
+   Uma caixa só, de propósito: ela procura pelo nome da coisa, não pelo
+   cadastro em que a coisa mora. O resultado diz de onde cada linha vem. */
+function buscarParaPuxar(termo){
   clearTimeout(CATTIMER);
   const host = el("cat-res");
   const q = (termo||"").trim();
   if(q.length < 2){ host.innerHTML = ""; return; }
   CATTIMER = setTimeout(async ()=>{
-    const {data, error} = await sb.from("ops_catalog").select("*")
-      .ilike("name", "%"+q+"%").eq("active", true).order("name").limit(8);
-    if(error){ host.innerHTML = `<div class="msg">${esc(explicar(error))}</div>`; return; }
-    if(!data || !data.length){
-      host.innerHTML = `<div class="muted" style="padding:8px 0;">Nada com esse nome no catálogo.</div>`;
+    host.innerHTML = `<div class="muted" style="padding:8px 0;">Procurando…</div>`;
+    const [cat, fichas] = await Promise.all([
+      sb.from("ops_catalog").select("*").ilike("name", "%"+q+"%")
+        .eq("active", true).order("name").limit(6),
+      carregarFichasParaPuxar()
+    ]);
+    if(cat.error){ host.innerHTML = `<div class="msg">${esc(explicar(cat.error))}</div>`; return; }
+    CATCACHE = cat.data || [];
+    const daFicha = acharNasFichas(q, fichas);
+    if(!CATCACHE.length && !daFicha.length){
+      host.innerHTML = `<div class="muted" style="padding:8px 0;">Nada com esse nome`
+        + (FPUXAR_ERRO ? ` no catálogo. As fichas de fornecedor não responderam: ${esc(FPUXAR_ERRO)}`
+                       : ` — nem no catálogo, nem nas fichas de fornecedor.`) + `</div>`;
       return;
     }
-    host.innerHTML = data.map(c=>`<div class="cat-item" onclick="puxarDoCatalogo('${c.id}')">
-      <div><b>${esc(c.name)}</b>${c.region?` <span class="muted">· ${esc(c.region)}</span>`:""}</div>
-      <div class="muted">${esc((c.accommodation||c.descr||"").slice(0,90))}</div>
-    </div>`).join("");
-    CATCACHE = data;
+    host.innerHTML =
+      CATCACHE.map(c=>`<div class="cat-item" onclick="puxarDoCatalogo('${c.id}')">
+        <div><b>${esc(c.name)}</b>${c.region?` <span class="muted">· ${esc(c.region)}</span>`:""}
+          <span class="cat-de">catálogo</span></div>
+        <div class="muted">${esc((c.accommodation||c.descr||"").slice(0,90))}</div>
+      </div>`).join("")
+      + daFicha.map(x=>`<div class="cat-item" onclick="puxarDaFicha('${x.tipo}','${x.id}')">
+        <div><b>${esc(x.titulo)}</b> <span class="muted">· ${esc(x.f.name)}${
+            x.f.city?" · "+esc(x.f.city):""}</span>
+          <span class="cat-de">ficha${x.tipo==="quarto"?" · quarto":""}</span></div>
+        <div class="muted">${esc(x.custo||"sem preço lançado na ficha")}</div>
+      </div>`).join("")
+      + (FPUXAR_ERRO ? `<div class="hint">Fichas de fornecedor fora do ar agora: ${esc(FPUXAR_ERRO)}</div>` : "");
   }, 250);
 }
 let CATCACHE = [];
+
+/* As fichas vêm de uma vez e ficam na memória da tela: são dezenas, não
+   milhares, e consultar o banco a cada tecla digitada seria uma consulta
+   por letra. Recarrega ao abrir a proposta de novo. */
+let FPUXAR = null, FPUXAR_ERRO = null;
+async function carregarFichasParaPuxar(){
+  if(FPUXAR) return FPUXAR;
+  const {data, error} = await sb.from("ops_suppliers").select(`
+      id,name,name_rule,category,city,region,service_area,website,status,tags,
+      rate_type,rates_valid_for,payment_terms,booking_terms,cancellation_policy,
+      accommodation_notes,
+      servicos:ops_supplier_services(*, tiers:ops_service_price_tiers(*)),
+      quartos:ops_room_types(*, tarifas:ops_room_rates(*)),
+      fotos:ops_supplier_photos(url,caption,ok_for_proposal,service_id,room_type_id)`)
+    .order("name");
+  if(error){ FPUXAR_ERRO = explicar(error); return null; }
+  FPUXAR_ERRO = null;
+  FPUXAR = data || [];
+  return FPUXAR;
+}
+
+/* Procura como ela procura: pelo nome do serviço, pelo nome do quarto, ou
+   pelo nome do fornecedor — e nesse caso tudo que ele faz entra na lista. */
+function acharNasFichas(termo, fichas){
+  const t = termo.toLowerCase();
+  const tem = (...partes) => partes.filter(Boolean).join(" ").toLowerCase().includes(t);
+  const achado = [];
+  (fichas||[]).forEach(f=>{
+    const pelaFicha = tem(f.name, f.legal_name, f.city, f.region, f.service_area,
+                          (f.tags||[]).join(" "));
+    (f.servicos||[]).forEach(s=>{
+      if(!(pelaFicha || tem(s.name, s.proposal_name, s.type))) return;
+      achado.push({tipo:"servico", id:s.id, f, titulo:s.name, custo:precoTexto(s)});
+    });
+    (f.quartos||[]).forEach(q=>{
+      if(!(pelaFicha || tem(q.name))) return;
+      achado.push({tipo:"quarto", id:q.id, f, titulo:q.name, custo:tarifaTexto(q)});
+    });
+  });
+  return achado.slice(0, 12);
+}
+const tarifaTexto = q => (q.tarifas||[]).filter(t=>t.price!=null).map(t=>
+  `€ ${t.price}` + (t.board?" "+t.board:"") + (t.season||t.dates?" · "+(t.season||t.dates):"")
+  + " · " + (t.price_basis === "Not stated" ? "basis not stated" : String(t.price_basis).toUpperCase())
+).join(" | ");
+
+/* A linha nasce da ficha e daí é dela. Três coisas que esta função NÃO faz:
+   · não escreve preço — o da ficha é o custo net, e o da linha é a venda;
+   · não entrega inglês fingindo que é português: sem o par em português, o
+     campo fica vazio e o aviso diz que falta traduzir;
+   · não leva o site nem a foto de origem quando o nome do fornecedor está
+     escondido, porque com o site o cliente acha o fornecedor em um clique. */
+function puxarDaFicha(tipo, id){
+  let f = null, s = null, q = null;
+  (FPUXAR||[]).forEach(x=>{
+    if(tipo === "servico"){ const a = (x.servicos||[]).find(y=>y.id===id); if(a){ f = x; s = a; } }
+    else { const a = (x.quartos||[]).find(y=>y.id===id); if(a){ f = x; q = a; } }
+  });
+  if(!f) return;
+  const mostra = f.name_rule === "Show supplier name";
+  const fotos = (f.fotos||[]).filter(p=>p.ok_for_proposal && p.url &&
+      (p.service_id === id || p.room_type_id === id || (!p.service_id && !p.room_type_id)))
+    .map(p=>p.url);
+  const linha = {
+    supplier_id: f.id,
+    supplier_service_id: tipo === "servico" ? id : null,
+    supplier_room_type_id: tipo === "quarto" ? id : null,
+    supplier: f.name,                       // coluna interna "quem opera"
+    service_date: PROP.travel_window || "",
+    website: mostra ? (f.website || null) : null,
+    photos: fotos, attachments: [],
+    qty: 1, unit_price: null, price: 0,     // o valor é da venda, não da ficha
+    optional: false, extras: [], sort: PITEMS.length,
+    section: (PSECS[0] && PSECS[0].key) || null,
+    _capa: fotos[0] || null
+  };
+  let semPt = false;
+  if(tipo === "servico"){
+    linha.title_en   = mostra ? s.name : (s.proposal_name || s.name);
+    linha.details_en = (mostra ? s.description : s.proposal_description) || "";
+    linha.title      = mostra ? linha.title_en : (s.proposal_name_pt || "");
+    linha.details    = mostra ? "" : (s.proposal_description_pt || "");
+    semPt = !linha.details || !linha.title;
+    if((s.includes||[]).length) linha.included_en = (s.includes||[]).join(" · ");
+  } else {
+    const medidas = medida(q.size_m2_min, q.size_m2_max);
+    linha.title_en   = mostra ? f.name : q.name;
+    linha.title      = linha.title_en;
+    linha.details_en = [q.description || "",
+      (q.highlights||[]).map(h=>"· "+h).join("\n")].filter(Boolean).join("\n");
+    linha.details    = [q.description_pt || "",
+      (q.highlights_pt||[]).map(h=>"· "+h).join("\n")].filter(Boolean).join("\n");
+    semPt = !linha.details;
+    linha.room_type_en = [q.name, medidas, q.max_occupancy, q.beds, q.view]
+      .filter(Boolean).join(" · ");
+    linha.room_type    = [q.name, medidas].filter(Boolean).join(" · ");
+    linha.facilities_en = f.accommodation_notes || null;
+  }
+  PITEMS.push(linha);
+  capaDaSecao(PITEMS.length-1);
+  el("cat-busca").value = ""; el("cat-res").innerHTML = "";
+  drawQuoteItems();
+  const custo = tipo === "servico" ? precoTexto(s) : tarifaTexto(q);
+  const oQue = tipo === "quarto" ? `${f.name} — ${q.name}`
+    : `${linha.title_en || linha.title} (ficha de ${f.name})`;
+  alert(`${oQue} entrou na proposta.`
+    + (custo ? `\n\nCusto do fornecedor: ${custo}` : `\n\nA ficha não tem preço lançado neste item.`)
+    + (tipo === "servico" && (s.tiers||[]).length
+        ? `\nPor grupo: ` + (s.tiers||[]).map(t=>`${t.pax} pax € ${t.total_price}`).join(" · ") : "")
+    + (tipo === "servico" && s.price_notes ? `\n${s.price_notes}` : "")
+    + (f.rates_valid_for ? `\nTarifa válida para ${f.rates_valid_for}` : "")
+    + (f.cancellation_policy ? `\nCancelamento: ${f.cancellation_policy}` : "")
+    + (f.payment_terms ? `\nPagamento ao fornecedor: ${f.payment_terms}` : "")
+    + `\n\nO valor da linha ficou em branco de propósito: o preço da ficha é o CUSTO, `
+    + `não a venda. Lance o valor do cliente na linha.`
+    + (semPt ? `\n\nEste item não tem versão em português na ficha, então o campo em `
+        + `português ficou vazio. Traduza na ficha, para não refazer a tradução na próxima proposta.` : "")
+    + (mostra ? "" : `\n\nEste fornecedor não aparece na proposta: o texto que veio é o bloco `
+        + `neutro, e o site dele não foi levado.`)
+    + `\n\nO que você mudar aqui não volta para a ficha.`);
+}
 function puxarDoCatalogo(id){
   const c = CATCACHE.find(x=>x.id===id);
   if(!c) return;
@@ -4096,8 +4250,17 @@ async function saveProposal(){
   };
   const {error:e1} = await sb.from("ops_proposals").update(patch).eq("id", PROP.id);
   await sb.from("ops_proposal_items").delete().eq("proposal_id", PROP.id);
-  const {error:e2} = PITEMS.length ? await sb.from("ops_proposal_items").insert(
-    PITEMS.map((r,i)=>({proposal_id:PROP.id, sort:i, service_date:r.service_date,
+  /* A procedência da ficha (0042) é o único campo aqui que pode não existir
+     ainda no banco dela: o código sobe com a publicação, a SQL ela roda
+     quando abre o Supabase. Se faltar, grava a proposta sem a procedência e
+     diz o que falta — perder o trabalho de uma proposta inteira porque um
+     campo informativo não existe seria o pior dos dois mundos. */
+  const linhasItens = (comFicha) =>
+    PITEMS.map((r,i)=>Object.assign(comFicha ? {
+      supplier_id:r.supplier_id||null,
+      supplier_service_id:r.supplier_service_id||null,
+      supplier_room_type_id:r.supplier_room_type_id||null
+    } : {}, {proposal_id:PROP.id, sort:i, service_date:r.service_date,
       title:r.title, details:r.details, price:r.price, optional:!!r.optional,
       qty: Number(r.qty)||1, unit_price: r.unit_price != null ? Number(r.unit_price) : null,
       /* O conjunto de escolha volta: linhas com o mesmo conjunto se
@@ -4112,10 +4275,23 @@ async function saveProposal(){
       website:r.website||null, photos:r.photos||[], attachments:r.attachments||[],
       kind:(r.kind==="extra"?"extra":"stay"),
       units:(r.units||[]).filter(u=>(u.label||"").trim()),
-      extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}))) : {};
+      extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}));
+  let e2 = null, semProcedencia = false;
+  if(PITEMS.length){
+    let r2 = await sb.from("ops_proposal_items").insert(linhasItens(true));
+    if(r2.error && /supplier_(id|service_id|room_type_id)/.test(r2.error.message||"")){
+      r2 = await sb.from("ops_proposal_items").insert(linhasItens(false));
+      semProcedencia = !r2.error;
+    }
+    e2 = r2.error || null;
+  }
   btn.disabled = false; btn.textContent = "Salvar";
   const err = e1||e2;
   if(err){ alert(explicar(err)); return false; }
+  if(semProcedencia) alert("Proposta salva. O que faltou: a linha não guardou de qual ficha de "
+    + "fornecedor ela veio, porque o banco ainda não tem esses campos. Rode "
+    + "db/migrations/0042-puxar-da-ficha.sql no SQL Editor do Supabase — o aviso no Painel "
+    + "traz o link. Os textos, as fotos e os valores foram gravados normalmente.");
   Object.assign(PROP, patch);
   btn.textContent = "Salvo"; setTimeout(()=>btn.textContent="Salvar",1600);
   return true;
@@ -6057,6 +6233,7 @@ async function salvarFornecedor(){
   const erro = await gravarFilhos(id, f);
   if(erro) return recado(explicar(erro), true);
   FEDIT = null;
+  FPUXAR = null;                 // a proposta puxa da ficha; a memória dela vence aqui
   await carregarFornecedores();
   await abrirFornecedor(id);
   recado("Fornecedor salvo.");
