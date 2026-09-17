@@ -554,9 +554,24 @@ o pedido inteiro tem de caber em 256 KB — medido no ar: 250 KB passa, 256 KB v
 com o corpo `Error`. Os pedaços são apagados depois de lidos, inclusive quando a leitura
 para no meio.
 
-**O que ainda não se liga:** catálogo e ficha continuam dois cadastros, e a entrada do
-catálogo não sabe de qual ficha veio. O mesmo hotel pode estar nos dois sem se
-reconhecer.
+**O catálogo pode nascer da ficha, e o gatilho não é o status.** Pergunta dela:
+"vira catálogo quando o fornecedor está ativo ou quando vou usá-lo em um orçamento?".
+Status *Active* quer dizer que ela trabalha com o fornecedor, não que o texto está pronto
+para um cliente ler. Então são dois gatilhos, os dois de um clique: o botão **→ catálogo**
+em cada serviço e cada quarto da ficha, para deixar pronto antes; e **guardar no catálogo**
+na linha da proposta, que leva o texto que ela já revisou e o valor que ela cobrou.
+
+Um item da ficha tem no máximo **uma** entrada no catálogo — índice único parcial em
+`supplier_service_id` e `supplier_room_type_id` (migração 0043). Clicar duas vezes atualiza;
+não cria a segunda. Da ficha, atualizar mexe no texto e nas fotos e **não toca no valor nem
+na capa nem na nota** que ela escreveu. Da proposta, atualizar mexe **só no valor** e na data
+dele, porque o texto da entrada já pode ter sido lapidado por ela.
+
+Onde cada preço mora, sem ambiguidade: **ficha = custo net** do fornecedor, com as condições
+dele; **catálogo = venda de referência**, com a data em que foi conferida; **proposta = a
+venda desta vez**, que é cópia e não muda depois. O custo do fornecedor aparece na nota
+interna da entrada do catálogo, que não sai para cliente nenhum — é o número que ela precisa
+ver na hora de decidir a venda.
 
 ## Identidade visual — obrigatória em qualquer tela nova
 Vale a seção 8 do `PLANO-HUB.md`, com as correções registradas aqui, que são dela e são

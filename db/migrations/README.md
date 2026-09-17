@@ -22,6 +22,7 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | # | arquivo | o que faz |
 |---|---------|-----------|
 | 0042 | [`0042-puxar-da-ficha.sql`](0042-puxar-da-ficha.sql) | a linha da proposta guarda de qual ficha de fornecedor ela foi puxada (procedência, não referência viva) |
+| 0043 | [`0043-catalogo-vem-da-ficha.sql`](0043-catalogo-vem-da-ficha.sql) | a entrada do catálogo pode nascer da ficha, e um item da ficha tem no máximo uma entrada |
 
 Rodada, a linha desce para a tabela de baixo. Enquanto não roda, a proposta salva
 normalmente e avisa que a procedência não foi gravada.

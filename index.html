@@ -1779,7 +1779,9 @@ const MIGRACOES = [
   {id:"0041-business-suite-do-crm",   arq:"0041-business-suite-do-crm.sql",
    oque:"business suite passa a ser a lista do CRM (seis linhas), e converte o que já estava gravado"},
   {id:"0042-puxar-da-ficha",          arq:"0042-puxar-da-ficha.sql",
-   oque:"a linha da proposta guarda de qual ficha de fornecedor ela foi puxada"}
+   oque:"a linha da proposta guarda de qual ficha de fornecedor ela foi puxada"},
+  {id:"0043-catalogo-vem-da-ficha",   arq:"0043-catalogo-vem-da-ficha.sql",
+   oque:"a entrada do catálogo pode nascer da ficha, sem criar duas do mesmo item"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -3500,7 +3502,12 @@ function drawQuoteItems(){
         ${PSECS.map(sec=>`<option value="${esc(sec.key)}"${r.section===sec.key?" selected":""}>${esc(sec.title||sec.key)}</option>`).join("")}
       </select></td>
       <td><input class="interno" value="${esc(r.supplier||"")}" placeholder="quem opera"
-        oninput="PITEMS[${i}].supplier=this.value.trim()||null"></td>
+        oninput="PITEMS[${i}].supplier=this.value.trim()||null">
+        ${(r.supplier_id && !r.catalog_id) ? `<button class="btn ghost sm" style="margin-top:4px;"
+          onclick="catalogarLinha(${i})"
+          title="Guarda esta linha no catálogo com o valor que você cobrou, para a próxima proposta puxar pronta"
+          >guardar no catálogo</button>` : ""}
+        ${r.catalog_id ? `<div class="hint" style="margin-top:4px;">no catálogo</div>` : ""}</td>
       <td class="x">
         <button class="iconbtn" onclick="moveItem(${i},-1)" title="Subir">↑</button>
         <button class="iconbtn" onclick="moveItem(${i},1)" title="Descer">↓</button>
@@ -4298,6 +4305,104 @@ async function saveProposal(){
   Object.assign(PROP, patch);
   btn.textContent = "Salvo"; setTimeout(()=>btn.textContent="Salvar",1600);
   return true;
+}
+
+/* GUARDAR A LINHA NO CATÁLOGO, COM O VALOR QUE ELA COBROU.
+   Este é o segundo gatilho da pergunta dela ("vira catálogo quando está
+   ativo ou quando vou usar num orçamento?"): aqui o texto já foi revisado
+   por ela e o valor de venda já foi decidido, que é exatamente o que o
+   catálogo guarda e a ficha não tem. O custo continua só na ficha.
+
+   O valor entra com a DATA de hoje, porque o catálogo mostra ao lado do
+   número quando ele foi conferido — preço velho puxado em silêncio é o
+   risco de verdade. */
+const UNID_DA_FICHA = {
+  "per person":        {u:"person",  pt:"por pessoa"},
+  "per group (total)": {u:"group",   pt:"por grupo, valor total"},
+  "per vehicle":       {u:"vehicle", pt:"por veículo"},
+  "per hour":          {u:"day",     pt:"por hora"},
+  "per night":         {u:"day",     pt:"por noite"},
+  "per room per night":{u:"day",     pt:"por quarto por noite"},
+  "flat fee":          {u:"group",   pt:"valor fechado"}
+};
+async function catalogarLinha(i){
+  const r = PITEMS[i];
+  if(!r || !r.supplier_id) return;
+  if(r.catalog_id) return alert("Esta linha já veio do catálogo.");
+  const valor = r.unit_price != null ? Number(r.unit_price)
+    : (Number(r.price) > 0 ? Number(r.price) : null);
+  if(valor == null && !confirm("Esta linha está sem valor.\n\nGuardar no catálogo só o texto, "
+    + "sem valor de referência?")) return;
+
+  /* A unidade e a condição vêm da ficha: "450" sozinho não quer dizer
+     nada, e o catálogo exige de que o valor é. */
+  const fichas = await carregarFichasParaPuxar();
+  let unidade = null, condicao = null;
+  (fichas||[]).forEach(f=>{
+    if(f.id !== r.supplier_id) return;
+    const s = (f.servicos||[]).find(x=>x.id===r.supplier_service_id);
+    const q = (f.quartos||[]).find(x=>x.id===r.supplier_room_type_id);
+    const un = s ? s.price_unit : (q && (q.tarifas||[])[0] ? (q.tarifas||[])[0].price_unit : null);
+    const de = un ? UNID_DA_FICHA[un] : null;
+    if(de){ unidade = de.u; condicao = de.pt; }
+    else if(un){ condicao = un; }
+  });
+
+  const linha = {
+    kind: r.supplier_room_type_id ? "stay" : "experience",
+    name: (r.title_en || r.title || "").trim(),
+    supplier_id: r.supplier_id,
+    supplier_service_id: r.supplier_service_id || null,
+    supplier_room_type_id: r.supplier_room_type_id || null,
+    descr: r.details || null, descr_en: r.details_en || null,
+    accommodation: r.room_type || null, accommodation_en: r.room_type_en || null,
+    facilities: r.facilities || null, facilities_en: r.facilities_en || null,
+    website: r.website || null,
+    photos: r.photos || [], cover_img: (r.photos||[])[0] || null,
+    internal_notes: `Guardado da proposta ${PROP.title || ("v" + (PROP.version||1))}.`,
+    active: true, updated_at: new Date().toISOString()
+  };
+  if(!linha.name) return alert("Dê um título à linha antes de guardar no catálogo: "
+    + "é pelo nome que você acha depois.");
+  if(valor != null){
+    linha.price = valor;
+    linha.price_unit = unidade || "group";
+    linha.price_note = [condicao, `valor cobrado em ${PROP.title || "proposta"}`]
+      .filter(Boolean).join(" · ");
+    linha.price_updated_at = new Date().toISOString();
+  }
+
+  /* Se o item da ficha já tem entrada no catálogo, o valor é atualizado e
+     o texto dela fica: o índice único da 0043 não deixaria nascer uma
+     segunda, e sobrescrever o texto que ela lapidou seria pior. */
+  const coluna = r.supplier_room_type_id ? "supplier_room_type_id" : "supplier_service_id";
+  const chave  = r.supplier_room_type_id || r.supplier_service_id;
+  let achado = null;
+  if(chave){
+    const j = await sb.from("ops_catalog").select("id,name,price").eq(coluna, chave).limit(1);
+    if(j.error) return alert(explicar(j.error));
+    achado = (j.data||[])[0] || null;
+  }
+  if(achado){
+    const so = {updated_at: new Date().toISOString()};
+    if(valor != null){ so.price = valor; so.price_unit = linha.price_unit;
+      so.price_note = linha.price_note; so.price_updated_at = linha.price_updated_at; }
+    const u = await sb.from("ops_catalog").update(so).eq("id", achado.id);
+    if(u.error) return alert(explicar(u.error));
+    r.catalog_id = achado.id;
+    drawQuoteItems();
+    return alert(`"${achado.name}" já estava no catálogo. `
+      + (valor != null ? `O valor de referência passou a ser € ${valor}, conferido hoje.`
+                       : "Nada mudou: esta linha está sem valor."));
+  }
+  const ins = await sb.from("ops_catalog").insert(linha).select("id").single();
+  if(ins.error) return alert(explicar(ins.error));
+  r.catalog_id = ins.data.id;
+  drawQuoteItems();
+  alert(`"${linha.name}" entrou no catálogo`
+    + (valor != null ? `, com € ${valor} de referência e a data de hoje.` : ", sem valor.")
+    + "\n\nO custo do fornecedor continua só na ficha. Salve a proposta para guardar "
+    + "o vínculo desta linha.");
 }
 
 /* ------------------------------ O QUE O CLIENTE ESCOLHEU ------------- */
@@ -5507,6 +5612,8 @@ function fichaHtml(){
         <div class="fn-item-acoes">
           <button class="btn ghost sm" onclick="copiarQuarto('${q.id}','en')">Copiar EN</button>
           <button class="btn ghost sm" onclick="copiarQuarto('${q.id}','pt')">Copiar PT</button>
+          <button class="btn ghost sm" onclick="levarAoCatalogo('quarto','${q.id}')"
+            title="Cria (ou atualiza) a entrada deste quarto no catálogo">→ catálogo</button>
         </div>
       </div>
       ${q.description?`<div class="fn-desc">${esc(q.description)}</div>`:""}
@@ -5574,6 +5681,8 @@ function servicoHtml(s, mostraNome){
         <button class="btn ghost sm" onclick="copiarServico('${s.id}','en')">Proposta EN</button>
         <button class="btn ghost sm" onclick="copiarServico('${s.id}','pt')">Proposta PT</button>
         <button class="btn ghost sm" onclick="copiarServico('${s.id}','int')">Ficha interna</button>
+        <button class="btn ghost sm" onclick="levarAoCatalogo('servico','${s.id}')"
+          title="Cria (ou atualiza) a entrada deste serviço no catálogo, para a proposta puxar com o valor de venda">→ catálogo</button>
       </div>
     </div>
     ${s.description?`<div class="fn-desc">${esc(s.description)}</div>`:""}
@@ -5747,6 +5856,95 @@ async function gravarTraducao(lista, custo){
     : ` · € ${Number(custo).toFixed(2)}`);
   recado(`Traduzido e gravado: ${n} item(ns)` + quanto
     + ". Confira no Editar — o que você corrigir lá fica, e a próxima proposta já sai com ele.");
+}
+
+/* DA FICHA PARA O CATÁLOGO, NUM CLIQUE.
+   Pergunta dela: "vira catálogo quando o fornecedor está ativo ou quando
+   vou usá-lo em um orçamento?". Não é o status: "Active" quer dizer que
+   ela trabalha com o fornecedor, não que o texto está pronto para o
+   cliente ler. Então são dois gatilhos, os dois de um clique — este
+   botão, para deixar pronto antes, e o "guardar no catálogo" da linha da
+   proposta, que leva o valor que ela cobrou.
+
+   O QUE ESTE BOTÃO NÃO ESCREVE: preço. O preço da ficha é custo; o do
+   catálogo é venda de referência. Entrada nova nasce sem valor, e quem
+   põe o valor é a linha da proposta (ou ela, no catálogo). Entrada que já
+   existe tem o texto e as fotos atualizados, e o valor não se toca. */
+async function levarAoCatalogo(tipo, id){
+  const f = FORN; if(!f) return;
+  const s = tipo === "servico" ? (f.servicos||[]).find(x=>x.id===id) : null;
+  const q = tipo === "quarto"  ? (f.quartos||[]).find(x=>x.id===id)  : null;
+  if(!s && !q) return;
+  const mostra = f.name_rule === "Show supplier name";
+  const fotos = (f.fotos||[]).filter(p=>p.ok_for_proposal && p.url &&
+      (p.service_id === id || p.room_type_id === id || (!p.service_id && !p.room_type_id)))
+    .map(p=>p.url);
+
+  const linha = {
+    supplier_id: f.id,
+    supplier_service_id: s ? id : null,
+    supplier_room_type_id: q ? id : null,
+    region: f.region || null,
+    website: mostra ? (f.website || null) : null,
+    photos: fotos, cover_img: fotos[0] || null,
+    active: true, updated_at: new Date().toISOString()
+  };
+  if(s){
+    linha.kind = f.category === "Transfer / Transport" ? "transfer" : "experience";
+    linha.name = mostra ? `${f.name} — ${s.name}` : (s.proposal_name || s.name);
+    linha.descr_en = (mostra ? s.description : s.proposal_description) || null;
+    linha.descr    = s.proposal_description_pt || null;
+  } else {
+    linha.kind = "stay";
+    linha.name = mostra ? `${f.name} — ${q.name}` : q.name;
+    linha.descr_en = [q.description || "", (q.highlights||[]).map(h=>"· "+h).join("\n")]
+      .filter(Boolean).join("\n") || null;
+    linha.descr    = [q.description_pt || "", (q.highlights_pt||[]).map(h=>"· "+h).join("\n")]
+      .filter(Boolean).join("\n") || null;
+    linha.accommodation_en = [q.name, medida(q.size_m2_min, q.size_m2_max),
+      q.max_occupancy, q.beds, q.view].filter(Boolean).join(" · ") || null;
+    linha.accommodation = [q.name, medida(q.size_m2_min, q.size_m2_max)]
+      .filter(Boolean).join(" · ") || null;
+    linha.facilities_en = f.accommodation_notes || null;
+  }
+  /* O custo fica na nota interna do catálogo, que não sai para cliente
+     nenhum: na hora de decidir o valor de venda, é o número que ela
+     precisa ver — e sem ele o catálogo esconderia a conta. */
+  const custo = s ? precoTexto(s) : tarifaTexto(q);
+  const nota = [`Da ficha de ${f.name}.`, custo ? `Custo na ficha: ${custo}.` : "",
+    f.cancellation_policy ? `Cancelamento: ${f.cancellation_policy}` : ""]
+    .filter(Boolean).join(" ");
+
+  /* Procura o que já existe: primeiro pelo vínculo, depois pelo nome — os
+     cadastros que ela criou à mão antes das fichas não têm vínculo, e
+     criar um segundo "Borgo Vescine" é o erro que ela descobriria só na
+     hora de montar a proposta. */
+  const coluna = s ? "supplier_service_id" : "supplier_room_type_id";
+  let achado = null;
+  const porVinculo = await sb.from("ops_catalog").select("*").eq(coluna, id).limit(1);
+  if(porVinculo.error) return recado(explicar(porVinculo.error), true);
+  achado = (porVinculo.data||[])[0] || null;
+  if(!achado){
+    const porNome = await sb.from("ops_catalog").select("*")
+      .ilike("name", linha.name).limit(1);
+    if(!porNome.error) achado = (porNome.data||[])[0] || null;
+  }
+
+  if(achado){
+    if(!confirm(`"${achado.name}" já está no catálogo.\n\n`
+      + "Atualizar o texto e as fotos com o que está na ficha? "
+      + "O valor de referência e a nota que você escreveu não são tocados.")) return;
+    delete linha.cover_img;                       // capa escolhida por ela fica
+    if((achado.internal_notes||"").trim()) delete linha.internal_notes;
+    const r = await sb.from("ops_catalog").update(linha).eq("id", achado.id);
+    if(r.error) return recado(explicar(r.error), true);
+    return recado(`Catálogo atualizado: ${achado.name}. O valor de referência ficou como estava.`);
+  }
+  linha.internal_notes = nota;
+  const r = await sb.from("ops_catalog").insert(linha).select("id").single();
+  if(r.error) return recado(explicar(r.error), true);
+  recado(`Entrou no catálogo: ${linha.name}. Sem valor de venda ainda — ele entra `
+    + "quando você usar numa proposta, com o valor que cobrar, ou você lança no Catálogo.");
 }
 
 function abrirNoMaps(){
