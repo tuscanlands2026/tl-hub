@@ -5930,17 +5930,19 @@ async function levarAoCatalogo(tipo, id){
     if(!porNome.error) achado = (porNome.data||[])[0] || null;
   }
 
+  linha.internal_notes = nota;
   if(achado){
     if(!confirm(`"${achado.name}" já está no catálogo.\n\n`
       + "Atualizar o texto e as fotos com o que está na ficha? "
       + "O valor de referência e a nota que você escreveu não são tocados.")) return;
     delete linha.cover_img;                       // capa escolhida por ela fica
+    /* Nota que ela escreveu fica; entrada antiga sem nota ganha o custo da
+       ficha, que é o que faltava para decidir a venda olhando o catálogo. */
     if((achado.internal_notes||"").trim()) delete linha.internal_notes;
     const r = await sb.from("ops_catalog").update(linha).eq("id", achado.id);
     if(r.error) return recado(explicar(r.error), true);
     return recado(`Catálogo atualizado: ${achado.name}. O valor de referência ficou como estava.`);
   }
-  linha.internal_notes = nota;
   const r = await sb.from("ops_catalog").insert(linha).select("id").single();
   if(r.error) return recado(explicar(r.error), true);
   recado(`Entrou no catálogo: ${linha.name}. Sem valor de venda ainda — ele entra `
