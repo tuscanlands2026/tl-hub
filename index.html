@@ -3882,8 +3882,11 @@ function puxarDaFicha(tipo, id){
   if(tipo === "servico"){
     linha.title_en   = mostra ? s.name : (s.proposal_name || s.name);
     linha.details_en = (mostra ? s.description : s.proposal_description) || "";
+    /* O par em português é o texto de proposta em português, com nome
+       aparecendo ou escondido: é o mesmo campo que o botão de copiar em
+       português usa. Nome próprio não se traduz; descrição, sim. */
     linha.title      = mostra ? linha.title_en : (s.proposal_name_pt || "");
-    linha.details    = mostra ? "" : (s.proposal_description_pt || "");
+    linha.details    = s.proposal_description_pt || "";
     semPt = !linha.details || !linha.title;
     if((s.includes||[]).length) linha.included_en = (s.includes||[]).join(" · ");
   } else {
@@ -5444,6 +5447,8 @@ function fichaHtml(){
       <button class="btn ghost sm" onclick="editarFornecedor('${f.id}')">Editar</button>
       ${(f.lat!=null&&f.lng!=null)?`<button class="btn ghost sm" onclick="renderRegiao('${f.id}')">Ver o que tem perto</button>`:""}
       ${(f.lat!=null&&f.lng!=null)||f.address?`<button class="btn ghost sm" onclick="abrirNoMaps()">Abrir no Maps</button>`:""}
+      <button class="btn ghost sm" onclick="traduzirFicha()"
+        title="Grava na ficha o par em português dos textos de proposta">Traduzir para português</button>
       <button class="btn ghost sm" onclick="copiarParaCRM()" title="Cria ou atualiza este fornecedor no cadastro do CRM">
         ${f.crm_fornecedor_id?"✓ No CRM":"Copiar para o CRM"}</button>
       <button class="btn ghost sm fn-del" onclick="excluirFornecedor()">Excluir</button>
@@ -5638,6 +5643,111 @@ async function marcarSuite(elCheck, linha){
   recado(elCheck.checked ? `Marcado: ${linha}.` : `Desmarcado: ${linha}.`);
 }
 
+/* TRADUZIR UMA VEZ, E NA FICHA.
+   Pedido dela em setembro/26: "as fichas podem ser em inglês, mas nas
+   proposta eu tb faço em português. vc tem que traduzir quando eu pedir".
+   O par em português fica GRAVADO na ficha, não na proposta: traduzir uma
+   vez serve todas as propostas seguintes, e não sai diferente da vez
+   anterior. Traduz o que está faltando; se nada falta, pergunta antes de
+   refazer, porque refazer sobrescreve o que ela corrigiu à mão. */
+let FTRAD = false;
+async function traduzirFicha(){
+  if(FTRAD) return;
+  const mostra = FORN.name_rule === "Show supplier name";
+  const falta = [], tudo = [];
+  (FORN.servicos||[]).forEach(s=>{
+    const nome = mostra ? s.name : (s.proposal_name || s.name);
+    const desc = (mostra ? s.description : s.proposal_description) || "";
+    /* Sem descrição não há o que traduzir: o que a proposta usa é a
+       descrição. Traduzir só o nome interno do serviço poria a palavra da
+       casa dele no texto que vai ao cliente. */
+    if(!desc.trim()) return;
+    const item = {id:s.id, tipo:"servico", nome:nome||"", descricao:desc};
+    tudo.push(item);
+    const temPt = (s.proposal_description_pt||"").trim()
+      && (mostra || (s.proposal_name_pt||"").trim());
+    if(!temPt) falta.push(item);
+  });
+  (FORN.quartos||[]).forEach(q=>{
+    if(!(q.description||"").trim() && !(q.highlights||[]).length) return;
+    const item = {id:q.id, tipo:"quarto", nome:q.name||"",
+      descricao:q.description||"", destaques:q.highlights||[]};
+    tudo.push(item);
+    const temPt = (q.description_pt||"").trim()
+      && (!(q.highlights||[]).length || (q.highlights_pt||[]).length);
+    if(!temPt) falta.push(item);
+  });
+  if(!tudo.length) return recado("Esta ficha não tem texto em inglês para traduzir. "
+    + "O que a proposta usa é a descrição do serviço e a do quarto.", true);
+  let itens = falta;
+  if(!falta.length){
+    if(!confirm("Tudo que tem texto já está em português.\n\nRefazer a tradução de "
+      + tudo.length + " item(ns)? O que você corrigiu à mão vai ser sobrescrito.")) return;
+    itens = tudo;
+  }
+  FTRAD = true;
+  recado(`Traduzindo ${itens.length} item(ns)… leva alguns segundos.`);
+  try{
+    const marca = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    const r = await fetch("/api/fornecedor-traduzir", {method:"POST",
+      headers:{"Content-Type":"application/json"}, body: JSON.stringify({marca, itens})});
+    if(!r.ok && r.status !== 202) throw new Error(recadoHttp(r.status, await r.text().catch(()=>"")));
+    const resp = await esperarResposta(marca, 60);
+    if(!resp) throw new Error("passou de dois minutos sem resposta");
+    if(resp.erro) throw new Error(resp.erro);
+    await gravarTraducao(resp.traducao||[], resp.custo);
+  }catch(e){
+    recado("Não consegui traduzir: " + (e.message||e), true);
+  }
+  FTRAD = false;
+}
+
+/* "Ficou pronto?" no mesmo endereço que a leitura de material usa: um
+   endpoint de espera para as duas, em vez de dois para manter. */
+async function esperarResposta(marca, tentativas){
+  for(let i=0;i<(tentativas||60);i++){
+    await new Promise(r=>setTimeout(r, 2000));
+    let r = null;
+    try{ r = await (await fetch("/api/fornecedor-extrair-status?marca="
+      + encodeURIComponent(marca))).json(); }
+    catch(e){ continue; }
+    if(r && r.pronto) return r;
+  }
+  return null;
+}
+
+/* A IA traduz, a TELA grava — e grava em campo com nome, no registro certo.
+   Nome de hotel e categoria de quarto não se traduzem: quando o nome do
+   fornecedor aparece na proposta, o que vale é a descrição. */
+async function gravarTraducao(lista, custo){
+  let n = 0, erro = null;
+  for(const t of (lista||[])){
+    const s = (FORN.servicos||[]).find(x=>x.id===t.id);
+    const q = (FORN.quartos||[]).find(x=>x.id===t.id);
+    if(s){
+      const corpo = {proposal_description_pt: (t.descricao_pt||"").trim() || null};
+      if(FORN.name_rule !== "Show supplier name")
+        corpo.proposal_name_pt = (t.nome_pt||"").trim() || null;
+      const r = await sb.from("ops_supplier_services").update(corpo).eq("id", t.id);
+      if(r.error){ erro = r.error; break; }
+      Object.assign(s, corpo); n++;
+    } else if(q){
+      const corpo = {description_pt: (t.descricao_pt||"").trim() || null,
+        highlights_pt: Array.isArray(t.destaques_pt)
+          ? t.destaques_pt.map(x=>String(x||"").trim()).filter(Boolean) : []};
+      const r = await sb.from("ops_room_types").update(corpo).eq("id", t.id);
+      if(r.error){ erro = r.error; break; }
+      Object.assign(q, corpo); n++;
+    }
+  }
+  FPUXAR = null;                     // a proposta puxa daqui; a memória dela vence
+  shell(fichaHtml(), "Fornecedores");
+  if(erro) return recado(explicar(erro), true);
+  recado(`Traduzido e gravado: ${n} item(ns)`
+    + (custo != null ? ` · € ${Number(custo).toFixed(2)}` : "")
+    + ". Confira no Editar — o que você corrigir lá fica, e a próxima proposta já sai com ele.");
+}
+
 function abrirNoMaps(){
   const f = FORN;
   const onde = (f.lat!=null&&f.lng!=null) ? `${f.lat},${f.lng}`
@@ -5692,8 +5802,8 @@ function copiarServico(id, modo){
   } else if(modo === "pt"){
     const nome = (s.proposal_name_pt||"").trim(), desc = (s.proposal_description_pt||"").trim();
     if(!nome && !desc) return recado("Este serviço não tem versão em português. "
-      + "Traduza no Editar (ou me manda o texto em inglês e cola a tradução lá) — "
-      + "eu não copio o inglês fingindo que é português.", true);
+      + "Clique em Traduzir para português, aqui em cima — ou escreva no Editar. "
+      + "Eu não copio o inglês fingindo que é português.", true);
     txt = [nome || s.proposal_name, desc || ""].filter(Boolean).join("\n");
   } else {
     txt = mostra
