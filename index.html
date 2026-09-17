@@ -5743,8 +5743,9 @@ async function gravarTraducao(lista, custo){
   FPUXAR = null;                     // a proposta puxa daqui; a memória dela vence
   shell(fichaHtml(), "Fornecedores");
   if(erro) return recado(explicar(erro), true);
-  recado(`Traduzido e gravado: ${n} item(ns)`
-    + (custo != null ? ` · € ${Number(custo).toFixed(2)}` : "")
+  const quanto = custo == null ? "" : (Number(custo) < 0.01 ? " · menos de um centavo"
+    : ` · € ${Number(custo).toFixed(2)}`);
+  recado(`Traduzido e gravado: ${n} item(ns)` + quanto
     + ". Confira no Editar — o que você corrigir lá fica, e a próxima proposta já sai com ele.");
 }
 
