@@ -516,6 +516,48 @@ branco antes dela até virar bloco. `break-inside: avoid` na etapa inteira tem o
 efeito perverso — quando não cabe, o navegador joga adiante e deixa a folha anterior
 vazia. Quem se protege é o miolo: a fita de fotos, o bloco do Incluso, a linha da tabela.
 
+### Fornecedores, e como a proposta puxa deles (setembro/26)
+
+A ficha do fornecedor é **em inglês**, porque é dela que sai o texto da proposta; a
+interface é em português. O custo mora na ficha; margem, comissão e IVA são da proposta.
+
+`name_rule` decide se o nome do fornecedor aparece na proposta. Hotel e restaurante
+aparecem — o cliente precisa saber onde dorme e onde come. O resto esconde, e o que vai
+para a proposta é o **bloco neutro** do serviço: nome comercial e descrição que não
+permitem achar o fornecedor no Google. Quando o nome está escondido, **o site dele e o
+link de origem da foto não saem em lugar nenhum** — com o site, o cliente acha o
+fornecedor em um clique. Foto só entra na proposta com `ok_for_proposal` marcado.
+
+**O par em português mora na ficha, não na proposta.** Traduzir uma vez serve todas as
+propostas seguintes e não sai diferente da vez anterior. O botão *Traduzir para
+português* preenche `proposal_description_pt` (e `proposal_name_pt` quando o nome está
+escondido), `description_pt` e `highlights_pt`. Sem o par, o copiar em português recusa
+em vez de entregar inglês fingindo que é português. Nome próprio e categoria de quarto
+não se traduzem.
+
+**Puxar, não copiar e colar** — instrução dela, setembro/26. A caixa de busca dos
+serviços da proposta procura no catálogo e nas fichas ao mesmo tempo, aceita o nome do
+serviço, do quarto ou do fornecedor, e a linha nasce preenchida para ela mexer. A
+procedência fica em `supplier_id`, `supplier_service_id` e `supplier_room_type_id`
+(migração 0042), com `on delete set null`, no mesmo desenho do `catalog_id`: a proposta
+leva **cópia, nunca referência viva**, então proposta de março não muda de texto nem de
+preço porque a ficha mudou em setembro.
+
+**O preço da ficha não desce para a linha.** O da ficha é o custo net, o da linha é a
+venda. O aviso do puxar mostra custo, validade da tarifa, cancelamento e prazo de
+pagamento ao fornecedor no momento em que ela decide o valor, e o valor continua sendo
+dela. Empurrar um no outro põe o custo do fornecedor impresso na proposta.
+
+Leitura de material (colar e-mail, anexar tarifário) roda em função de fundo. **O anexo
+sobe antes, em pedaços de 3 MB**, porque função de fundo é chamada de forma assíncrona e
+o pedido inteiro tem de caber em 256 KB — medido no ar: 250 KB passa, 256 KB volta 413
+com o corpo `Error`. Os pedaços são apagados depois de lidos, inclusive quando a leitura
+para no meio.
+
+**O que ainda não se liga:** catálogo e ficha continuam dois cadastros, e a entrada do
+catálogo não sabe de qual ficha veio. O mesmo hotel pode estar nos dois sem se
+reconhecer.
+
 ## Identidade visual — obrigatória em qualquer tela nova
 Vale a seção 8 do `PLANO-HUB.md`, com as correções registradas aqui, que são dela e são
 posteriores. Onde as duas divergirem, vale o que está escrito abaixo.
