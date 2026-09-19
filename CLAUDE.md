@@ -6,6 +6,40 @@ Brasil e América do Norte, operação de uma pessoa só). Substitui a produçã
 documentos comerciais. Não substitui o CRM, que continua cuidando de pagamentos, margens
 e faturamento.
 
+## O PASSADO NÃO SE MEXE — instrução dela, setembro/26
+
+> "qualquer alteração não pode NUNCA mudar o passado, vc tem sempre que me perguntar e eu
+> te confirmar se sim ou não. Seja no CRM, quanto no hub"
+
+Vale nos dois sistemas, e vale antes de qualquer melhoria. O que conta como passado:
+
+- **documento já entregue** — voucher emitido, proposta enviada, order confirmada,
+  proforma emitida, relatório que ela já mandou. Esses documentos são montados na hora, a
+  partir do banco: mudar o gerador muda o que volta se ela reabrir. Melhoria nova entra
+  **só no que ainda não foi gerado**, e o corte é um CAMPO, nunca uma data no código;
+- **informação que ela digitou** — texto, valor, data, nota, foto escolhida. Nunca é
+  sobrescrita por mim nem por leitura de IA; quando há colisão, o que ela escreveu fica e
+  a tela pergunta;
+- **linha de banco que já existia**, quando o que se escreve nela apaga ou troca o que
+  estava lá.
+
+Não conta como passado preencher **campo novo**, que não existia antes, em linha antiga —
+isso acrescenta informação e não apaga nenhuma. Mesmo assim, **eu aviso e espero o sim**.
+
+### Como isso aparece no trabalho
+
+`update` ou `delete` em linha que já existe vem em **arquivo de migração separado e
+numerado**, com o comando citado na mensagem e no README, e só roda depois do sim dela.
+Migração que só cria coluna, view ou função pode rodar sem essa conversa.
+
+Na tela, toda ação que pode passar por cima de algo dela pergunta antes, dizendo o que
+será sobrescrito. Sem `confirm()` genérico: o aviso diz o nome do que muda.
+
+Quando eu não tiver como saber se algo já foi entregue, a resposta é **perguntar**, não
+escolher o caminho que parece mais provável.
+
+---
+
 ## Estado atual
 Entrar no hub cai no **Painel**: fundo sage, caixas em creme, uma por área. O número grande
 de cada caixa é sempre o que espera por ela — não o total. Total não pede nada a ninguém, e
