@@ -116,3 +116,55 @@ em tudo, foto sempre full-bleed. Ver a skill `visual-identity-tuscan-lands`.
 - O PDF da apresentada ainda sai com ~8,5 MB: sobram fotos de 1257 e 1353 px que o
   encolhimento não pega.
 - ~~No modo dia a dia, definir se cada dia leva foto própria~~ — decidido: **uma foto por dia**.
+
+---
+
+## Itinerário completo (setembro/26)
+
+Ela pediu "um novo tipo de proposta: Itinerário completo", com a página do La Dolce Vita
+Orient Express como referência de **arquitetura**, não de texto.
+
+**Não virou um terceiro `layout`, e a razão é esta:** o que ela descreveu é o **Completo**
+com a seção em **`modo='dias'`** — programa cronológico, uma foto por dia —, que é o
+desenho fechado com ela em setembro e já está em pé desde a 0036. Um `layout` novo seria
+um segundo desenho desembocando na mesma folha, e nasceria sem a Curadoria, sem o net e
+sem a escolha de opção. O dia de cada linha também já existe: é o `service_date` da
+própria linha, que é o que o renderizador lê. Uma coluna `day` seria um segundo campo
+dizendo a mesma coisa, livre para divergir dele.
+
+**"Proposta só de experiências, sem hotel" não se constrói:** é ela não criar a seção de
+hospedagem. Chave para desligar hotel seria chave para ela lembrar de virar.
+
+**As três abas do Orient Express saíram**, por instrução dela: "a gente já coloca tudo
+junto, só não pode ficar enrolando muita linguiça". Programa, rota e experiências são a
+mesma leitura corrida.
+
+### O que a 0044 acrescenta
+
+O **cabeçalho de fatos**, que abre a peça antes de qualquer parágrafo:
+
+| campo | o que é |
+|---|---|
+| `route` | "Roma · Val d'Orcia · Florença" — texto dela, com o separador que ela quiser |
+| `duration` | "5 dias · 4 noites" — texto |
+| `from_price` | o "a partir de" |
+| `from_price_show` | se ele aparece. **Nasce desligado** |
+
+Rota e duração são texto, e não montagem: a ordem de apresentação das seções não é
+necessariamente a ordem do trajeto, e contar dias a partir das datas erraria em toda
+viagem que começa à noite ou termina de manhã.
+
+Passageiros e período **não** entram aqui: são `pax_summary` e `travel_window`, que já
+existem e já saem em `tl_get_quote`.
+
+O `from_price` **não sai na peça de uma proposta net** — pela mesma regra que já esconde
+todo valor ali: a peça bonita do net vai ao cliente final. Ele aparece no link dos
+valores, e por isso `tl_get_net_quote` o devolve.
+
+### O que ainda falta
+
+- **Etapa 2** — a página pública: a folha do cabeçalho de fatos e o **subtotal ao fim de
+  cada dia**, somado das linhas daquele dia e **nunca gravado**, pelo mesmo motivo que
+  nenhum total de proposta é gravado.
+- **Etapa 3** — a seleção, que é a que já existe: caixinha em toda linha, nada exclui nada.
+- O resumo de preços ao fim, que é a página de resumo da escolha que já existe.

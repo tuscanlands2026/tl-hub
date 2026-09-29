@@ -149,6 +149,22 @@ e `abas` (uma etapa por serviço, em submenu recuado por baixo do título da se�
 decide é o briefing. Cabeçalho de grupo no índice **não é etapa** — por isso o número que vai
 no `apIr` é o da etapa, contado pulando os cabeçalhos, e não o índice da linha do menu.
 
+**O itinerário completo não é um tipo novo** (setembro/26). Ela pediu "um novo tipo de
+proposta: Itinerário completo", com a página do Orient Express como referência de arquitetura.
+O que ela descreveu **é o Completo com a seção em `modo='dias'`** — o desenho já fechado com
+ela e já em pé. Um `layout` novo seria um segundo desenho para a mesma folha, e nasceria sem a
+curadoria, sem o net e sem a escolha de opção. O dia da linha é o `service_date` dela: coluna
+`day` seria um segundo campo dizendo a mesma coisa, livre para divergir. E "só experiências,
+sem hotel" é ela não criar a seção de hospedagem — chave para desligar hotel seria chave para
+ela esquecer de virar. As três abas saíram por instrução dela: "a gente já coloca tudo junto".
+
+O que a 0044 acrescenta é o **cabeçalho de fatos**: `route` e `duration` (texto dela — a ordem
+das seções não é a do trajeto, e contar dias a partir das datas erra em viagem que começa à
+noite), `from_price` e `from_price_show`, que **nasce desligado**. Passageiros e período não
+entram: já são `pax_summary` e `travel_window`. O "a partir de" **não sai na peça do net** —
+valor é valor —, e por isso `tl_get_net_quote` o devolve no link dos valores. Falta a página
+pública, com o subtotal ao fim de cada dia, **somado e nunca gravado**.
+
 **Tarifa net** (`rate_type`). Net: a peça sai completa, **sem valores e sem caixinha de
 aprovação** — é apresentação para a agência mandar ao cliente dela. Os valores vão em
 `#/valores/<net_token>`, outro endereço, no formato tabela, com o aviso de que são NET; a

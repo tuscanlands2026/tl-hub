@@ -1781,7 +1781,9 @@ const MIGRACOES = [
   {id:"0042-puxar-da-ficha",          arq:"0042-puxar-da-ficha.sql",
    oque:"a linha da proposta guarda de qual ficha de fornecedor ela foi puxada"},
   {id:"0043-catalogo-vem-da-ficha",   arq:"0043-catalogo-vem-da-ficha.sql",
-   oque:"a entrada do catálogo pode nascer da ficha, sem criar duas do mesmo item"}
+   oque:"a entrada do catálogo pode nascer da ficha, sem criar duas do mesmo item"},
+  {id:"0044-itinerario-completo",     arq:"0044-itinerario-completo.sql",
+   oque:"cabeçalho de fatos do itinerário: rota, duração e o \"a partir de\" que ela esconde"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -1796,10 +1798,44 @@ function avisoSQL(){
   return `<div class="faltasql">
     <b>Falta rodar ${FALTAM.length===1?"uma atualização":FALTAM.length+" atualizações"} no banco.</b>
     Enquanto isso, as telas que dependem dela dão erro ao gravar.
-    Abra cada arquivo, copie e cole no SQL Editor do Supabase, na ordem:
-    <ol>${FALTAM.map(m=>`<li><a href="${RAW}${m.arq}" target="_blank" rel="noopener">${m.arq}</a>
+    Clique em <b>Copiar SQL</b> e cole no SQL Editor do Supabase, na ordem:
+    <ol>${FALTAM.map(m=>`<li>
+      <button class="btn ghost sm" onclick="copiarSQL('${m.arq}', this)">Copiar SQL</button>
+      <a href="${RAW}${m.arq}" target="_blank" rel="noopener">${m.arq}</a>
       — ${m.oque}</li>`).join("")}</ol>
   </div>`;
+}
+
+/* Copiar é um clique, e não abrir aba, marcar tudo e copiar. O arquivo vem
+   do GitHub em texto puro; o link continua ao lado para ela conferir o que
+   está copiando antes de colar num banco que é o dela. Falhando a busca, o
+   botão diz o que houve — nunca copia vazio, que seria colar nada no SQL
+   Editor e achar que rodou. */
+async function copiarSQL(arq, btn){
+  const antes = btn.textContent;
+  btn.disabled = true; btn.textContent = "Buscando…";
+  try{
+    const r = await fetch(RAW + arq, {cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    const txt = await r.text();
+    if(!txt.trim()) throw new Error("arquivo vazio");
+    await navigator.clipboard.writeText(txt);
+    /* O aviso é o próprio botão: no Painel não existe a faixa de recado, e
+       recado() ali cai em alert() — caixa para ela fechar a cada cópia. */
+    btn.disabled = false; btn.textContent = "Copiado — cole no Supabase";
+    setTimeout(()=>{ btn.textContent = antes; }, 4000);
+    return;
+  }catch(e){
+    /* Falhar é diferente: aí a caixa que interrompe é o certo, senão ela
+       cola o que estava na área de transferência de antes e acha que rodou.
+       Navegador que recusa a área de transferência mostra o texto para
+       copiar à mão, em vez de virar botão que não faz nada. */
+    if(/clipboard|permission|denied|not allowed/i.test(e.message||"")) caixaDeCopia(await
+      fetch(RAW + arq).then(r=>r.text()).catch(()=>""));
+    else alert("Não deu para buscar " + arq + " (" + e.message + "). Abra o link ao lado, "
+      + "marque tudo e copie à mão.");
+  }
+  btn.disabled = false; btn.textContent = antes;
 }
 
 /* Erro de coluna que não existe é sempre a mesma causa: falta rodar a
@@ -2883,6 +2919,38 @@ function renderProposal(){
         </select>
         <div class="hint" style="margin-top:5px;">No simples sai uma caixinha só, com o aviso de
           que enviar não bloqueia nem reserva nada.</div></div>
+    </div>`:""}
+
+    ${/* Cabeçalho de fatos (0044): o bloco que abre o itinerário antes
+          de qualquer parágrafo. Rota e duração são texto dela — o hub não
+          monta a rota a partir das seções, porque a ordem de apresentação
+          não é a do trajeto, nem conta os dias a partir das datas, porque
+          erraria em viagem que começa à noite. Passageiros e período já
+          estão no Cabeçalho acima e não se repetem aqui. */""}
+    ${p.layout==="apresentada"?`<div style="border-left:2px solid var(--sage);padding-left:12px;">
+      <label style="color:var(--sage);">Cabeçalho de fatos do itinerário</label>
+      <div class="hint" style="margin:0 0 9px;">Abre a proposta antes de qualquer texto, junto
+        com os passageiros e o período do Cabeçalho. Em branco, o campo não aparece.</div>
+      <div class="grid2">
+        <div><label>Rota</label>
+          <input id="q-route" value="${esc(p.route||"")}" placeholder="Roma · Val d'Orcia · Florença">
+          <div class="hint" style="margin-top:5px;">Escreva com o separador que quiser.</div></div>
+        <div><label>Duração</label>
+          <input id="q-duration" value="${esc(p.duration||"")}" placeholder="5 dias · 4 noites"></div>
+      </div>
+      <div class="grid2" style="margin-top:10px;align-items:start;">
+        <div><label>Valor "a partir de"</label>
+          <input id="q-fromprice" type="number" step="0.01" min="0"
+                 value="${p.from_price != null ? esc(String(p.from_price)) : ""}"
+                 placeholder="8500.00"></div>
+        <div><label>Mostrar o "a partir de"</label>
+          <select id="q-fromshow">
+            <option value="nao"${p.from_price_show?"":" selected"}>Não — o valor fica só aqui</option>
+            <option value="sim"${p.from_price_show?" selected":""}>Sim — aparece no cabeçalho</option>
+          </select>
+          <div class="hint" style="margin-top:5px;">Desligado, o valor não sai em lugar nenhum.
+            Em proposta <b>net</b> ele nunca sai na peça: vai no link dos valores.</div></div>
+      </div>
     </div>`:""}
 
     ${/* Uma chave só, e não uma para cada peça: as cinco se movem
@@ -4208,6 +4276,16 @@ function guardaCampos(){
   // de antes". Quem diz "usa o de antes" é o nulo, que só existe
   // enquanto ela não salvou a proposta nenhuma vez.
   if(el("q-covertitle")) PROP.cover_title = el("q-covertitle").value.trim();
+  if(el("q-route"))    PROP.route = el("q-route").value.trim() || null;
+  if(el("q-duration")) PROP.duration = el("q-duration").value.trim() || null;
+  // Campo de número vazio é string vazia, não zero: "a partir de € 0,00"
+  // seria o preço que ela não escreveu.
+  if(el("q-fromprice")){
+    const v = el("q-fromprice").value.trim();
+    PROP.from_price = v === "" ? null : Number(v.replace(",", "."));
+    if(!isFinite(PROP.from_price)) PROP.from_price = null;
+  }
+  if(el("q-fromshow")) PROP.from_price_show = el("q-fromshow").value === "sim";
   if(el("q-assuranceimg")) PROP.assurance_img = el("q-assuranceimg").value.trim() || null;
   if(el("q-agencylogo")) PROP.agency_logo = el("q-agencylogo").value.trim() || null;
   if(el("q-agencybg"))   PROP.agency_logo_bg = el("q-agencybg").value === "sim";
@@ -4258,7 +4336,26 @@ async function saveProposal(){
     sections: PSECS.filter(x=>(x.title||"").trim() || (x.title_en||"").trim()),
     updated_at: new Date().toISOString()
   };
-  const {error:e1} = await sb.from("ops_proposals").update(patch).eq("id", PROP.id);
+  /* O cabeçalho de fatos (0044) é a outra parte que pode não existir
+     ainda no banco dela, pelo mesmo motivo da procedência: o código sobe
+     com a publicação e a SQL ela roda quando abre o Supabase. Faltando,
+     grava o resto da proposta e diz o que falta — em vez de recusar o
+     Salvar inteiro por causa de quatro campos do cabeçalho. */
+  const cabecalho = {
+    route: PROP.route || null, duration: PROP.duration || null,
+    from_price: PROP.from_price != null ? PROP.from_price : null,
+    from_price_show: !!PROP.from_price_show
+  };
+  let e1 = null, semCabecalho = false;
+  {
+    let r1 = await sb.from("ops_proposals")
+      .update(Object.assign({}, patch, cabecalho)).eq("id", PROP.id);
+    if(r1.error && /route|duration|from_price/.test(r1.error.message||"")){
+      r1 = await sb.from("ops_proposals").update(patch).eq("id", PROP.id);
+      semCabecalho = !r1.error;
+    }
+    e1 = r1.error || null;
+  }
   await sb.from("ops_proposal_items").delete().eq("proposal_id", PROP.id);
   /* A procedência da ficha (0042) é o único campo aqui que pode não existir
      ainda no banco dela: o código sobe com a publicação, a SQL ela roda
@@ -4302,7 +4399,12 @@ async function saveProposal(){
     + "fornecedor ela veio, porque o banco ainda não tem esses campos. Rode "
     + "db/migrations/0042-puxar-da-ficha.sql no SQL Editor do Supabase — o aviso no Painel "
     + "traz o link. Os textos, as fotos e os valores foram gravados normalmente.");
+  if(semCabecalho) alert("Proposta salva. O que faltou: a rota, a duração e o \"a partir de\" "
+    + "não foram gravados, porque o banco ainda não tem esses campos. Rode "
+    + "db/migrations/0044-itinerario-completo.sql no SQL Editor do Supabase — o aviso no Painel "
+    + "traz o link. O resto da proposta foi gravado normalmente.");
   Object.assign(PROP, patch);
+  if(!semCabecalho) Object.assign(PROP, cabecalho);
   btn.textContent = "Salvo"; setTimeout(()=>btn.textContent="Salvar",1600);
   return true;
 }
