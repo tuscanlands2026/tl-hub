@@ -1798,10 +1798,44 @@ function avisoSQL(){
   return `<div class="faltasql">
     <b>Falta rodar ${FALTAM.length===1?"uma atualização":FALTAM.length+" atualizações"} no banco.</b>
     Enquanto isso, as telas que dependem dela dão erro ao gravar.
-    Abra cada arquivo, copie e cole no SQL Editor do Supabase, na ordem:
-    <ol>${FALTAM.map(m=>`<li><a href="${RAW}${m.arq}" target="_blank" rel="noopener">${m.arq}</a>
+    Clique em <b>Copiar SQL</b> e cole no SQL Editor do Supabase, na ordem:
+    <ol>${FALTAM.map(m=>`<li>
+      <button class="btn ghost sm" onclick="copiarSQL('${m.arq}', this)">Copiar SQL</button>
+      <a href="${RAW}${m.arq}" target="_blank" rel="noopener">${m.arq}</a>
       — ${m.oque}</li>`).join("")}</ol>
   </div>`;
+}
+
+/* Copiar é um clique, e não abrir aba, marcar tudo e copiar. O arquivo vem
+   do GitHub em texto puro; o link continua ao lado para ela conferir o que
+   está copiando antes de colar num banco que é o dela. Falhando a busca, o
+   botão diz o que houve — nunca copia vazio, que seria colar nada no SQL
+   Editor e achar que rodou. */
+async function copiarSQL(arq, btn){
+  const antes = btn.textContent;
+  btn.disabled = true; btn.textContent = "Buscando…";
+  try{
+    const r = await fetch(RAW + arq, {cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    const txt = await r.text();
+    if(!txt.trim()) throw new Error("arquivo vazio");
+    await navigator.clipboard.writeText(txt);
+    /* O aviso é o próprio botão: no Painel não existe a faixa de recado, e
+       recado() ali cai em alert() — caixa para ela fechar a cada cópia. */
+    btn.disabled = false; btn.textContent = "Copiado — cole no Supabase";
+    setTimeout(()=>{ btn.textContent = antes; }, 4000);
+    return;
+  }catch(e){
+    /* Falhar é diferente: aí a caixa que interrompe é o certo, senão ela
+       cola o que estava na área de transferência de antes e acha que rodou.
+       Navegador que recusa a área de transferência mostra o texto para
+       copiar à mão, em vez de virar botão que não faz nada. */
+    if(/clipboard|permission|denied|not allowed/i.test(e.message||"")) caixaDeCopia(await
+      fetch(RAW + arq).then(r=>r.text()).catch(()=>""));
+    else alert("Não deu para buscar " + arq + " (" + e.message + "). Abra o link ao lado, "
+      + "marque tudo e copie à mão.");
+  }
+  btn.disabled = false; btn.textContent = antes;
 }
 
 /* Erro de coluna que não existe é sempre a mesma causa: falta rodar a
