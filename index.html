@@ -297,9 +297,17 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-cur .cur-op{text-align:center;font-weight:500;font-size:12px;letter-spacing:.2em;
   text-transform:uppercase;opacity:.9;margin-bottom:14px;}
 .ap-cur h2{font-family:"Sorts Mill Goudy",Georgia,"Times New Roman",serif;font-weight:400;font-size:38px;line-height:1.18;
-  text-align:center;margin:0 0 42px;color:var(--cream-light);}
-.ap-cur .cur-dest{font-family:"Sorts Mill Goudy",Georgia,"Times New Roman",serif;font-size:19px;line-height:1.62;margin-bottom:32px;}
-.ap-cur .cur-dias{font-size:15.5px;line-height:1.72;text-align:justify;hyphens:auto;}
+  text-align:center;margin:0 0 42px;color:var(--cream-light);
+  hyphens:none;-webkit-hyphens:none;}
+/* A folha da curadoria foi escrita antes da instrução de agosto/26 e ficou
+   para trás em duas coisas: o bloco dos destinos nunca foi justificado, e
+   era o único lugar do arquivo que ainda hifenizava. Justificado é toda a
+   proposta, na tela e no papel; hifenização não existe em lugar nenhum,
+   porque ela viu "small mo-ments" partido e mandou tirar. */
+.ap-cur .cur-dest{font-family:"Sorts Mill Goudy",Georgia,"Times New Roman",serif;font-size:19px;line-height:1.62;margin-bottom:32px;
+  text-align:justify;hyphens:none;-webkit-hyphens:none;}
+.ap-cur .cur-dias{font-size:15.5px;line-height:1.72;text-align:justify;
+  hyphens:none;-webkit-hyphens:none;}
 .ap-cur .cur-dias ul{list-style:none;margin:0;padding:0;}
 .ap-cur .cur-dias li{position:relative;padding-left:24px;margin-bottom:16px;}
 .ap-cur .cur-dias li::before{content:"";position:absolute;left:6px;top:.72em;width:5px;height:5px;
