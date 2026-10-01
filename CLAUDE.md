@@ -1046,3 +1046,19 @@ e cai no padrão do hub: afirmação comercial é dela.
 **As "abas" são as seções, e ela não achava.** Foi a segunda vez. Com `layout='apresentada'` o
 card agora se chama "Seções de serviço — as abas da proposta" e diz, ali, que cada seção é uma
 aba do menu e uma folha do documento, e que três bases com três hotéis são três seções.
+
+**A estimativa é da categoria, não da proposta** (0057). Ela pediu, montando a proposta da Emily:
+"ao invés da média por noite, uma prévia de valores para essa categoria versus tantas noites". Em
+`indicativo` o valor continua não somando entre linhas; o que entra é a estimativa de UMA
+categoria para a estadia daquela base — € 980 por noite × 4 noites = € 3.920. Segue sem total de
+proposta, porque a cliente ainda vai escolher um hotel por base.
+
+**As noites são da SEÇÃO**, não da linha nem do quarto: a base dura o que dura, qualquer que seja
+a categoria. Por isso `nights` entra em `ops_proposals.sections`, que já é jsonb. Ela digita dois
+números — as noites da base, o valor por noite da categoria — e o hub faz o terceiro; três campos
+à mão divergem no dia em que ela corrige um e esquece o outro.
+
+**O aviso da tarifa** (`rate_note`/`_en`) sai uma vez por folha, embaixo dos valores, e não em
+cada hotel. Nasce vazio: "preços iniciais" e "ideia de investimento" são afirmação comercial
+dela. E leva peso 500 declarado no negrito — contra o peso 300 do bloco, o `bolder` do navegador
+resolve para 400 e some, que é a armadilha já registrada aqui.

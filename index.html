@@ -537,6 +537,18 @@ table.rows tr.par td{border-top:none;padding-top:0;}
   font-variant-numeric:tabular-nums;}
 .ap-unidade em{font-style:normal;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
   color:var(--copper);margin-left:6px;}
+/* A estimativa da categoria para a estadia daquela base: × N noites e o
+   resultado. Vem embaixo do valor por noite, miúda, para o número grande
+   continuar sendo a tarifa — a estimativa é consequência, não anúncio. */
+.ap-estim{display:block;font-size:11px;color:var(--muted);margin-top:2px;
+  font-weight:300;letter-spacing:0;text-transform:none;white-space:nowrap;}
+.ap-estim b{font-weight:400;color:var(--sage);font-variant-numeric:tabular-nums;}
+.ap-aviso-tarifa{margin-top:22px;padding-top:14px;border-top:1px solid var(--cream);
+  font-size:12px;line-height:1.65;color:var(--muted);font-weight:300;}
+.ap-aviso-tarifa p{margin:0 0 6px;text-align:left;}
+/* A armadilha já registrada: contra o peso 300 do bloco, o bolder do
+   navegador resolve para 400 e o negrito some. Peso declarado. */
+.ap-aviso-tarifa b,.ap-aviso-tarifa strong{font-weight:500;color:var(--ink);}
 .unid-cli{margin:8px 0 0;padding-left:14px;border-left:1px solid var(--cream);}
 .unid{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
   font-size:12.5px;font-weight:300;padding:2px 0;margin:0 0 2px;}
@@ -2383,7 +2395,9 @@ const MIGRACOES = [
   {id:"0055-briefing-da-emily",       arq:"0055-briefing-da-emily.sql",
    oque:"o briefing da Emily carregado, com as nove perguntas e validade em 15/11/2026"},
   {id:"0056-proposta-sem-conta",      arq:"0056-proposta-sem-conta.sql",
-   oque:"valor como referência por noite, sem total, e a folha de condições como escolha"}
+   oque:"valor como referência por noite, sem total, e a folha de condições como escolha"},
+  {id:"0057-valores-por-noite",       arq:"0057-valores-por-noite.sql",
+   oque:"as noites de cada base, a estimativa por categoria e o aviso da tarifa dinâmica"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -3991,13 +4005,20 @@ function drawSections(){
   if(!PSECS.length){ host.innerHTML = `<div class="muted">Nenhuma seção. Todas as linhas saem numa tabela só.</div>`; return; }
   host.innerHTML = `<table class="rows">
     <thead><tr><th style="width:60px;"></th><th style="width:210px;">Título</th>
-      <th>Instrução ao cliente</th><th style="width:190px;">Como esta seção aparece</th>
+      <th>Instrução ao cliente</th><th style="width:76px;">Noites</th>
+      <th style="width:190px;">Como esta seção aparece</th>
       <th style="width:240px;">Foto de capa — link</th>
       <th class="x"></th></tr></thead>
     <tbody>${PSECS.map((sec,i)=>`<tr>
       <td class="idio">PT</td>
       <td><input value="${esc(sec.title||"")}" placeholder="Selected Stays" oninput="PSECS[${i}].title=this.value"></td>
       <td><input value="${esc(sec.note||"")}" placeholder="Selecione sua hospedagem para esta viagem" oninput="PSECS[${i}].note=this.value"></td>
+      ${/* As noites são da BASE, não do quarto: a estadia dura o que dura,
+            qualquer que seja a categoria. Com elas e o valor por noite da
+            categoria, o hub faz a conta — ela digita dois números em vez
+            de três, e eles não têm como divergir. */""}
+      <td rowspan="2"><input type="number" min="1" value="${sec.nights||""}"
+        placeholder="—" oninput="PSECS[${i}].nights=this.value?Number(this.value):null"></td>
       <!-- O modo também não tem idioma: é estrutura, não texto. -->
       <td rowspan="2">
         <select onchange="PSECS[${i}].modo=this.value">
@@ -4979,7 +5000,8 @@ async function saveProposal(){
     conditions_pt: PROP.conditions_pt, conditions_en: PROP.conditions_en,
     excluded_pt: PROP.excluded_pt, excluded_en: PROP.excluded_en,
     internal_notes: PROP.internal_notes,
-    sections: PSECS.filter(x=>(x.title||"").trim() || (x.title_en||"").trim()),
+    sections: PSECS.filter(x=>(x.title||"").trim() || (x.title_en||"").trim())
+      .map(x=>Object.assign({}, x, {nights: x.nights ? Number(x.nights) : null})),
     updated_at: new Date().toISOString()
   };
   /* O cabeçalho de fatos (0044) é a outra parte que pode não existir
@@ -8264,6 +8286,22 @@ function linhaTotal(i){
    Quem decide é a proposta, não a linha — valor por linha seria um
    segundo lugar para escrever preço, e aí proposta e order divergem. */
 const indicativo = p => (p && p.rate_mode) === "indicativo";
+/* As noites são da seção: a base dura o que dura, qualquer que seja a
+   categoria. A estimativa é da CATEGORIA para aquela estadia, e não da
+   proposta — a cliente ainda vai escolher um hotel por base. */
+const noitesDa = (p, i) => {
+  const sec = ((p && p.sections) || []).find(x => x.key === (i && i.section));
+  const n = sec && Number(sec.nights);
+  return n > 0 ? n : null;
+};
+function tarifaHTML(p, i, valor){
+  const n = noitesDa(p, i), v = Number(valor) || 0;
+  const rot = esc(rotuloTarifa(p));
+  if(!n) return `${eur(v)}<em>${rot}</em>`;
+  return `${eur(v)}<em>${rot}</em>`
+       + `<span class="ap-estim">× ${n} ${p.lang === "en" ? (n===1?"night":"nights") : (n===1?"noite":"noites")}`
+       + ` · <b>${eur(v * n)}</b></span>`;
+}
 const rotuloTarifa = p => (p && p.rate_label)
   || ((p && p.lang) === "en" ? "average per night" : "média por noite");
 
@@ -8506,13 +8544,13 @@ function apItem(i, t, p, mostra, respondida){
       ${(i.units||[]).length?`<div class="ap-unidades">
         ${(i.units||[]).map(u=>`<div class="ap-unidade">
           <span>${esc(u.label||"")}</span>
-          ${mostra?`<b>${eur(u.price)}${indicativo(p)?`<em>${esc(rotuloTarifa(p))}</em>`:""}</b>`:""}</div>`).join("")}
+          ${mostra?`<b>${indicativo(p)?tarifaHTML(p,i,u.price):eur(u.price)}</b>`:""}</div>`).join("")}
       </div>`:""}
       ${/* Uma categoria só, sem lista de acomodações: o valor indicativo
             ainda precisa aparecer em algum lugar, e é aqui. */""}
       ${(mostra && indicativo(p) && !(i.units||[]).length && Number(i.price))?`<div class="ap-unidades">
         <div class="ap-unidade"><span>${esc(i.room_type||"")}</span>
-          <b>${eur(Number(i.price))}<em>${esc(rotuloTarifa(p))}</em></b></div>
+          <b>${tarifaHTML(p,i,i.price)}</b></div>
       </div>`:""}
       ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
       ${i.included?`<div class="ap-estrutura">
@@ -8668,6 +8706,7 @@ function drawQuoteApresentada(){
     </div>
     <div class="ap-lista">
       ${lista.map(i=>apItem(i,t,p,mostra,respondida)).join("")}
+      ${avisoTarifa(p, mostra)}
       ${apNav(t)}
     </div>
   </section>`;
@@ -8696,6 +8735,7 @@ function drawQuoteApresentada(){
               ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
               ${i.included?`<div class="ap-estrutura"><div class="k">${t.qIncluded}</div>${fmtDoc(i.included)}</div>`:""}
             </div></div>`;}).join("")}
+        ${avisoTarifa(p, mostra)}
         ${apNav(t)}
       </div>
     </section>`;
@@ -9011,6 +9051,14 @@ async function baixarProposta(){
   }
 }
 
+/* O aviso da tarifa sai uma vez por folha, embaixo dos valores — não em
+   cada hotel, que seria a mesma frase três vezes na mesma página. Vazio
+   não sai: é afirmação comercial dela, não minha. */
+function avisoTarifa(p, mostra){
+  return (mostra && indicativo(p) && p.rate_note)
+    ? `<div class="ap-aviso-tarifa">${fmtDoc(p.rate_note)}</div>` : "";
+}
+
 /* Avançar e voltar em toda etapa: o cliente revisa a proposta inteira
    sem sair dela e sem depender do botão do navegador. */
 function apNav(t, fim){
@@ -9056,9 +9104,9 @@ function quoteLinha(i, t, p, mostra, respondida){
                    ${((QSEL.units[i.id]||[]).includes(u.key))?" checked":""}
                    onchange="marcaUnidade('${esc(i.id)}','${esc(u.key)}',this.checked)">
                  <label for="qu-${esc(i.id)}-${esc(u.key)}">${esc(u.label||"")}</label></span>
-               ${mostra?`<b>${eur(u.price)}${indicativo(p)?`<em>${esc(rotuloTarifa(p))}</em>`:""}</b>`:""}</div>`
+               ${mostra?`<b>${indicativo(p)?tarifaHTML(p,i,u.price):eur(u.price)}</b>`:""}</div>`
             : `<div class="unid${(u.optional && !unidadeDentro(i,u))?" fora":""}"><span>${esc(u.label||"")}</span>
-               ${mostra?`<b>${eur(u.price)}${indicativo(p)?`<em>${esc(rotuloTarifa(p))}</em>`:""}</b>`:""}</div>`).join("")}
+               ${mostra?`<b>${indicativo(p)?tarifaHTML(p,i,u.price):eur(u.price)}</b>`:""}</div>`).join("")}
         </div>`:""}
         ${(i.extras||[]).length && dentro && !respondida ? `<div class="extras-cli">
           <div class="k">${t.qExtras}</div>
