@@ -1161,3 +1161,24 @@ da tela e não na função.
 botão "seguinte" continuava desenhado na última folha, onde `apIr` trava em `total-1` e o clique
 não faz nada. Some agora, e a decisão de qual é a última é tomada no `apIr` — depende das chaves
 da proposta, não do código: com a folha comercial a peça acaba no envio, sem ela acaba na base.
+
+**O SQL Editor roda o arquivo inteiro numa transação só** (descoberto na 0063/0066, outubro/26).
+Ela rodou a 0063 e disse "foi"; pelo link da proposta, não tinha saído nada. O Supabase manda o
+arquivo como UMA consulta, e o Postgres põe isso em transação implícita: **um erro em qualquer
+comando desfaz todos os outros**, inclusive os que já tinham passado. Ela vê o arquivo rodar e não
+vê efeito nenhum.
+
+Daí duas regras para migração que mexe em dado:
+
+- **Nada de consultar tabela que pode não existir.** A 0063 consultava `ops_advisor_answers` para
+  não mexer em pergunta já respondida; sem o módulo 0054 no banco, isso não é "não faz nada", é
+  erro de tabela inexistente, e leva o arquivo junto. Conferir com `to_regclass` **não basta**: o
+  plpgsql planeja a instrução inteira ao avaliar o `if`, e falha no planejamento com a condição
+  falsa — medido. Quem resolve é `execute` com o comando em texto, que só é planejado se rodar.
+- **Guarda de troca de texto se prende à frase que se vai trocar**, e não a uma vizinha. A 0063
+  guardava a Curadoria pelo parágrafo da Ghirlandaio; ela já tinha apagado esse parágrafo à mão e
+  reescrito a frase seguinte, então a guarda não casava e o bloco não fazia nada. Ela edita
+  enquanto eu escrevo o arquivo: a guarda tem de sobreviver a isso.
+
+E, do lado da conferência: **"rodei" não é o mesmo que "aplicou".** Vale ler o estado pelo link
+público antes de dizer que está pronto — foi assim que isto apareceu.
