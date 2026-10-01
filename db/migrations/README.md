@@ -31,6 +31,8 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0049 | [`0049-collegio-alla-querce.sql`](0049-collegio-alla-querce.sql) | Collegio alla Querce, Auberge: 17 categorias com nome próprio; a Auberge não publica metragem |
 | 0050 | [`0050-villa-san-michele.sql`](0050-villa-san-michele.sql) | Belmond Villa San Michele, Fiesole: as quatro famílias que a Belmond publica, com metragem e ocupação |
 | 0051 | [`0051-four-seasons-firenze-e-danieli.sql`](0051-four-seasons-firenze-e-danieli.sql) | Four Seasons Firenze e Danieli Venezia, só a ficha do hotel: fourseasons.com é bloqueado e o press kit não traz os quartos |
+| 0052 | [`0052-four-seasons-firenze.sql`](0052-four-seasons-firenze.sql) | Four Seasons Firenze em arquivo próprio, do fact sheet oficial em Word, com os cinco pontos de comida, a spa, o parque e 11 fotos do press kit |
+| 0053 | [`0053-danieli-venezia.sql`](0053-danieli-venezia.sql) | Danieli Venezia em arquivo próprio, do comunicado oficial de reabertura, com 8 fotos do press kit |
 
 Rodada, a linha desce para a tabela de baixo. Enquanto não roda, a proposta salva
 normalmente e avisa que a procedência não foi gravada.
