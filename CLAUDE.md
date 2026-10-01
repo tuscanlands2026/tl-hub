@@ -1125,3 +1125,18 @@ na página do hotel, nas quatro de acomodação, nas onze de categoria, na de co
 e no press. Saíram junto, pelo mesmo motivo, os 17 quartos do Palazzo Vendramin e o século de
 cada um dos dois palácios. **Na ficha o número continua**, como ponto a confirmar com o hotel —
 ali ele é pergunta, e na peça do cliente seria afirmação.
+
+**Não escrever o que ela não pode prometer** (0062, outubro/26). Instrução dela, e é sobre como eu
+escrevo, não sobre uma frase: *"cuidado que você escreve coisas que depois eu não consigo prometer,
+isso é muito complicado... dá uma revisada e tira essas coisas."*
+
+O padrão era meu: eu descrevia o que a TL **vai fazer** antes de alguém ter cotado, confirmado ou
+combinado nada — "we will ask for a room away from any work and confirm the spa is open", "the
+private access for them", "dinners in private palazzi we can open for them", "VIP reception at the
+airport, every transfer", "firm rates, with the bed configuration confirmed in writing". Cada uma
+dessas é uma obrigação que chega ao cliente antes de existir fornecedor, preço ou disponibilidade.
+
+**A linha é esta: fato e oferta ficam, execução sai.** "We can replace one of the hill options" é
+oferta e está na mão dela; "we will confirm the spa is open" é execução e depende de terceiro. Na
+dúvida, escrever o que a coisa **é**, e não o que a TL **fará** com ela — a descrição do hotel que
+sai da ficha nunca teve esse problema justamente por isso.
