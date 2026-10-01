@@ -1117,3 +1117,11 @@ proposta de outubro. O preço da ficha continua não descendo — ele é custo n
   doze do hotel e quatro de cada uma das duas categorias que vão na proposta. O transform certo
   é o que a própria página usa (`_1400xAUTO_` na galeria, `_1500x1000_` nos carrosséis); inventar
   tamanho dá 404, e o servidor derruba conexão sob rajada — pede-se devagar e com nova tentativa.
+
+**Número que nenhum hotel publica não entra na peça** (0060). Instrução dela, outubro/26, vendo
+o "24 quartos" do Aman na folha de Curadoria: *"não fui eu. Então, se não tem a fonte, não
+coloca."* O número era meu, de memória, e o `aman.com` não o publica em lugar nenhum — conferido
+na página do hotel, nas quatro de acomodação, nas onze de categoria, na de contato, na de eventos
+e no press. Saíram junto, pelo mesmo motivo, os 17 quartos do Palazzo Vendramin e o século de
+cada um dos dois palácios. **Na ficha o número continua**, como ponto a confirmar com o hotel —
+ali ele é pergunta, e na peça do cliente seria afirmação.
