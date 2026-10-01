@@ -327,6 +327,64 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-cur .ap-btn:hover{background:rgba(246,243,240,.12);}
 /* prévia da cor no editor, e a caixa de cada folha */
 .cur-ed{border:1px solid var(--cream);padding:14px;margin-bottom:14px;background:#fff;}
+
+/* ---- Briefing da advisor: visual de documento simples, como ela pediu.
+   Sage e Libre Franklin, canto reto, texto justificado como todo
+   documento da casa. Sem peça de marca: é um documento de trabalho. */
+.doc.bf{max-width:760px;margin:0 auto;padding:46px 26px 90px;}
+.bf-marca{margin-bottom:34px;}
+.bf-marca img{height:30px;display:block;}
+.bf-titulo{font-size:27px;font-weight:400;line-height:1.26;margin:0 0 8px;color:var(--ink);
+  hyphens:none;-webkit-hyphens:none;text-align:left;}
+.bf-prazo{margin:0 0 4px;font-size:12px;font-weight:500;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--copper);}
+.bf-ja{margin:14px 0 0;padding:10px 14px;background:var(--cream-light);
+  border-left:2px solid var(--sage);font-size:13px;color:var(--muted);}
+.bf-venceu{font-size:18px;line-height:1.5;margin:0 0 10px;max-width:30em;}
+.bf-corpo{margin-top:30px;font-weight:300;line-height:1.72;}
+.bf-corpo p{margin:0 0 14px;text-align:justify;hyphens:none;-webkit-hyphens:none;}
+.bf-corpo a{color:var(--sage);}
+.bf-h{font-family:"Libre Franklin",system-ui,sans-serif;font-size:12px;font-weight:500;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--sage);
+  margin:34px 0 12px;hyphens:none;text-align:left;}
+.bf-ul{margin:0 0 14px;padding-left:20px;}
+.bf-ul li{margin-bottom:7px;text-align:justify;hyphens:none;}
+.bf-tab{width:100%;border-collapse:collapse;margin:0 0 18px;font-size:13.5px;}
+.bf-tab th{text-align:left;font-weight:500;font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--sage);border-bottom:1px solid var(--sage);
+  padding:0 12px 6px 0;}
+.bf-tab td{padding:8px 12px 8px 0;border-bottom:1px solid var(--cream);vertical-align:top;}
+
+.bf-form{margin-top:44px;border-top:2px solid var(--sage);padding-top:26px;}
+.bf-sub{font-size:12px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--sage);margin-bottom:20px;}
+.bf-q{margin-bottom:22px;}
+/* A pergunta e as opções são texto que a advisor LÊ, não rótulo de campo.
+   O `label{}` da interface é caixa alta, 10px, sage e espaçado — certo para
+   um formulário interno, grito numa pergunta. Aqui tudo volta a caixa
+   normal, peso 400 e cor de texto, que é a regra dela de agosto/26. */
+.bf-rot{display:block;font-weight:400;font-size:14.5px;color:var(--ink);
+  margin-bottom:8px;line-height:1.5;letter-spacing:0;text-transform:none;}
+.bf-op{display:flex;align-items:flex-start;gap:9px;padding:5px 0;cursor:pointer;
+  font-size:14px;font-weight:400;letter-spacing:0;text-transform:none;
+  color:var(--ink);margin-bottom:0;line-height:1.5;}
+.bf-op > span{flex:1;min-width:0;}
+/* O `input{width:100%}` da interface vale para campo de formulário, e numa
+   caixinha ele come a linha inteira e empurra o texto da opção para fora da
+   página. Caixinha e bolinha voltam ao tamanho delas. */
+.bf-op input[type=checkbox],.bf-op input[type=radio]{
+  width:auto;min-width:0;flex:none;margin:3px 0 0;padding:0;
+  accent-color:var(--sage);}
+.bf-lim{font-size:12px;color:var(--muted);margin-top:3px;}
+.bf-msg{margin:14px 0;font-size:13.5px;}
+.bf-msg.err{color:var(--brown);}
+@media (max-width:620px){
+  .doc.bf{padding:30px 18px 70px;}
+  .bf-titulo{font-size:22px;}
+  .bf-tab{font-size:12.5px;}
+  .bf-tab th,.bf-tab td{padding-right:8px;}
+}
+@media print{ .bf-form{display:none;} }
 .cur-mini{margin-top:12px;padding:9px 12px;color:var(--cream-light);font-size:11px;
   letter-spacing:.16em;text-transform:uppercase;}
 .cur-mini.verde{background:var(--sage);} .cur-mini.terra{background:var(--terracotta);}
@@ -1673,16 +1731,490 @@ function route(){ return (location.hash||"").replace(/^#\/?/,""); }
 let VOLTAR = null;
 function verComoCliente(hash, voltarPara){ VOLTAR = voltarPara; location.hash = hash; }
 
+/* =====================================================================
+   BRIEFING DA ADVISOR
+   A TL manda um briefing por link, a advisor responde na mesma página, e
+   cada envio vira uma versão nova. Especificação dela, outubro/26.
+   ===================================================================== */
+
+/* Markdown do briefing. Só o que o documento dela usa: títulos de seção,
+   parágrafos, listas, tabelas, negrito e link. Não é um renderizador
+   completo de propósito — o que não está aqui sai como texto, que é
+   melhor do que sair quebrado. */
+function briefMD(txt){
+  const linhas = String(txt||"").replace(/\r/g,"").split("\n");
+  const inline = t => esc(t)
+    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+             '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  let out = "", i = 0;
+  const ehSep = l => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(l);
+  const celulas = l => l.replace(/^\s*\|/,"").replace(/\|\s*$/,"").split("|").map(x=>x.trim());
+  while(i < linhas.length){
+    const l = linhas[i];
+    if(!l.trim()){ i++; continue; }
+
+    if(/^#{1,3}\s/.test(l)){
+      out += `<h2 class="bf-h">${inline(l.replace(/^#{1,3}\s+/,""))}</h2>`; i++; continue;
+    }
+    /* Tabela: a linha de cabeçalho só vale com a linha de traços embaixo,
+       senão um parágrafo com uma barra no meio viraria tabela. */
+    if(l.includes("|") && ehSep(linhas[i+1]||"")){
+      const cab = celulas(l); i += 2;
+      let corpo = "";
+      while(i < linhas.length && linhas[i].includes("|") && linhas[i].trim()){
+        corpo += "<tr>" + celulas(linhas[i]).map(c=>`<td>${inline(c)}</td>`).join("") + "</tr>"; i++;
+      }
+      out += `<table class="bf-tab"><thead><tr>`
+           + cab.map(c=>`<th>${inline(c)}</th>`).join("") + `</tr></thead><tbody>${corpo}</tbody></table>`;
+      continue;
+    }
+    if(/^\s*[-*]\s/.test(l)){
+      let itens = "";
+      while(i < linhas.length && /^\s*[-*]\s/.test(linhas[i])){
+        itens += `<li>${inline(linhas[i].replace(/^\s*[-*]\s+/,""))}</li>`; i++;
+      }
+      out += `<ul class="bf-ul">${itens}</ul>`; continue;
+    }
+    let par = l; i++;
+    while(i < linhas.length && linhas[i].trim() && !/^#{1,3}\s/.test(linhas[i])
+          && !/^\s*[-*]\s/.test(linhas[i]) && !linhas[i].includes("|")){ par += " " + linhas[i]; i++; }
+    out += `<p>${inline(par)}</p>`;
+  }
+  return out;
+}
+
+const bfData = (d, idioma) => d ? new Date(d + "T12:00:00")
+  .toLocaleDateString(idioma==="en" ? "en-US" : "pt-BR",
+    {day:"numeric", month:"long", year:"numeric"}) : "";
+
+/* ------------------------------------------------- A PÁGINA DA ADVISOR */
+let BFP = null, BFRESP = {};
+
+async function renderBriefingPublico(token){
+  app.innerHTML = `<div class="doc"><p class="muted">Loading…</p></div>`;
+  const {data, error} = await sb.rpc("tl_get_advisor_briefing",
+    {p_token: token, p_ua: navigator.userAgent});
+  if(error) return app.innerHTML = `<div class="doc"><p>${esc(explicar(error))}</p></div>`;
+  if(!data)  return app.innerHTML = `<div class="doc"><p>Link not found.</p></div>`;
+
+  if(data.expired){
+    return app.innerHTML = `<div class="doc bf">
+      <div class="bf-marca"><img src="${LOGO}" alt="Tuscan Lands"></div>
+      <p class="bf-venceu">This link has expired. Please contact Tuscan Lands
+        for an updated selection.</p>
+      <p class="muted">${esc(CONTACT_EMAIL)}</p></div>`;
+  }
+
+  BFP = data;
+  BFRESP = (data.last && data.last.answers) ? JSON.parse(JSON.stringify(data.last.answers)) : {};
+  desenharBriefingPublico();
+}
+
+function desenharBriefingPublico(){
+  const b = BFP.briefing, qs = BFP.questions || [];
+  const obs = (BFP.last && BFP.last.notes) || "";
+  app.innerHTML = `<div class="doc bf">
+    <div class="bf-marca"><img src="${LOGO}" alt="Tuscan Lands"></div>
+    <h1 class="bf-titulo">${esc(b.title||"")}</h1>
+    ${b.valid_until ? `<p class="bf-prazo">This link is valid until ${esc(bfData(b.valid_until,"en"))}</p>` : ""}
+    ${BFP.last ? `<p class="bf-ja">You last answered on
+        ${esc(new Date(BFP.last.sent_at).toLocaleDateString("en-US",{day:"numeric",month:"long",year:"numeric"}))}
+        (version ${BFP.last.version}). Your answers are below — change what you need and send again.</p>` : ""}
+    <div class="bf-corpo">${briefMD(b.content)}</div>
+    ${qs.length ? `<div class="bf-form noprint">
+      <div class="bf-sub">Your answers</div>
+      <div id="bf-perg">${qs.map(perguntaHTML).join("")}</div>
+      <label class="bf-rot">Anything else we should know</label>
+      <textarea id="bf-obs" rows="4">${esc(obs)}</textarea>
+      <div id="bf-msg" class="bf-msg"></div>
+      <button class="btn" id="bf-enviar">Send to Tuscan Lands</button>
+    </div>` : ""}
+  </div>`;
+  if(el("bf-enviar")) el("bf-enviar").onclick = enviarBriefing;
+  ligarCamposBriefing();
+}
+
+function perguntaHTML(q){
+  const v = BFRESP[q.id];
+  const req = q.required ? ` <span class="req">*</span>` : "";
+  const ops = Array.isArray(q.options) ? q.options : [];
+  let campo = "";
+
+  if(q.kind === "escolha_multipla"){
+    const marc = Array.isArray(v) ? v : [];
+    campo = ops.map((o,k)=>`<label class="bf-op">
+        <input type="checkbox" data-q="${q.id}" value="${esc(o)}"${marc.includes(o)?" checked":""}>
+        <span>${esc(o)}</span></label>`).join("")
+      + (q.max_choices ? `<div class="bf-lim">Choose up to ${q.max_choices}</div>` : "");
+  } else if(q.kind === "escolha_unica"){
+    campo = ops.map(o=>`<label class="bf-op">
+        <input type="radio" name="q${q.id}" data-q="${q.id}" value="${esc(o)}"${v===o?" checked":""}>
+        <span>${esc(o)}</span></label>`).join("");
+  } else if(q.kind === "sim_nao"){
+    campo = ["Yes","No"].map(o=>`<label class="bf-op">
+        <input type="radio" name="q${q.id}" data-q="${q.id}" value="${o}"${v===o?" checked":""}>
+        <span>${o}</span></label>`).join("");
+  } else {
+    campo = `<input type="text" data-q="${q.id}" value="${esc(typeof v==="string"?v:"")}">`;
+  }
+  return `<div class="bf-q" data-qid="${q.id}">
+    <div class="bf-rot">${esc(q.label)}${req}</div>${campo}</div>`;
+}
+
+/* A resposta fica em memória a cada toque, e não só no envio: a advisor
+   pode marcar, rolar, voltar e mudar, e a tela não se redesenha no meio. */
+function ligarCamposBriefing(){
+  app.querySelectorAll("#bf-perg [data-q]").forEach(c=>{
+    c.onchange = c.oninput = () => {
+      const id = c.dataset.q;
+      const q = (BFP.questions||[]).find(x=>x.id===id);
+      if(!q) return;
+      if(q.kind === "escolha_multipla"){
+        BFRESP[id] = [...app.querySelectorAll(`#bf-perg input[type=checkbox][data-q="${id}"]:checked`)]
+          .map(x=>x.value);
+      } else if(c.type === "radio"){ BFRESP[id] = c.value; }
+      else { BFRESP[id] = c.value; }
+    };
+  });
+}
+
+async function enviarBriefing(){
+  const btn = el("bf-enviar"), msg = el("bf-msg");
+  msg.textContent = ""; msg.className = "bf-msg";
+  btn.disabled = true; btn.textContent = "Sending…";
+  const token = route().split("/")[1];
+  const {data, error} = await sb.rpc("tl_submit_advisor_briefing",
+    {p_token: token, p_payload: {answers: BFRESP, notes: (el("bf-obs").value||"").trim()}});
+  btn.disabled = false; btn.textContent = "Send to Tuscan Lands";
+  if(error){ msg.className = "bf-msg err"; msg.textContent = explicar(error); return; }
+
+  if(data && data.ok === false){
+    msg.className = "bf-msg err";
+    const campos = (data.fields||[]).join(" · ");
+    msg.textContent =
+        data.error === "missing"  ? "Please answer: " + campos
+      : data.error === "too_many" ? "Too many choices in: " + campos
+      : data.error === "expired"  ? "This link has expired. Please contact Tuscan Lands."
+      : data.error === "too_soon" ? "We already received your answers a moment ago."
+      : "We could not save your answers. Please try again.";
+    return;
+  }
+  app.innerHTML = `<div class="doc bf">
+    <div class="bf-marca"><img src="${LOGO}" alt="Tuscan Lands"></div>
+    <h1 class="bf-titulo">Thank you, we received your answers.</h1>
+    <p>We will come back to you with the hotels and the full program.</p>
+    <p class="muted">${esc(CONTACT_EMAIL)}</p></div>`;
+}
+
+/* ------------------------------------------------- O PAINEL INTERNO */
+let ABR = null, ABQ = [], ABVERS = [], ABOPENS = [];
+
+const AB_SIT = {rascunho:"Rascunho", enviado:"Enviado", aberto:"Aberto",
+                respondido:"Respondido", expirado:"Vencido"};
+
+function linkBriefing(token){
+  return token ? PUBLIC_BASE_URL + "#/b/" + token : "";
+}
+
+async function renderABriefings(){
+  NAV = "abriefings"; ABR = null;
+  shell(`<div class="card"><div class="section-title">Briefing da advisor</div>
+    <div class="hint">O briefing que você manda por link para a advisor responder.
+      Cada envio dela vira uma <b>versão nova</b> — nenhuma resposta anterior é alterada —
+      e o link vence na data que você escolher.<br>
+      Não confunda com o briefing da oportunidade, que é o seu, interno.</div>
+    <div id="ab-host"><div class="muted">Carregando…</div></div>
+    <button class="btn ghost sm" id="ab-novo" style="margin-top:10px;">+ Novo briefing</button>
+  </div>`, "Briefing da advisor");
+  el("ab-novo").onclick = novoABriefing;
+
+  const {data, error} = await sb.from("ops_advisor_briefings")
+    .select("*, respostas:ops_advisor_answers(version,sent_at), aberturas:ops_advisor_opens(opened_at)")
+    .order("created_at", {ascending:false});
+  if(error) return el("ab-host").innerHTML = `<div class="msg">${esc(explicar(error))}</div>`;
+  if(!(data||[]).length) return el("ab-host").innerHTML =
+    `<div class="muted">Nenhum briefing ainda.</div>`;
+
+  el("ab-host").innerHTML = `<table class="rows"><thead><tr>
+      <th>Título</th><th style="width:150px;">Advisor</th><th style="width:100px;">Situação</th>
+      <th style="width:110px;">Validade</th><th style="width:80px;">Versões</th>
+      <th style="width:140px;">Última resposta</th><th style="width:130px;">Último acesso</th>
+    </tr></thead><tbody>${data.map(b=>{
+      const vs = b.respostas||[], ab = b.aberturas||[];
+      const ult = vs.length ? vs.map(v=>v.sent_at).sort().slice(-1)[0] : null;
+      const ac  = ab.length ? ab.map(a=>a.opened_at).sort().slice(-1)[0] : null;
+      const venceu = b.valid_until && b.valid_until < hojeISO();
+      return `<tr class="clicavel" data-id="${b.id}">
+        <td><b>${esc(b.title)}</b>${b.client_ref?`<div class="muted">${esc(b.client_ref)}</div>`:""}</td>
+        <td>${esc(b.advisor_name||"—")}${b.agency?`<div class="muted">${esc(b.agency)}</div>`:""}</td>
+        <td>${esc(AB_SIT[venceu?"expirado":b.status]||b.status)}</td>
+        <td>${b.valid_until?esc(bfData(b.valid_until,"pt")):"não vence"}</td>
+        <td>${vs.length||"—"}</td>
+        <td>${ult?esc(new Date(ult).toLocaleDateString("pt-BR")):"—"}</td>
+        <td>${ac?esc(new Date(ac).toLocaleDateString("pt-BR")):"—"}</td>
+      </tr>`;}).join("")}</tbody></table>`;
+  app.querySelectorAll("tr.clicavel").forEach(t=>t.onclick=()=>abrirABriefing(t.dataset.id));
+}
+
+const hojeISO = () => new Date().toISOString().slice(0,10);
+
+async function novoABriefing(){
+  const {data, error} = await sb.from("ops_advisor_briefings")
+    .insert({title:"Novo briefing", status:"rascunho"}).select().single();
+  if(error) return alert(explicar(error));
+  abrirABriefing(data.id);
+}
+
+async function abrirABriefing(id){
+  const [{data:b, error:e1}, {data:qs}, {data:vs}, {data:op}] = await Promise.all([
+    sb.from("ops_advisor_briefings").select("*").eq("id", id).single(),
+    sb.from("ops_advisor_questions").select("*").eq("briefing_id", id).order("sort"),
+    sb.from("ops_advisor_answers").select("*").eq("briefing_id", id).order("version"),
+    sb.from("ops_advisor_opens").select("*").eq("briefing_id", id).order("opened_at", {ascending:false})
+  ]);
+  if(e1) return alert(explicar(e1));
+  ABR = b; ABQ = qs||[]; ABVERS = vs||[]; ABOPENS = op||[];
+  desenharABriefing();
+}
+
+function desenharABriefing(){
+  NAV = "abriefings";
+  const b = ABR;
+  const venceu = b.valid_until && b.valid_until < hojeISO();
+  shell(`
+  <div class="editor-head">
+    <div><div class="overline">Briefing da advisor</div>
+      <h1>${esc(b.title||"Sem título")}</h1>
+      <div class="who">${esc(AB_SIT[venceu?"expirado":b.status]||b.status)}${
+        b.valid_until?` · vence em ${esc(bfData(b.valid_until,"pt"))}`:" · não vence"}</div></div>
+    <div class="editor-actions">
+      <button class="btn ghost sm" id="ab-back">Voltar</button>
+      <button class="btn sm" id="ab-save">Salvar</button>
+      <button class="btn ghost sm" id="ab-ver">Ver como a advisor vê</button>
+    </div>
+  </div>
+
+  <div class="card stack">
+    <div class="section-title">Cabeçalho</div>
+    <div class="grid2">
+      <div><label>Título <span class="req">*</span></label>
+        <input id="ab-title" value="${esc(b.title||"")}"></div>
+      <div><label>Referência interna</label>
+        <input id="ab-ref" value="${esc(b.client_ref||"")}" placeholder="Emily &amp; husband · TL-053-26"></div>
+    </div>
+    <div class="grid3">
+      <div><label>Advisor</label><input id="ab-adv" value="${esc(b.advisor_name||"")}"></div>
+      <div><label>Agência</label><input id="ab-ag" value="${esc(b.agency||"")}"></div>
+      <div><label>E-mail da advisor</label><input id="ab-mail" value="${esc(b.advisor_email||"")}"></div>
+    </div>
+    <div class="grid2">
+      <div><label>Link válido até</label>
+        <input type="date" id="ab-ate" value="${esc(b.valid_until||"")}">
+        <div class="hint" style="margin-top:5px;">Em branco, o link não vence. Depois da data a
+          página não mostra o briefing e o banco recusa o envio.</div></div>
+      <div><label>Situação</label>
+        <select id="ab-status">
+          ${Object.entries(AB_SIT).map(([k,r])=>
+            `<option value="${k}"${b.status===k?" selected":""}>${r}</option>`).join("")}
+        </select>
+        <div class="hint" style="margin-top:5px;">Marque <b>Enviado</b> quando mandar o link.
+          Abriu e respondeu, o próprio hub muda sozinho.</div></div>
+    </div>
+  </div>
+
+  <div class="card stack">
+    <div class="section-title">O briefing</div>
+    <div class="hint">Em Markdown, como o documento: <b>##</b> abre uma seção,
+      <b>- </b> faz lista, <b>**negrito**</b>, <b>[texto](link)</b>, e tabela com
+      <b>|</b> e uma linha de traços embaixo do cabeçalho.</div>
+    <textarea id="ab-conteudo" rows="16" style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px;"
+      >${esc(b.content||"")}</textarea>
+    <div style="margin-top:10px;">
+      <button class="btn ghost sm" id="ab-previa">Pré-visualizar</button>
+    </div>
+    <div id="ab-previa-host"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Perguntas</div>
+    <div class="hint">Em inglês: é o que a advisor lê. A ordem aqui é a ordem na página.</div>
+    <div id="ab-qhost"></div>
+    <button class="btn ghost sm" id="ab-qadd" style="margin-top:6px;">+ Pergunta</button>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Link da advisor</div>
+    <div class="linkbox">
+      <input id="ab-link" readonly value="${esc(linkBriefing(b.token))}">
+      <button class="btn ghost sm" onclick="copiarTexto(el('ab-link').value)">Copiar</button>
+    </div>
+    ${venceu?`<div class="hint" style="margin-top:8px;">O link venceu. Prorrogar a data
+      reativa <b>o mesmo link</b> — a advisor não precisa de endereço novo.</div>
+      <div style="margin-top:8px;"><input type="date" id="ab-prorrogar" value="${esc(hojeISO())}">
+      <button class="btn ghost sm" id="ab-prorrogar-btn">Prorrogar</button></div>`:""}
+  </div>
+
+  <div class="card">
+    <div class="section-title">Respostas — ${ABVERS.length} ${ABVERS.length===1?"versão":"versões"}</div>
+    <div id="ab-vhost">${histABriefing()}</div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Acessos — ${ABOPENS.length}</div>
+    ${ABOPENS.length?`<table class="rows"><thead><tr><th style="width:190px;">Quando</th>
+      <th>Navegador e aparelho</th></tr></thead><tbody>${ABOPENS.slice(0,40).map(a=>
+      `<tr><td>${esc(new Date(a.opened_at).toLocaleString("pt-BR"))}</td>
+        <td class="muted">${esc(a.user_agent||"—")}</td></tr>`).join("")}</tbody></table>`
+      :`<div class="muted">Ninguém abriu ainda.</div>`}
+  </div>`, "Briefing da advisor");
+
+  el("ab-back").onclick  = renderABriefings;
+  el("ab-save").onclick  = salvarABriefing;
+  el("ab-ver").onclick   = () => verComoCliente("/b/" + b.token, () => abrirABriefing(b.id));
+  el("ab-qadd").onclick  = addPerguntaAB;
+  el("ab-previa").onclick = () => {
+    el("ab-previa-host").innerHTML =
+      `<div class="doc bf" style="margin-top:14px;border:1px solid var(--cream);padding:22px;">
+        ${briefMD(el("ab-conteudo").value)}</div>`;
+  };
+  if(el("ab-prorrogar-btn")) el("ab-prorrogar-btn").onclick = async () => {
+    const {error} = await sb.rpc("tl_extend_advisor_briefing",
+      {p_id: b.id, p_until: el("ab-prorrogar").value});
+    if(error) return alert(explicar(error));
+    abrirABriefing(b.id);
+  };
+  desenharPerguntasAB();
+}
+
+function histABriefing(){
+  if(!ABVERS.length) return `<div class="muted">A advisor ainda não respondeu.</div>`;
+  const rot = id => (ABQ.find(q=>q.id===id)||{}).label || id;
+  const val = v => Array.isArray(v) ? v.join(" · ") : (v==null||v==="" ? "—" : String(v));
+  return ABVERS.slice().reverse().map((v,i)=>{
+    const ant = ABVERS[ABVERS.length - i - 2];   // a versão imediatamente anterior
+    return `<div class="cur-ed">
+      <div class="overline">Versão ${v.version} · ${esc(new Date(v.sent_at).toLocaleString("pt-BR"))}
+        ${ant?` · comparada com a ${ant.version}`:""}</div>
+      <table class="rows" style="margin-top:8px;"><tbody>${ABQ.map(q=>{
+        const agora = val(v.answers?.[q.id]);
+        const antes = ant ? val(ant.answers?.[q.id]) : null;
+        const mudou = ant && agora !== antes;
+        return `<tr><td style="width:46%;color:var(--muted);">${esc(q.label)}</td>
+          <td${mudou?' style="background:#fdf6ef;"':""}>${esc(agora)}${
+            mudou?`<div class="muted" style="font-size:11.5px;">antes: ${esc(antes)}</div>`:""}</td></tr>`;
+      }).join("")}</tbody></table>
+      ${v.notes?`<div style="margin-top:8px;"><span class="muted">Observações</span><br>${esc(v.notes)}</div>`:""}
+    </div>`;
+  }).join("");
+}
+
+function desenharPerguntasAB(){
+  const host = el("ab-qhost"); if(!host) return;
+  if(!ABQ.length) return host.innerHTML = `<div class="muted">Nenhuma pergunta.</div>`;
+  const tipos = {escolha_unica:"Escolha única", escolha_multipla:"Escolha múltipla",
+                 sim_nao:"Sim ou não", texto:"Texto aberto"};
+  host.innerHTML = ABQ.map((q,i)=>`
+    <div class="cur-ed">
+      <div class="grid3" style="align-items:end;">
+        <div style="grid-column:span 2;"><label>Pergunta, em inglês</label>
+          <input value="${esc(q.label||"")}" oninput="ABQ[${i}].label=this.value"></div>
+        <div style="text-align:right;">
+          <button class="iconbtn" onclick="moveAB(${i},-1)" title="Subir">↑</button>
+          <button class="iconbtn" onclick="moveAB(${i},1)" title="Descer">↓</button>
+          <button class="iconbtn" onclick="removeAB(${i})" title="Excluir">×</button>
+        </div>
+      </div>
+      <div class="grid3" style="margin-top:10px;">
+        <div><label>Tipo</label>
+          <select onchange="ABQ[${i}].kind=this.value;desenharPerguntasAB()">
+            ${Object.entries(tipos).map(([k,r])=>
+              `<option value="${k}"${q.kind===k?" selected":""}>${r}</option>`).join("")}
+          </select></div>
+        <div><label>Máximo de escolhas</label>
+          <input type="number" min="1" value="${q.max_choices||""}"
+            ${q.kind==="escolha_multipla"?"":"disabled"}
+            oninput="ABQ[${i}].max_choices=this.value?Number(this.value):null"></div>
+        <div><label>Obrigatória</label>
+          <select onchange="ABQ[${i}].required=this.value==='sim'">
+            <option value="nao"${q.required?"":" selected"}>Não</option>
+            <option value="sim"${q.required?" selected":""}>Sim</option>
+          </select></div>
+      </div>
+      ${(q.kind==="escolha_unica"||q.kind==="escolha_multipla")?`
+      <div style="margin-top:10px;"><label>Opções — uma por linha</label>
+        <textarea rows="3" oninput="ABQ[${i}].options=this.value.split('\\n').map(x=>x.trim()).filter(Boolean)"
+          >${esc((q.options||[]).join("\n"))}</textarea></div>`:""}
+    </div>`).join("");
+}
+
+function addPerguntaAB(){
+  ABQ.push({id:null, kind:"texto", label:"", options:[], max_choices:null, required:false});
+  desenharPerguntasAB();
+}
+function moveAB(i,d){ const j=i+d; if(j<0||j>=ABQ.length) return;
+  const t=ABQ[i]; ABQ[i]=ABQ[j]; ABQ[j]=t; desenharPerguntasAB(); }
+function removeAB(i){
+  const q = ABQ[i];
+  if(ABVERS.length && q.id && !confirm(
+      `Apagar a pergunta "${q.label}"?\n\nA advisor já respondeu ${ABVERS.length} ` +
+      `${ABVERS.length===1?"vez":"vezes"}. As respostas dela ficam gravadas, mas esta ` +
+      `pergunta some do histórico — ninguém mais vai saber o que foi perguntado.`)) return;
+  ABQ.splice(i,1); desenharPerguntasAB();
+}
+
+async function salvarABriefing(){
+  const btn = el("ab-save"); btn.disabled = true; btn.textContent = "Salvando…";
+  const patch = {
+    title: el("ab-title").value.trim() || "Sem título",
+    client_ref: el("ab-ref").value.trim() || null,
+    advisor_name: el("ab-adv").value.trim() || null,
+    agency: el("ab-ag").value.trim() || null,
+    advisor_email: el("ab-mail").value.trim() || null,
+    content: el("ab-conteudo").value,
+    valid_until: el("ab-ate").value || null,
+    status: el("ab-status").value,
+    updated_at: new Date().toISOString()
+  };
+  const {error:e1} = await sb.from("ops_advisor_briefings").update(patch).eq("id", ABR.id);
+  /* As perguntas são regravadas inteiras. As RESPOSTAS não são tocadas:
+     elas guardam o id da pergunta, e por isso a pergunta que já foi
+     respondida mantém o id dela — apagar e recriar perderia o histórico. */
+  let e2 = null;
+  const vivos = ABQ.filter(q=>q.id).map(q=>q.id);
+  const {error:eDel} = await sb.from("ops_advisor_questions").delete()
+    .eq("briefing_id", ABR.id).not("id", "in", `(${vivos.length?vivos.map(x=>`"${x}"`).join(","):'""'})`);
+  if(eDel) e2 = eDel;
+  for(let i=0; i<ABQ.length && !e2; i++){
+    const q = ABQ[i];
+    const linha = {briefing_id: ABR.id, sort: i+1, kind: q.kind,
+      label: (q.label||"").trim() || "—", options: q.options||[],
+      max_choices: q.kind==="escolha_multipla" ? (q.max_choices||null) : null,
+      required: !!q.required};
+    const r = q.id
+      ? await sb.from("ops_advisor_questions").update(linha).eq("id", q.id)
+      : await sb.from("ops_advisor_questions").insert(linha);
+    if(r.error) e2 = r.error;
+  }
+  btn.disabled = false; btn.textContent = "Salvar";
+  if(e1||e2) return alert(explicar(e1||e2));
+  btn.textContent = "Salvo"; setTimeout(()=>btn.textContent="Salvar",1600);
+  abrirABriefing(ABR.id);
+}
+
 async function boot(){
   const r = route();
   const isPublic = r.startsWith("confirm/") || r.startsWith("quote/") || r.startsWith("valores/")
-               || r.startsWith("proforma/");
+               || r.startsWith("proforma/") || r.startsWith("b/");
   if(!makeClient()){ return renderSetup(isPublic ? r : null); }
   if(r.startsWith("confirm/")) return renderPublic(r.split("/")[1]);
   /* A proforma pelo token: é esta página que o servidor abre para desenhar
      o PDF, e é a mesma que a agência pode abrir se ela mandar o endereço. */
   if(r.startsWith("proforma/")) return renderProformaPublica(r.split("/")[1]);
   if(r.startsWith("quote/"))   return renderQuote(r.split("/")[1]);
+  /* O briefing que a advisor responde. Endereço curto de propósito: é um
+     link que ela cola num e-mail, e #/advisor-briefing/… não ajuda ninguém. */
+  if(r.startsWith("b/"))       return renderBriefingPublico(r.split("/")[1]);
   /* O link dos valores: mesma proposta, outra leitura — formato tabela,
      com os preços net, e é por aqui que a agência aprova. */
   if(r.startsWith("valores/")) return renderQuote(r.split("/")[1], true);
@@ -1809,7 +2341,11 @@ const MIGRACOES = [
   {id:"0052-four-seasons-firenze",     arq:"0052-four-seasons-firenze.sql",
    oque:"Four Seasons Firenze em ficha própria, do fact sheet oficial, com as fotos do press kit"},
   {id:"0053-danieli-venezia",          arq:"0053-danieli-venezia.sql",
-   oque:"Danieli Venezia em ficha própria, do comunicado oficial, com as fotos do press kit"}
+   oque:"Danieli Venezia em ficha própria, do comunicado oficial, com as fotos do press kit"},
+  {id:"0054-briefing-da-advisor",     arq:"0054-briefing-da-advisor.sql",
+   oque:"briefing que a advisor responde por link, com versão a cada envio e prazo de validade"},
+  {id:"0055-briefing-da-emily",       arq:"0055-briefing-da-emily.sql",
+   oque:"o briefing da Emily carregado, com as nove perguntas e validade em 15/11/2026"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -1946,6 +2482,7 @@ const NAVMAP = {
   painel: {rotulo:"", oculto:true, itens:[{k:"painel", ir:()=>renderPainel()}]},
   vendas: {rotulo:"Vendas", itens:[
     {k:"opportunities", rotulo:"Oportunidades", ir:()=>renderOpportunities()},
+    {k:"abriefings",    rotulo:"Briefing da advisor", ir:()=>renderABriefings()},
     {k:"orders",        rotulo:"Orders",        ir:()=>renderApp()}
   ]},
   operacoes: {rotulo:"Operações", itens:[
@@ -2091,12 +2628,16 @@ async function renderPainel(){
   </div></div>`;
   el("tb-out").onclick = async () => { await sb.auth.signOut(); renderLogin(); };
 
-  const [{data:board},{data:props},{data:ords},{data:cat},{data:fn}] = await Promise.all([
+  const [{data:board},{data:props},{data:ords},{data:cat},{data:fn},{data:abr}] = await Promise.all([
     sb.from("ops_opportunities_board").select("*"),
     sb.from("ops_proposals_box").select("situacao"),
     sb.from("ops_orders").select("id,status"),
     sb.from("ops_catalog").select("id,active"),
-    sb.from("ops_suppliers").select("id,lat,lng")
+    sb.from("ops_suppliers").select("id,lat,lng"),
+    /* Briefing da advisor: a tabela pode ainda não existir no banco dela, e
+       o Painel não pode quebrar por causa disso — o aviso de migração já
+       diz o que falta rodar. */
+    sb.from("ops_advisor_briefings").select("id,status,valid_until")
   ]);
   const b = board||[], pr = props||[], od = ords||[], ct = cat||[];
 
@@ -2132,11 +2673,18 @@ async function renderPainel(){
             ((fn||[]).filter(f=>f.lat==null||f.lng==null).length
               ? (fn||[]).filter(f=>f.lat==null||f.lng==null).length + " sem localização"
               : "Quem presta o serviço e o que cobra"), "fornecedores")
+    /* O número é o que espera por ela: briefing mandado e ainda sem resposta.
+       Vencido não espera nada — espera que ela prorrogue, e aparece na lista. */
+    + caixa("Briefing da advisor",
+            (abr||[]).filter(x=>["enviado","aberto"].includes(x.status)
+                              && !(x.valid_until && x.valid_until < hojeISO())).length,
+            (abr||[]).length, "Enviados, esperando resposta", "abriefings", true)
     + caixa("Checklist",     "—",        null,      "Depois do checkout. Em breve", null);
 
   app.querySelectorAll(".caixa[data-ir]").forEach(c=>c.onclick=()=>{
     const ir = c.dataset.ir;
     if(ir==="orders") renderApp();
+    else if(ir==="abriefings") renderABriefings();
     else if(ir==="catalogo") renderCatalogo();
     else if(ir==="fornecedores") renderFornecedores();
     else renderOpportunities();
