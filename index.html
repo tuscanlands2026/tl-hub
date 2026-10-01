@@ -2415,7 +2415,9 @@ const MIGRACOES = [
   {id:"0063-saem-tres-hoteis",        arq:"0063-saem-tres-hoteis.sql",
    oque:"saem Ghirlandaio, Villa San Michele e Palazzo Vendramin do briefing e da proposta"},
   {id:"0064-sai-a-festa-medieval",    arq:"0064-sai-a-festa-medieval.sql",
-   oque:"sai do briefing a frase de encaixar a festa medieval no roteiro"}
+   oque:"sai do briefing a frase de encaixar a festa medieval no roteiro"},
+  {id:"0065-proposta-so-apresentacao", arq:"0065-proposta-so-apresentacao.sql",
+   oque:"a folha da proposta comercial vira escolha, e a peça pode sair só como apresentação"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -3595,6 +3597,16 @@ function renderProposal(){
         </select>
         <div class="hint" style="margin-top:5px;">Não sair <b>não apaga</b> o texto: ele fica
           gravado e volta quando você religar.</div></div>
+      ${p.layout==="apresentada"?`
+      <div><label>Folha da proposta comercial</label>
+        <select id="q-resumo">
+          <option value="sim"${p.show_summary===false?"":" selected"}>Sai na proposta</option>
+          <option value="nao"${p.show_summary===false?" selected":""}>Não sai — só apresentação</option>
+        </select>
+        <div class="hint" style="margin-top:5px;">É a folha do resumo da escolha, com a tabela, a
+          caixinha de aprovar cada serviço e o botão de enviar. Tirando ela a peça vira só
+          apresentação e <b>o cliente não tem como responder</b> — serve para levantamento de
+          opções. Religando, o caminho de resposta volta inteiro.</div></div>`:""}
     </div>
 
     ${p.layout==="apresentada"?`<div style="border-left:2px solid var(--sage);padding-left:12px;">
@@ -4958,6 +4970,7 @@ function guardaCampos(){
   // enquanto ela não salvou a proposta nenhuma vez.
   if(el("q-covertitle")) PROP.cover_title = el("q-covertitle").value.trim();
   if(el("q-cond"))     PROP.show_conditions = el("q-cond").value === "sim";
+  if(el("q-resumo"))   PROP.show_summary    = el("q-resumo").value === "sim";
   if(el("q-ratemode")) PROP.rate_mode = el("q-ratemode").value;
   if(el("q-ratelabel")) PROP[EDIOMA==="en"?"rate_label_en":"rate_label"] =
     el("q-ratelabel").value.trim() || null;
@@ -5029,6 +5042,7 @@ async function saveProposal(){
      Salvar inteiro por causa de quatro campos do cabeçalho. */
   const cabecalho = {
     show_conditions: PROP.show_conditions !== false,
+    show_summary: PROP.show_summary !== false,
     rate_mode: PROP.rate_mode === "indicativo" ? "indicativo" : "total",
     rate_label: PROP.rate_label || null, rate_label_en: PROP.rate_label_en || null,
     route: PROP.route || null, duration: PROP.duration || null,
@@ -8656,6 +8670,15 @@ function apIr(n, manterRolagem){
   // sem menu ao lado. O índice entra a partir da segunda etapa.
   const raiz = document.querySelector(".apres");
   if(raiz) raiz.classList.toggle("na-capa", APASSO === 0);
+  /* Na última folha o "seguinte" não leva a lugar nenhum: apIr trava no
+     total-1, então o botão fica lá para ser clicado sem efeito. Some.
+     É feito aqui, e não em apNav, porque qual é a última depende das
+     chaves da proposta — sem a folha comercial a peça acaba na última
+     base, e com ela acaba no envio ou na contracapa. */
+  document.querySelectorAll(".ap-passo").forEach((el,k)=>{
+    const seguinte = el.querySelector(".ap-nav .ap-btn:not(.ghost)");
+    if(seguinte) seguinte.style.display = (k === total-1) ? "none" : "";
+  });
   if(!manterRolagem && APASSO !== antes) window.scrollTo(0,0);
 }
 function apAnda(d){ apIr(APASSO + d); }
@@ -8856,7 +8879,21 @@ function drawQuoteApresentada(){
 
 
 
-  passos.push({txt:rot(p,"prop_menu",t.qPropMenu), html:`
+  /* A FOLHA DA PROPOSTA COMERCIAL É ESCOLHA DELA (show_summary).
+     Instrução dela, outubro/26: numa peça que é levantamento de opções
+     para a advisor olhar, essa folha não cabe — ela é o resumo da
+     escolha, e aqui ainda não há escolha a fazer.
+
+     Tirar esta etapa tira TRÊS coisas que moram só nela: a tabela do
+     resumo, a caixinha de aprovar cada serviço e o bloco de envio.
+     Então a proposta passa a NÃO TER COMO SER RESPONDIDA — e é por isso
+     que a chave nasce ligada e vive na proposta, não no código: no dia
+     em que a peça virar proposta de verdade, ela religa e o caminho de
+     resposta volta inteiro, sem nada ter sido apagado.
+
+     Vale só na apresentada: na quote simples o resumo É o documento, e
+     esconder deixaria uma folha de rosto sem nada atrás. */
+  if(p.show_summary !== false) passos.push({txt:rot(p,"prop_menu",t.qPropMenu), html:`
     <section class="ap-sec ap-fim ap-passo" style="display:none;">
       <div class="ap-foto ap-foto-fim">
         <img class="ap-fundo" src="${IMG_RESUMO}" alt="">
