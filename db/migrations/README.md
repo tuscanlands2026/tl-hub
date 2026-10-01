@@ -43,6 +43,7 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0061 | [`0061-sai-a-frase-da-cama.sql`](0061-sai-a-frase-da-cama.sql) | **mexe em linha que já existe — só rodar depois do sim dela.** Tira do briefing da Emily o trecho "with a king bed and single mattress confirmed in writing". Troca de frase, o resto do parágrafo fica |
 | 0062 | [`0062-sai-a-promessa.sql`](0062-sai-a-promessa.sql) | **mexe em linha que já existe — só rodar depois do sim dela.** Tira do briefing e do aviso da tarifa as cinco frases que prometem execução antes de qualquer cotação: o quarto longe da obra no Danieli, o "private access", os jantares em palazzo, a recepção VIP e a tarifa firme por escrito |
 | 0063 | [`0063-saem-tres-hoteis.sql`](0063-saem-tres-hoteis.sql) | **mexe em linha que já existe — só rodar depois do sim dela.** Saem Dimora Ghirlandaio, Villa San Michele e Palazzo Vendramin at Hotel Cipriani, que não estão disponíveis: as três linhas da proposta, as menções no briefing e na Curadoria, e as opções das três perguntas (estas só se ninguém tiver respondido ainda). Cada base fica com dois hotéis |
+| 0064 | [`0064-sai-a-festa-medieval.sql`](0064-sai-a-festa-medieval.sql) | **mexe em linha que já existe — só rodar depois do sim dela.** Tira do briefing a frase "We will try to fit one into the program": as datas das festas medievais não dependem dela. Fica o fato de que elas acontecem |
 
 Rodada, a linha desce para a tabela de baixo. Enquanto não roda, a proposta salva
 normalmente e avisa que a procedência não foi gravada.
