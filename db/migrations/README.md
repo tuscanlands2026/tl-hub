@@ -40,6 +40,7 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0058 | [`0058-aman-cipriani-e-fotos-do-castelfalfi.sql`](0058-aman-cipriani-e-fotos-do-castelfalfi.sql) | fichas do Aman Venice (11 categorias) e do Belmond Hotel Cipriani (4 faixas, com o Palazzo Vendramin), e as fotos oficiais do Castelfalfi, que a 0047 não conseguiu ler |
 | 0059 | [`0059-proposta-da-emily.sql`](0059-proposta-da-emily.sql) | **mexe em linha que já existe — só rodar depois do sim dela.** Monta a proposta TL-053-26 (`b59090ad-…`): nove hospedagens, três por base, com as noites de cada uma, valor indicativo ligado, folha de condições desligada, o aviso da tarifa em inglês, e apaga a linha de rascunho em branco (só se ela continuar vazia) |
 | 0060 | [`0060-sem-numero-sem-fonte.sql`](0060-sem-numero-sem-fonte.sql) | **mexe em linha que já existe — só rodar depois do sim dela.** Tira do briefing e da folha de Curadoria os números de quartos do Aman e do Palazzo Vendramin, e os séculos dos dois palácios: nenhum dos dois hotéis publica isso. Troca de frase, não reescrita do bloco |
+| 0061 | [`0061-sai-a-frase-da-cama.sql`](0061-sai-a-frase-da-cama.sql) | **mexe em linha que já existe — só rodar depois do sim dela.** Tira do briefing da Emily o trecho "with a king bed and single mattress confirmed in writing". Troca de frase, o resto do parágrafo fica |
 
 Rodada, a linha desce para a tabela de baixo. Enquanto não roda, a proposta salva
 normalmente e avisa que a procedência não foi gravada.
