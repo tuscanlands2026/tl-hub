@@ -2419,7 +2419,9 @@ const MIGRACOES = [
   {id:"0065-proposta-so-apresentacao", arq:"0065-proposta-so-apresentacao.sql",
    oque:"a folha da proposta comercial vira escolha, e a peça pode sair só como apresentação"},
   {id:"0066-saem-os-tres-de-novo",    arq:"0066-saem-os-tres-de-novo.sql",
-   oque:"refaz a 0063, que o Supabase desfez inteira por um erro no fim do arquivo"}
+   oque:"refaz a 0063, que o Supabase desfez inteira por um erro no fim do arquivo"},
+  {id:"0067-saem-os-tres-pelo-nome",  arq:"0067-saem-os-tres-pelo-nome.sql",
+   oque:"os três hotéis saem pelo nome: salvar a proposta troca o id de toda linha"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];

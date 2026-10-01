@@ -1182,3 +1182,16 @@ Daí duas regras para migração que mexe em dado:
 
 E, do lado da conferência: **"rodei" não é o mesmo que "aplicou".** Vale ler o estado pelo link
 público antes de dizer que está pronto — foi assim que isto apareceu.
+
+**O id de `ops_proposal_items` NÃO é estável** (achado na 0067, outubro/26, depois de três
+tentativas de apagar três linhas). Salvar a proposta no editor **apaga todas as linhas e recria**
+(`salvarQuote`: `delete().eq("proposal_id", …)` e depois `insert`). As linhas são as mesmas aos
+olhos dela e outras para o banco — id novo em cada save.
+
+Então **migração que mira linha de proposta mira por `proposal_id` + título**, nunca por id. O
+título é o que ela vê, é o que sobrevive ao save, e a conferência vai nos dois idiomas, porque
+ela edita o editor em português e isso escreve em `title`, não em `title_en`.
+
+O id da PROPOSTA é estável, e por isso tudo que é da proposta — curations, textos, chaves —
+continua podendo ser mirado por id. Foi exatamente essa diferença que apareceu: a limpeza da
+Curadoria funcionou e o delete das linhas não, no mesmo arquivo.
