@@ -1140,3 +1140,24 @@ dessas é uma obrigação que chega ao cliente antes de existir fornecedor, pre�
 oferta e está na mão dela; "we will confirm the spa is open" é execução e depende de terceiro. Na
 dúvida, escrever o que a coisa **é**, e não o que a TL **fará** com ela — a descrição do hotel que
 sai da ficha nunca teve esse problema justamente por isso.
+
+**A peça pode sair sem a folha comercial** (`show_summary`, 0065). Instrução dela, outubro/26,
+sobre a proposta da Emily: *"tira aquela parte da proposta comercial, porque aqui é só um
+levantamento para ela ver opções... tira aquela parte escolha, aquela parte do resumo."*
+
+É a última etapa da apresentada, e nela moram **três coisas que não existem em outro lugar**: o
+resumo do que foi marcado, a caixinha "Selecione para aprovar este serviço" e o bloco de envio.
+Então desligar a folha faz a proposta **deixar de ter como ser respondida** — e isso é o certo
+nesta fase, porque quem pergunta "quais hotéis?" é o briefing da advisor, que já tem as três
+perguntas. É a mesma razão de ser do `show_conditions`: a fase do levantamento não é a fase do
+fechamento.
+
+**Nasce ligada**, e religar devolve o caminho de resposta inteiro — nada é apagado, e a
+`tl_submit_quote` continua de pé. **Vale só na apresentada**: na quote simples o resumo É o
+documento, e esconder deixaria folha de rosto sem nada atrás — por isso a trava está no desenho
+da tela e não na função.
+
+**Sem ela a peça acaba na última base**, e aí apareceu um defeito que já existia e ninguém via: o
+botão "seguinte" continuava desenhado na última folha, onde `apIr` trava em `total-1` e o clique
+não faz nada. Some agora, e a decisão de qual é a última é tomada no `apIr` — depende das chaves
+da proposta, não do código: com a folha comercial a peça acaba no envio, sem ela acaba na base.
