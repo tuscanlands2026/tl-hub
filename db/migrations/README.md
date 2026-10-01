@@ -35,6 +35,7 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0053 | [`0053-danieli-venezia.sql`](0053-danieli-venezia.sql) | Danieli Venezia em arquivo próprio, do comunicado oficial de reabertura, com 8 fotos do press kit |
 | 0054 | [`0054-briefing-da-advisor.sql`](0054-briefing-da-advisor.sql) | briefing que a advisor responde por link próprio: quatro tabelas, versão a cada envio, prazo conferido no banco e aviso por e-mail |
 | 0055 | [`0055-briefing-da-emily.sql`](0055-briefing-da-emily.sql) | o briefing da Emily carregado palavra por palavra, com as nove perguntas e validade em 15/11/2026 |
+| 0056 | [`0056-proposta-sem-conta.sql`](0056-proposta-sem-conta.sql) | o valor da linha pode ser referência por noite em vez de total (sem somas e sem total na proposta), e a folha de pagamento e condições gerais vira escolha por proposta |
 
 Rodada, a linha desce para a tabela de baixo. Enquanto não roda, a proposta salva
 normalmente e avisa que a procedência não foi gravada.
