@@ -1017,3 +1017,32 @@ for resposta de verdade, é esse número que a faz parar.
 sage — certo para campo de formulário, grito numa pergunta —, e o `input{width:100%}` faz a
 caixinha comer a linha e empurrar o texto da opção para fora da página. As duas coisas são
 sobrescritas em `.bf-rot` e `.bf-op`; quem mexer nessa tela precisa saber disso.
+
+### Proposta de apresentação sem a conta (outubro/26)
+
+Montando a proposta da Emily ela pediu duas coisas, e a 0056 faz as duas com uma chave cada.
+
+**A folha de pagamento e condições gerais vira escolha** (`show_conditions`). "Nessa fase a gente
+não vai colocar aquela página." Nasce **ligada** — proposta que já existe não muda de cara — e
+desligar **não apaga o texto**: ele fica gravado e volta quando ela religar.
+
+**O valor pode ser referência por noite, e não total** (`rate_mode`). "Eu não vou colocar preço,
+vou colocar média por noite nesta categoria — talvez duas categorias." Em `indicativo`: some o
+valor grande da linha, somem **todos** os totais (o do resumo da escolha, o da tabela de
+serviços, o do rodapé do índice) e a coluna de valor da tabela fica vazia. O que sai é a lista
+de **categorias** com o valor de cada uma e o rótulo dela ao lado.
+
+**Por que uma chave da proposta e não um campo novo na linha:** a lista de categorias com valor
+já existe e é `units`. O que faltava não era onde escrever o número — era dizer que naquela
+proposta o número **não é uma conta**. Campo novo na linha seria um segundo lugar para escrever
+preço, e aí proposta e order divergem no dia em que alguém preenche o errado.
+
+**E por que o `show_prices` não bastava:** ele esconde valor nenhum ou todos. Ela quer **mostrar**
+valor, e que ele não seja somado.
+
+`rate_label`/`rate_label_en` é o rótulo, texto dela ("média por noite"). Nasce vazio de propósito
+e cai no padrão do hub: afirmação comercial é dela.
+
+**As "abas" são as seções, e ela não achava.** Foi a segunda vez. Com `layout='apresentada'` o
+card agora se chama "Seções de serviço — as abas da proposta" e diz, ali, que cada seção é uma
+aba do menu e uma folha do documento, e que três bases com três hotéis são três seções.

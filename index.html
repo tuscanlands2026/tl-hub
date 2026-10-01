@@ -2381,7 +2381,9 @@ const MIGRACOES = [
   {id:"0054-briefing-da-advisor",     arq:"0054-briefing-da-advisor.sql",
    oque:"briefing que a advisor responde por link, com versão a cada envio e prazo de validade"},
   {id:"0055-briefing-da-emily",       arq:"0055-briefing-da-emily.sql",
-   oque:"o briefing da Emily carregado, com as nove perguntas e validade em 15/11/2026"}
+   oque:"o briefing da Emily carregado, com as nove perguntas e validade em 15/11/2026"},
+  {id:"0056-proposta-sem-conta",      arq:"0056-proposta-sem-conta.sql",
+   oque:"valor como referência por noite, sem total, e a folha de condições como escolha"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -3537,6 +3539,32 @@ function renderProposal(){
           não é a do trajeto, nem conta os dias a partir das datas, porque
           erraria em viagem que começa à noite. Passageiros e período já
           estão no Cabeçalho acima e não se repetem aqui. */""}
+    ${/* Como o valor aparece, e se a folha de condições sai. As duas são da
+          0056, e as duas nascem como a proposta sempre foi. */""}
+    <div class="grid2">
+      <div><label>O valor da linha é</label>
+        <select id="q-ratemode" onchange="guardaCampos();PROP.rate_mode=this.value;renderProposal();">
+          <option value="total"${p.rate_mode==="indicativo"?"":" selected"}>Total da linha — as linhas somam e a proposta fecha com o total</option>
+          <option value="indicativo"${p.rate_mode==="indicativo"?" selected":""}>Referência por noite — não soma, e a proposta sai sem total</option>
+        </select>
+        ${p.rate_mode==="indicativo"?`
+        <div style="margin-top:10px;"><label>Como chamar esse valor</label>
+          <input id="q-ratelabel" value="${esc((EDIOMA==="en"?p.rate_label_en:p.rate_label)||"")}"
+            placeholder="${EDIOMA==="en"?"average per night":"média por noite"}">
+          <div class="hint" style="margin-top:5px;">Em branco sai o padrão do hub. O valor de cada
+            categoria vem das <b>Acomodações</b> da linha — uma por categoria de quarto.</div></div>`
+        :`<div class="hint" style="margin-top:5px;">Em "referência por noite" some o valor grande de
+          cada linha e somem os totais: fica a lista de categorias com o valor de cada uma.</div>`}
+      </div>
+      <div><label>Folha de pagamento e condições gerais</label>
+        <select id="q-cond">
+          <option value="sim"${p.show_conditions===false?"":" selected"}>Sai na proposta</option>
+          <option value="nao"${p.show_conditions===false?" selected":""}>Não sai nesta fase</option>
+        </select>
+        <div class="hint" style="margin-top:5px;">Não sair <b>não apaga</b> o texto: ele fica
+          gravado e volta quando você religar.</div></div>
+    </div>
+
     ${p.layout==="apresentada"?`<div style="border-left:2px solid var(--sage);padding-left:12px;">
       <label style="color:var(--sage);">Cabeçalho de fatos do itinerário</label>
       <div class="hint" style="margin:0 0 9px;">Abre a proposta antes de qualquer texto, junto
@@ -3713,9 +3741,13 @@ Cartão de crédito | Credit card">${esc((p.payment_options||[]).map(o=>
     <button class="btn ghost sm" id="qc-add" style="margin-top:6px;">+ Folha de curadoria</button>
     `:""}
 
-    <div class="section-title">Seções de serviço</div>
-    <div class="hint">Cada seção vira uma tabela própria na quote, com título e instrução.
-      Linha sem seção cai numa tabela final sem título — orçamento de transfer avulso não precisa de seção nenhuma.</div>
+    <div class="section-title">Seções de serviço${p.layout==="apresentada"?" — as abas da proposta":""}</div>
+    ${p.layout==="apresentada"?`<div class="hint"><b>É aqui que se criam as abas.</b> Cada seção é
+      uma aba do menu e uma folha do documento, com os serviços dela dentro. Para três bases com
+      três hotéis cada: crie <b>três seções</b> — "Base 1", "Base 2", "Base 3" — e em
+      <b>Serviços da proposta</b>, logo abaixo, escolha a seção de cada hotel.</div>`
+    :`<div class="hint">Cada seção vira uma tabela própria na quote, com título e instrução.
+      Linha sem seção cai numa tabela final sem título — orçamento de transfer avulso não precisa de seção nenhuma.</div>`}
     <div id="qs-host"></div>
     <button class="btn ghost sm" id="qs-add" style="margin-top:6px;">+ Seção</button>
   </div>
@@ -4886,6 +4918,10 @@ function guardaCampos(){
   // de antes". Quem diz "usa o de antes" é o nulo, que só existe
   // enquanto ela não salvou a proposta nenhuma vez.
   if(el("q-covertitle")) PROP.cover_title = el("q-covertitle").value.trim();
+  if(el("q-cond"))     PROP.show_conditions = el("q-cond").value === "sim";
+  if(el("q-ratemode")) PROP.rate_mode = el("q-ratemode").value;
+  if(el("q-ratelabel")) PROP[EDIOMA==="en"?"rate_label_en":"rate_label"] =
+    el("q-ratelabel").value.trim() || null;
   if(el("q-route"))    PROP.route = el("q-route").value.trim() || null;
   if(el("q-duration")) PROP.duration = el("q-duration").value.trim() || null;
   // Campo de número vazio é string vazia, não zero: "a partir de € 0,00"
@@ -4952,6 +4988,9 @@ async function saveProposal(){
      grava o resto da proposta e diz o que falta — em vez de recusar o
      Salvar inteiro por causa de quatro campos do cabeçalho. */
   const cabecalho = {
+    show_conditions: PROP.show_conditions !== false,
+    rate_mode: PROP.rate_mode === "indicativo" ? "indicativo" : "total",
+    rate_label: PROP.rate_label || null, rate_label_en: PROP.rate_label_en || null,
     route: PROP.route || null, duration: PROP.duration || null,
     from_price: PROP.from_price != null ? PROP.from_price : null,
     from_price_show: !!PROP.from_price_show
@@ -8221,6 +8260,13 @@ function linhaTotal(i){
   });
   return t;
 }
+/* Modo indicativo: o valor da linha é referência por noite, não total.
+   Quem decide é a proposta, não a linha — valor por linha seria um
+   segundo lugar para escrever preço, e aí proposta e order divergem. */
+const indicativo = p => (p && p.rate_mode) === "indicativo";
+const rotuloTarifa = p => (p && p.rate_label)
+  || ((p && p.lang) === "en" ? "average per night" : "média por noite");
+
 function quoteTotal(){
   let t = 0;
   (QT.items||[]).forEach(i=>{ if(QSEL.items[i.id]) t += linhaTotal(i); });
@@ -8347,12 +8393,12 @@ function quoteFecho(p, t, mostra, respondida, comResumo, semRodape){
             <th class="money">${mostra?t.price:""}</th></tr></thead>
           <tbody>${escolhidos.map(linhaRes).join("")}</tbody>
         </table>
-        ${mostra?`<div class="total-row"><div class="total-box">
+        ${(mostra && !indicativo(p))?`<div class="total-row"><div class="total-box">
           <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`:""}
       </div>`;
     })()}
 
-    ${p.conditions?`<div class="pagina-nova">
+    ${(p.conditions && p.show_conditions !== false)?`<div class="pagina-nova">
       <div class="blocktitle" style="margin-top:0;">${t.qCondTitle}</div>
       <div class="condicoes">${fmtDoc(p.conditions)}</div>
     </div>`:""}
@@ -8451,13 +8497,22 @@ function apItem(i, t, p, mostra, respondida){
           <div class="ap-nome">${esc(i.title)}</div>
           ${i.room_type && !(i.units||[]).length?`<div class="ap-quarto">${esc(i.room_type)}</div>`:""}
         </div>
-        ${mostra?`<div class="ap-preco">${eur(linhaTotal(i))}
+        ${/* No indicativo o valor grande da linha não sai: ele é um total, e
+              naquela proposta não existe total. O que fica é a lista de
+              categorias, cada uma com a sua referência. */""}
+        ${(mostra && !indicativo(p))?`<div class="ap-preco">${eur(linhaTotal(i))}
           ${qtdLinha(i,mostra)?`<span class="ap-qtd">${qtdLinha(i,mostra)}</span>`:""}</div>`:""}
       </div>
       ${(i.units||[]).length?`<div class="ap-unidades">
         ${(i.units||[]).map(u=>`<div class="ap-unidade">
           <span>${esc(u.label||"")}</span>
-          ${mostra?`<b>${eur(u.price)}</b>`:""}</div>`).join("")}
+          ${mostra?`<b>${eur(u.price)}${indicativo(p)?`<em>${esc(rotuloTarifa(p))}</em>`:""}</b>`:""}</div>`).join("")}
+      </div>`:""}
+      ${/* Uma categoria só, sem lista de acomodações: o valor indicativo
+            ainda precisa aparecer em algum lugar, e é aqui. */""}
+      ${(mostra && indicativo(p) && !(i.units||[]).length && Number(i.price))?`<div class="ap-unidades">
+        <div class="ap-unidade"><span>${esc(i.room_type||"")}</span>
+          <b>${eur(Number(i.price))}<em>${esc(rotuloTarifa(p))}</em></b></div>
       </div>`:""}
       ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
       ${i.included?`<div class="ap-estrutura">
@@ -8745,9 +8800,9 @@ function drawQuoteApresentada(){
       <div class="ap-lista larga">
         <div class="doc" style="box-shadow:none;padding:0;background:transparent;">
           ${tabelasPorTipo(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida), p)}
-          ${mostra?`<div class="total-row"><div class="total-box">
+          ${(mostra && !indicativo(p))?`<div class="total-row"><div class="total-box">
             <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
-           :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
+           : mostra ? "" : `<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
           ${quoteFecho(p, t, mostra, respondida, false, true)}
         </div>
         ${/* Net: nada de bloco de envio na peça bonita. Quem aprova é a
@@ -8799,7 +8854,7 @@ function drawQuoteApresentada(){
         return `<button onclick="apIr(${et})" class="${(x.sub?"sub ":"")}${et===0?"on":""}">${esc(x.txt)}</button>`;
       }).join(""); })()}</nav>
       <div class="ap-rodape-idx">
-        ${mostra?`<div class="ap-tot"><span>${t.qYourTotal}</span><b id="ap-total">${eur(quoteTotal())}</b></div>`:""}
+        ${(mostra && !indicativo(p))?`<div class="ap-tot"><span>${t.qYourTotal}</span><b id="ap-total">${eur(quoteTotal())}</b></div>`:""}
         <button class="ap-baixar" onclick="baixarProposta()">${t.qDownload}</button>
       </div>
     </aside>
@@ -9001,9 +9056,9 @@ function quoteLinha(i, t, p, mostra, respondida){
                    ${((QSEL.units[i.id]||[]).includes(u.key))?" checked":""}
                    onchange="marcaUnidade('${esc(i.id)}','${esc(u.key)}',this.checked)">
                  <label for="qu-${esc(i.id)}-${esc(u.key)}">${esc(u.label||"")}</label></span>
-               ${mostra?`<b>${eur(u.price)}</b>`:""}</div>`
+               ${mostra?`<b>${eur(u.price)}${indicativo(p)?`<em>${esc(rotuloTarifa(p))}</em>`:""}</b>`:""}</div>`
             : `<div class="unid${(u.optional && !unidadeDentro(i,u))?" fora":""}"><span>${esc(u.label||"")}</span>
-               ${mostra?`<b>${eur(u.price)}</b>`:""}</div>`).join("")}
+               ${mostra?`<b>${eur(u.price)}${indicativo(p)?`<em>${esc(rotuloTarifa(p))}</em>`:""}</b>`:""}</div>`).join("")}
         </div>`:""}
         ${(i.extras||[]).length && dentro && !respondida ? `<div class="extras-cli">
           <div class="k">${t.qExtras}</div>
@@ -9016,7 +9071,12 @@ function quoteLinha(i, t, p, mostra, respondida){
           </div>`).join("")}
         </div>`:""}
       </td>
-      <td class="money">${mostra ? (dentro?eur(linhaTotal(i))
+      ${/* No indicativo a coluna de valor fica vazia: o número dali é o
+            total da linha, e naquela proposta ele não existe. A referência
+            por noite já aparece em cada categoria, dentro da própria
+            linha. Pôr o total numa coluna chamada "Preço" afirmaria uma
+            conta que a proposta não está fazendo. */""}
+      <td class="money">${(mostra && !indicativo(p)) ? (dentro?eur(linhaTotal(i))
         :`<span class="fora">${eur(linhaTotal(i))}</span>`) : ""}</td>
     </tr>`;
   }
@@ -9093,9 +9153,9 @@ function drawQuote(){
 
     ${tabelasPorSecao(t, mostra, i=>quoteLinha(i,t,p,mostra,respondida))}
 
-    ${mostra?`<div class="total-row"><div class="total-box">
+    ${(mostra && !indicativo(p))?`<div class="total-row"><div class="total-box">
       <span class="lbl">${t.qYourTotal}</span><span class="amt">${eur(quoteTotal())}</span></div></div>`
-     :`<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
+     : mostra ? "" : `<div class="voucher-note" style="margin-top:18px;">${t.qNoPrices}</div>`}
 
     ${p.payment_note?`<div class="pay-note">${nl2br(p.payment_note)}</div>`:""}
 
