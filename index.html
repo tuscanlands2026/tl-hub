@@ -449,6 +449,10 @@ table.rows tr.par td{border-top:none;padding-top:0;}
   font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:500;cursor:pointer;
   font-family:inherit;}
 .ap-btn.ghost{background:none;color:var(--sage);}
+/* O "voltar" some na folha da curadoria sem esta linha: .ap-btn.ghost tem a
+   mesma especificidade de .ap-cur .ap-btn e vem depois na folha de estilo,
+   então ganha e pinta o texto de sage em cima de um fundo sage. */
+.ap-cur .ap-btn.ghost{color:var(--cream-light);}
 .ap-cta{margin-top:26px;background:none;border:1px solid rgba(255,255,255,.75);color:#fff;
   padding:12px 24px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:500;
   cursor:pointer;font-family:inherit;}
@@ -2397,7 +2401,11 @@ const MIGRACOES = [
   {id:"0056-proposta-sem-conta",      arq:"0056-proposta-sem-conta.sql",
    oque:"valor como referência por noite, sem total, e a folha de condições como escolha"},
   {id:"0057-valores-por-noite",       arq:"0057-valores-por-noite.sql",
-   oque:"as noites de cada base, a estimativa por categoria e o aviso da tarifa dinâmica"}
+   oque:"as noites de cada base, a estimativa por categoria e o aviso da tarifa dinâmica"},
+  {id:"0058-aman-cipriani-e-fotos-do-castelfalfi", arq:"0058-aman-cipriani-e-fotos-do-castelfalfi.sql",
+   oque:"fichas do Aman Venice e do Hotel Cipriani, e as fotos do Castelfalfi"},
+  {id:"0059-proposta-da-emily",       arq:"0059-proposta-da-emily.sql",
+   oque:"a proposta TL-053-26 montada: nove hospedagens, as noites de cada base e o valor indicativo"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -8297,6 +8305,12 @@ const noitesDa = (p, i) => {
 function tarifaHTML(p, i, valor){
   const n = noitesDa(p, i), v = Number(valor) || 0;
   const rot = esc(rotuloTarifa(p));
+  /* Categoria sem valor lançado sai só com o nome, e não com € 0,00.
+     No modo indicativo o número é tarifa de referência, então zero quer
+     dizer "ainda não preenchi" — e € 0,00 numa folha que a agência
+     manda ao cliente dela afirma que a suíte é de graça. No modo total
+     zero continua sendo zero, porque ali pode ser serviço incluso. */
+  if(!(v > 0)) return "";
   if(!n) return `${eur(v)}<em>${rot}</em>`;
   return `${eur(v)}<em>${rot}</em>`
        + `<span class="ap-estim">× ${n} ${p.lang === "en" ? (n===1?"night":"nights") : (n===1?"noite":"noites")}`
@@ -8358,10 +8372,14 @@ function marcaUnidade(id, chave, on){
    da apresentação — "10 a 13 out", "13 a 17 out" são folhas do
    documento, não categorias de venda. Aqui saem dois grupos:
    hospedagem, e extras e opcionais válidos para a contratação dela. */
+/* No indicativo a coluna de valor fica vazia em todas as linhas, porque
+   ali o número não é uma conta: ele sai na lista de categorias, dentro da
+   célula do serviço. Cabeçalho em cima de coluna vazia é rótulo sem
+   conteúdo, então o "Valor" também não sai. */
 function tabelasPorTipo(t, mostra, linha, p){
   const itens = QT.items||[];
   const cab = `<thead><tr><th style="width:100px;">${t.date}</th><th>${t.service}</th>
-      <th class="money">${mostra?t.price:""}</th></tr></thead>`;
+      <th class="money">${(mostra && !indicativo(p))?t.price:""}</th></tr></thead>`;
   const grupo = (titulo, lista) => !lista.length ? "" :
     `<div class="blocktitle" style="margin-top:28px;">${esc(titulo)}</div>
      <table class="svc">${cab}<tbody>${lista.map(linha).join("")}</tbody></table>`;
@@ -8373,7 +8391,7 @@ function tabelasPorSecao(t, mostra, linha){
   const p = QT.proposal, itens = QT.items||[];
   const secs = (p.sections||[]);
   const cab = `<thead><tr><th style="width:100px;">${t.date}</th><th>${t.service}</th>
-      <th class="money">${mostra?t.price:""}</th></tr></thead>`;
+      <th class="money">${(mostra && !indicativo(p))?t.price:""}</th></tr></thead>`;
   const tabela = lista => `<table class="svc">${cab}<tbody>${lista.map(linha).join("")}</tbody></table>`;
 
   let out = "";

@@ -1062,3 +1062,58 @@ números — as noites da base, o valor por noite da categoria — e o hub faz o
 cada hotel. Nasce vazio: "preços iniciais" e "ideia de investimento" são afirmação comercial
 dela. E leva peso 500 declarado no negrito — contra o peso 300 do bloco, o `bolder` do navegador
 resolve para 400 e some, que é a armadilha já registrada aqui.
+
+### Os dois hotéis de Veneza, e a proposta da Emily montada (outubro/26)
+
+Ela mandou o link da proposta que estava fazendo — "você altera em cima" — e a montagem veio
+em duas migrações: a **0058** com as fichas que faltavam e a **0059** com a proposta.
+
+**Eu não escrevo no banco dela.** Vale repetir porque ela perguntou: a proposta chega como
+arquivo SQL que ela cola no Supabase, e o arquivo diz, linha a linha, o que toca. A leitura eu
+faço pelo link público, com a anon key, chamando `tl_get_quote` — que é o que o navegador do
+cliente faz. É o único acesso que tenho, e só devolve o que o cliente veria.
+
+**O overview que ela queria já existia: é a folha da Curadoria.** Ela pediu "uma aba de
+overview, depois uma aba para cada base". A curadoria é exatamente isso — folha chapada, antes
+dos serviços, uma etapa no índice — e ela já tinha escrito a dela. Não entrou peça nova.
+
+**Três hotéis por base, duas categorias cada, valor em branco.** Cada hotel é uma linha
+`optional=true` (são opções, não pacote fechado) e as categorias sugeridas são as `units`, com o
+valor vazio para ela lançar. As noites da base ficam na seção — 4, 3 e 3 — e o hub faz a
+estimativa. Categoria sem valor lançado sai **só com o nome**: no indicativo o número é tarifa de
+referência, então zero quer dizer "ainda não preenchi", e € 0,00 numa folha que a agência manda
+ao cliente dela afirma que a suíte é de graça. No modo total zero continua sendo zero, que ali
+pode ser serviço incluso.
+
+Pela mesma razão **o cabeçalho "Valor" não sai no indicativo**: a coluna fica vazia em todas as
+linhas, porque o número mora na lista de categorias dentro da célula do serviço.
+
+**O "voltar" sumia na folha da curadoria.** `.ap-btn.ghost` tem a mesma especificidade de
+`.ap-cur .ap-btn` e vem depois na folha de estilo, então ganhava e pintava o texto de sage em
+cima do fundo sage. Uma linha de CSS conserta, e fica registrado porque volta fácil.
+
+**O texto de cada hotel vem da ficha, por `select`, e não digitado na migração.** É o mesmo
+"puxar, não copiar e colar", e o que desce é cópia: corrigir a ficha em dezembro não muda a
+proposta de outubro. O preço da ficha continua não descendo — ele é custo net.
+
+**O que a leitura dos sites ensinou desta vez:**
+
+- **`aman.com` serve foto SEM CORS**, como o `dimoraghirlandaio.it`. Proposta com hospedagem de
+  lá sai com PDF pesado. O tamanho que serve é o estilo `full_size_extra_large` (1440 px, 70 a
+  250 KB); o `full_size_small` tem 364 px e não serve para folha A4.
+- **O Aman não publica quantos quartos tem.** O "24" que circula não está em lugar nenhum do
+  site, então entrou como ponto a confirmar e não como fato. A Palazzo Chamber Affresco sai como
+  50 m² na página dela e 49 m² nas páginas que a citam (527 sq ft são 49) — gravou-se a faixa,
+  pela mesma regra do Vescine: conversão publicada errada não se copia.
+- **O Hotel Cipriani FECHA de 30 de setembro e reabre em 1º de junho de 2027.** As datas da
+  Emily caem dentro da temporada, mas a tarifa de 2027 vai ser nova.
+- **O Palazzo Vendramin não é mais categoria publicada.** A Belmond lista quatro faixas e o
+  Vendramin só aparece na legenda das fotos de duas delas. O briefing dela oferece "Palazzo
+  Vendramin · Vendramin Suite" com 17 quartos; isso precisa ser confirmado com a Belmond antes
+  de a tarifa sair. A Belmond publica **faixa** de acomodação e não categoria uma por uma —
+  mesmo desenho do Villa San Michele (0050), que é Belmond também.
+- **`castelfalfi.com` voltou a responder.** Na 0047 ele recusou leitura e a ficha saiu do fact
+  sheet em PDF, sem foto nenhuma. Agora as fotos oficiais puderam ser lidas e entraram na 0058:
+  doze do hotel e quatro de cada uma das duas categorias que vão na proposta. O transform certo
+  é o que a própria página usa (`_1400xAUTO_` na galeria, `_1500x1000_` nos carrosséis); inventar
+  tamanho dá 404, e o servidor derruba conexão sob rajada — pede-se devagar e com nova tentativa.
