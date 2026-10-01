@@ -2058,6 +2058,15 @@ function desenharABriefing(){
   <div class="card">
     <div class="section-title">Respostas — ${ABVERS.length} ${ABVERS.length===1?"versão":"versões"}</div>
     <div id="ab-vhost">${histABriefing()}</div>
+    ${/* Zerar existe pelo mesmo motivo do "apagar a resposta" da proposta:
+          ela testa o link antes de mandar, e o teste dela não pode ficar
+          no histórico como se fosse a advisor. Some quando não há nada
+          para apagar. */""}
+    ${(ABVERS.length || ABOPENS.length) ? `<div style="margin-top:14px;border-top:1px solid var(--cream);padding-top:14px;">
+      <button class="btn ghost sm" id="ab-zerar">Apagar as respostas e zerar</button>
+      <div class="hint" style="margin-top:6px;">Para o teste que você faz antes de mandar.
+        Apaga as respostas e os acessos, e a numeração das versões recomeça do 1.</div>
+    </div>` : ""}
   </div>
 
   <div class="card">
@@ -2078,6 +2087,7 @@ function desenharABriefing(){
       `<div class="doc bf" style="margin-top:14px;border:1px solid var(--cream);padding:22px;">
         ${briefMD(el("ab-conteudo").value)}</div>`;
   };
+  if(el("ab-zerar")) el("ab-zerar").onclick = zerarABriefing;
   if(el("ab-prorrogar-btn")) el("ab-prorrogar-btn").onclick = async () => {
     const {error} = await sb.rpc("tl_extend_advisor_briefing",
       {p_id: b.id, p_until: el("ab-prorrogar").value});
@@ -2161,6 +2171,32 @@ function removeAB(i){
       `${ABVERS.length===1?"vez":"vezes"}. As respostas dela ficam gravadas, mas esta ` +
       `pergunta some do histórico — ninguém mais vai saber o que foi perguntado.`)) return;
   ABQ.splice(i,1); desenharPerguntasAB();
+}
+
+/* O teste dela não pode ficar no histórico como se fosse a advisor. O
+   aviso diz o NÚMERO de versões e a data da última: se ela estiver prestes
+   a apagar resposta de verdade, é esse número que a faz parar. */
+async function zerarABriefing(){
+  const ult = ABVERS.length ? ABVERS[ABVERS.length-1] : null;
+  if(!confirm(
+      `Apagar tudo que já foi respondido neste briefing?\n\n`
+    + (ABVERS.length
+        ? `· ${ABVERS.length} ${ABVERS.length===1?"versão de resposta":"versões de resposta"}`
+          + (ult ? `, a última de ${new Date(ult.sent_at).toLocaleString("pt-BR")}` : "") + `\n`
+        : "")
+    + (ABOPENS.length ? `· ${ABOPENS.length} ${ABOPENS.length===1?"acesso registrado":"acessos registrados"}\n` : "")
+    + `\nO briefing volta a constar como Rascunho e a numeração das versões `
+    + `recomeça do 1. O link continua o mesmo.\n\nIsto não se desfaz.`)) return;
+
+  const btn = el("ab-zerar"); btn.disabled = true; btn.textContent = "Apagando…";
+  const {error:e1} = await sb.from("ops_advisor_answers").delete().eq("briefing_id", ABR.id);
+  if(e1){ btn.disabled=false; btn.textContent="Apagar as respostas e zerar"; return alert(explicar(e1)); }
+  const {error:e2} = await sb.from("ops_advisor_opens").delete().eq("briefing_id", ABR.id);
+  if(e2){ btn.disabled=false; btn.textContent="Apagar as respostas e zerar"; return alert(explicar(e2)); }
+  const {error:e3} = await sb.from("ops_advisor_briefings")
+    .update({status:"rascunho", updated_at:new Date().toISOString()}).eq("id", ABR.id);
+  if(e3){ btn.disabled=false; btn.textContent="Apagar as respostas e zerar"; return alert(explicar(e3)); }
+  abrirABriefing(ABR.id);
 }
 
 async function salvarABriefing(){

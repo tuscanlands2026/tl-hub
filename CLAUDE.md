@@ -1006,6 +1006,13 @@ conteúdo nenhum — nem o briefing, nem as perguntas, nem o que já foi respond
 
 **Um envio por minuto por briefing**, para o clique repetido não virar duas versões.
 
+**Zerar o teste existe, pelo mesmo motivo do "apagar a resposta" da proposta.** Ela testa o
+link antes de mandar, e o teste dela não pode ficar no histórico com a cara de uma resposta da
+advisor. O botão apaga as respostas e os acessos, devolve o briefing a Rascunho e **mantém o
+link**; a numeração das versões recomeça do 1, porque ela vem de `max(version)+1`. Some da tela
+quando não há nada para apagar. O aviso diz **quantas versões** vão e a **data da última** — se
+for resposta de verdade, é esse número que a faz parar.
+
 **A pergunta ao cliente sai em caixa normal.** O `label{}` da interface é caixa alta, 10px e
 sage — certo para campo de formulário, grito numa pergunta —, e o `input{width:100%}` faz a
 caixinha comer a linha e empurrar o texto da opção para fora da página. As duas coisas são
