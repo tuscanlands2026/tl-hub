@@ -24,6 +24,9 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0042 | [`0042-puxar-da-ficha.sql`](0042-puxar-da-ficha.sql) | a linha da proposta guarda de qual ficha de fornecedor ela foi puxada (procedência, não referência viva) |
 | 0043 | [`0043-catalogo-vem-da-ficha.sql`](0043-catalogo-vem-da-ficha.sql) | a entrada do catálogo pode nascer da ficha, e um item da ficha tem no máximo uma entrada |
 | 0044 | [`0044-itinerario-completo.sql`](0044-itinerario-completo.sql) | cabeçalho de fatos do itinerário: rota, duração e o "a partir de" que ela liga por proposta |
+| 0045 | [`0045-dimora-ghirlandaio.sql`](0045-dimora-ghirlandaio.sql) | Dimora Ghirlandaio vira ficha de fornecedor, com as seis acomodações e as fotos de cada uma |
+| 0046 | [`0046-borgo-vescine-ficha.sql`](0046-borgo-vescine-ficha.sql) | Borgo Vescine vira ficha, com as sete categorias de quarto; a linha de catálogo de agosto continua intacta |
+| 0047 | [`0047-castelfalfi.sql`](0047-castelfalfi.sql) | Castelfalfi vira ficha, com as 24 categorias do fact sheet oficial; sem foto, porque o site recusa leitura |
 
 Rodada, a linha desce para a tabela de baixo. Enquanto não roda, a proposta salva
 normalmente e avisa que a procedência não foi gravada.

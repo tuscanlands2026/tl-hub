@@ -1791,7 +1791,13 @@ const MIGRACOES = [
   {id:"0043-catalogo-vem-da-ficha",   arq:"0043-catalogo-vem-da-ficha.sql",
    oque:"a entrada do catálogo pode nascer da ficha, sem criar duas do mesmo item"},
   {id:"0044-itinerario-completo",     arq:"0044-itinerario-completo.sql",
-   oque:"cabeçalho de fatos do itinerário: rota, duração e o \"a partir de\" que ela esconde"}
+   oque:"cabeçalho de fatos do itinerário: rota, duração e o \"a partir de\" que ela esconde"},
+  {id:"0045-dimora-ghirlandaio",     arq:"0045-dimora-ghirlandaio.sql",
+   oque:"Dimora Ghirlandaio como ficha, com as seis acomodações e as fotos de cada uma"},
+  {id:"0046-borgo-vescine-ficha",    arq:"0046-borgo-vescine-ficha.sql",
+   oque:"Borgo Vescine como ficha, com as sete categorias de quarto e as fotos de cada uma"},
+  {id:"0047-castelfalfi",            arq:"0047-castelfalfi.sql",
+   oque:"Castelfalfi como ficha, com as 24 categorias do fact sheet oficial"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];

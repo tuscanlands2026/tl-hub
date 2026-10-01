@@ -604,6 +604,37 @@ o pedido inteiro tem de caber em 256 KB — medido no ar: 250 KB passa, 256 KB v
 com o corpo `Error`. Os pedaços são apagados depois de lidos, inclusive quando a leitura
 para no meio.
 
+**Hotel com vários quartos vai em FICHA, e não em linha de catálogo** (outubro/26). Ela pediu
+"na parte de catálogo" um grupo de hotéis com a essência da casa, a localização, os tipos de quarto
+e as fotos, para lançar preço à mão e puxar na proposta. Catálogo é **uma linha por item vendável**:
+o texto do hotel se repetiria em cada quarto, e corrigir uma frase no Castelfalfi viraria corrigir
+24 linhas. A ficha guarda o hotel uma vez e pendura os quartos em `ops_room_types`, que é onde
+metragem (m² e sq ft), ocupação, cama e vista já têm campo. Da ficha ela puxa direto na proposta,
+pela mesma caixa de busca, e manda para o catálogo o quarto que quiser, por botão.
+
+Entraram assim, do que cada site publica: **Dimora Ghirlandaio** (0045, seis acomodações — e
+"Villa Ghirlandaio" não é outro nome da propriedade, é a villa principal dela), **Borgo Vescine**
+(0046, sete categorias) e **Castelfalfi** (0047, 24 categorias). As linhas de catálogo de agosto da
+Villa Ghirlandaio e da Camera Deluxe **continuam onde estão** — podem ter ido em proposta. Por
+enquanto a busca mostra esses dois itens duas vezes; aposentar a linha antiga é decisão dela.
+
+**Duas coisas que a leitura dos sites ensinou, e que voltam:**
+
+- **`dimoraghirlandaio.it` serve foto SEM CORS.** As 22 fotos carregam, mas `access-control-allow-origin`
+  não vem. Pela armadilha já registrada do PDF, foto sem CORS **mancha o canvas e não encolhe** —
+  então a proposta com hospedagem de lá sai com o arquivo pesado. É provavelmente de onde vinham as
+  fotos que o encolhimento não pegava. O Squarespace do Vescine responde `*` e encolhe normalmente.
+- **`castelfalfi.com` recusa leitura automatizada**, como o Palazzo Ripetta. A ficha saiu inteira do
+  **fact sheet oficial em PDF**, que é melhor fonte que o site: traz metragem nas duas unidades,
+  quantas unidades de cada categoria, restaurantes com nome e distâncias. Sem foto, porque nenhuma
+  URL pôde ser lida — as oito do próprio PDF foram extraídas e entregues a ela em arquivo, para subir
+  pela tela. Link de foto que não se consegue ler não se inventa.
+
+**Conversão publicada errada não se copia.** O site do Vescine diz que 22–24 m² são "90 Sq. Foot"
+(são 237–258) e dá a Superior em "35 Sq. Feet" onde a Superior com Patio diz "35 mq". Gravou-se o
+metro quadrado, que é o número certo, e quem converte é o hub, a partir de `size_m2_min`/`max` — era
+para isso que os dois campos existiam.
+
 **O catálogo pode nascer da ficha, e o gatilho não é o status.** Pergunta dela:
 "vira catálogo quando o fornecedor está ativo ou quando vou usá-lo em um orçamento?".
 Status *Active* quer dizer que ela trabalha com o fornecedor, não que o texto está pronto
