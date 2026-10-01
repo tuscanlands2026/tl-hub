@@ -27,6 +27,10 @@ mesmo arquivo não dá para saber o que já foi aplicado, e a única saída vira
 | 0045 | [`0045-dimora-ghirlandaio.sql`](0045-dimora-ghirlandaio.sql) | Dimora Ghirlandaio vira ficha de fornecedor, com as seis acomodações e as fotos de cada uma |
 | 0046 | [`0046-borgo-vescine-ficha.sql`](0046-borgo-vescine-ficha.sql) | Borgo Vescine vira ficha, com as sete categorias de quarto; a linha de catálogo de agosto continua intacta |
 | 0047 | [`0047-castelfalfi.sql`](0047-castelfalfi.sql) | Castelfalfi vira ficha, com as 24 categorias do fact sheet oficial; sem foto, porque o site recusa leitura |
+| 0048 | [`0048-orient-express-venezia.sql`](0048-orient-express-venezia.sql) | Orient Express Venezia, no Palazzo Donà Giovannelli: dez categorias, com as seis Signature Suites e os afrescos de cada uma |
+| 0049 | [`0049-collegio-alla-querce.sql`](0049-collegio-alla-querce.sql) | Collegio alla Querce, Auberge: 17 categorias com nome próprio; a Auberge não publica metragem |
+| 0050 | [`0050-villa-san-michele.sql`](0050-villa-san-michele.sql) | Belmond Villa San Michele, Fiesole: as quatro famílias que a Belmond publica, com metragem e ocupação |
+| 0051 | [`0051-four-seasons-firenze-e-danieli.sql`](0051-four-seasons-firenze-e-danieli.sql) | Four Seasons Firenze e Danieli Venezia, só a ficha do hotel: fourseasons.com é bloqueado e o press kit não traz os quartos |
 
 Rodada, a linha desce para a tabela de baixo. Enquanto não roda, a proposta salva
 normalmente e avisa que a procedência não foi gravada.
