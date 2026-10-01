@@ -978,3 +978,35 @@ Os dois blocos de texto do relatório — dados fiscais e como emitir a nota —
 ## Como trabalhar aqui
 Pensar a implicação lógica antes de escrever código ou texto. Não produzir e depois
 descobrir a contradição. Decisão parcial se guarda e se espera a especificação fechada.
+
+### Briefing que a advisor responde (outubro/26)
+
+Especificação dela: a TL manda um briefing por link, a advisor responde na mesma página, cada
+envio vira **versão nova** e o link vence numa data que a TL define. Primeiro caso: o briefing
+de hotelaria da Emily, 20/6 a 5/7/2027, carregado palavra por palavra na 0055.
+
+**Não é o briefing que já existe.** `ops_briefings` é o briefing INTERNO da oportunidade, que
+ela preenche sobre o que a agência pediu. Este é o contrário — pergunta da TL PARA a advisor,
+com resposta dela. Dois documentos em direções opostas, e por isso tabela e nome próprios:
+`ops_advisor_briefings`, `ops_advisor_questions`, `ops_advisor_answers`, `ops_advisor_opens`.
+
+Quatro pontos da especificação resolvidos do jeito que o hub já funciona: as tabelas ganham o
+prefixo `ops_`; a leitura e o envio passam por **RPC `security definer`**, e não por Edge
+Function, que seria serviço novo para manter; a rota é `#/b/TOKEN`, porque o hub é um arquivo só
+servido da raiz e roteia por hash; e o aviso por e-mail usa a Resend que já está no ar.
+
+**Resposta é linha nova, numerada, e a anterior fica** — é o desenho inteiro a favor da regra do
+passado. A página reabre preenchida com a última versão, e o editor mostra as versões da mais
+nova para a mais velha, destacando a célula que mudou com o valor anterior embaixo.
+
+**O prazo é conferido no banco, não só na tela.** Vencido, `tl_get_advisor_briefing` não devolve
+conteúdo nenhum — nem o briefing, nem as perguntas, nem o que já foi respondido —, e
+`tl_submit_advisor_briefing` recusa o envio. Prorrogar (`tl_extend_advisor_briefing`) reativa
+**o mesmo link**: a advisor não precisa de endereço novo.
+
+**Um envio por minuto por briefing**, para o clique repetido não virar duas versões.
+
+**A pergunta ao cliente sai em caixa normal.** O `label{}` da interface é caixa alta, 10px e
+sage — certo para campo de formulário, grito numa pergunta —, e o `input{width:100%}` faz a
+caixinha comer a linha e empurrar o texto da opção para fora da página. As duas coisas são
+sobrescritas em `.bf-rot` e `.bf-op`; quem mexer nessa tela precisa saber disso.
