@@ -8617,7 +8617,9 @@ function apItem(i, t, p, mostra, respondida){
         ${/* No indicativo o valor grande da linha não sai: ele é um total, e
               naquela proposta não existe total. O que fica é a lista de
               categorias, cada uma com a sua referência. */""}
-        ${(mostra && !indicativo(p))?`<div class="ap-preco">${eur(linhaTotal(i))}
+        ${/* Bloco sem preço e sem unidades é apresentação — o cabeçalho do
+              hotel quando os quartos vêm em linhas próprias. Não sai € 0,00. */""}
+        ${(mostra && !indicativo(p) && (Number(linhaTotal(i))>0 || (i.units||[]).length))?`<div class="ap-preco">${eur(linhaTotal(i))}
           ${qtdLinha(i,mostra)?`<span class="ap-qtd">${qtdLinha(i,mostra)}</span>`:""}</div>`:""}
       </div>
       ${(i.units||[]).length?`<div class="ap-unidades">
