@@ -430,15 +430,41 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-indice .idx-cab{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
   color:rgba(255,255,255,.6);padding:12px 9px 4px;}
 .ap-indice nav button.sub{padding-left:22px;font-size:12px;}
-/* Dia a dia: foto à esquerda, texto à direita; no celular, empilhado. */
-.ap-dia{display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start;
-  border-top:1px solid var(--cream);padding:22px 0;}
-.ap-dia:first-child{border-top:none;}
-.ap-dia-foto img{width:100%;height:170px;object-fit:cover;display:block;}
-.ap-dia-txt .ap-preco-dia{font-size:13px;color:var(--muted);margin:4px 0 8px;}
+/* Dia a dia: SEM a faixa lateral da seção. Cada experiência é um bloco de
+   largura cheia — foto grande com a data por cima, título em serifada,
+   descrição e uma galeria pequena —, para ter cara de experiência e não de
+   lista. Pedido dela, outubro/26. */
+.ap-sec.ap-sec-dias{display:block;background:#fff;}
+.ap-dias-head{padding:46px 52px 0;max-width:960px;}
+.ap-dias-head h2{font-size:32px;font-weight:400;line-height:1.1;color:var(--ink);}
+.ap-dias-head .ap-dias-note{font-size:13px;line-height:1.6;color:var(--muted);margin-top:10px;}
+.ap-dias-lista{padding:30px 52px 46px;display:flex;flex-direction:column;gap:54px;max-width:1040px;}
+.ap-exp-hero{position:relative;}
+.ap-exp-hero img{width:100%;height:380px;object-fit:cover;display:block;}
+.ap-exp-data{position:absolute;left:0;bottom:0;z-index:2;background:var(--sage);color:#fff;
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;padding:8px 16px;}
+.ap-exp-data.solo{position:static;display:inline-block;margin-bottom:14px;}
+.ap-exp-corpo{padding-top:20px;}
+.ap-exp .ap-nome{font-size:27px;line-height:1.18;}
+.ap-exp .ap-preco-dia{font-size:13px;color:var(--muted);margin:7px 0 2px;}
+.ap-exp .ap-desc{font-size:14.5px;line-height:1.72;margin-top:12px;max-width:700px;}
+.ap-exp .ap-estrutura{margin-top:14px;}
+.ap-exp-gal{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px;max-width:760px;}
+.ap-exp-gal img{width:100%;height:150px;object-fit:cover;display:block;}
 @media screen and (max-width:760px){
-  .ap-dia{grid-template-columns:1fr;gap:12px;}
-  .ap-dia-foto img{height:200px;}
+  .ap-dias-head{padding:30px 22px 0;}
+  .ap-dias-lista{padding:22px 22px 32px;gap:42px;}
+  .ap-exp-hero img{height:250px;}
+  .ap-exp-gal{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .ap-exp-gal img{height:120px;}
+}
+@media print{
+  .ap-sec.ap-sec-dias{padding:0;}
+  .ap-dias-head{padding:14mm 14mm 0;max-width:none;}
+  .ap-dias-lista{padding:6mm 14mm 14mm;gap:9mm;max-width:none;}
+  .ap-exp{break-inside:avoid;}
+  .ap-exp-hero img{height:72mm;}
+  .ap-exp-gal img{height:34mm;}
 }
 
 /* Avançar e voltar: presentes em toda etapa, para o cliente percorrer a
@@ -518,6 +544,7 @@ table.rows tr.par td{border-top:none;padding-top:0;}
    serifada em texto miúdo cansa, e a interface é ferramenta.
    A família só tem peso 400 — daí o 400 no lugar do 300 daqui. */
 .apres .ap-capa-in h1,.apres .ap-foto-txt h2,.apres .ap-sobre-txt strong,
+.apres .ap-dias-head h2,
 .apres .ap-nome{font-family:"Sorts Mill Goudy",Georgia,"Times New Roman",serif;
   font-weight:400;}
 .ap-capa-in h1{font-size:50px;font-weight:300;line-height:1.08;letter-spacing:-.01em;}
@@ -8770,30 +8797,35 @@ function drawQuoteApresentada(){
     </div>
   </section>`;
 
-  /* Modo dia a dia: a data de cada serviço vira o dia, com a foto dele
-     ao lado — uma foto por dia, decisão dela. Serviço sem data entra na
-     ordem em que está, com o título fazendo o papel do dia. */
+  /* Modo dia a dia: SEM a faixa lateral da seção — cada experiência ocupa a
+     largura inteira, para ter cara de experiência e não de lista (pedido
+     dela, outubro/26). A foto grande leva a data por cima; abaixo, título em
+     serifada, descrição, o que inclui e uma galeria com as outras fotos (até
+     quatro no total). Serviço sem data entra na ordem em que está, com o
+     título fazendo o papel do dia; sem foto, a data sai como etiqueta solta. */
   const blocoDias = (sec, lista, t, p, mostra, respondida) => `
-    <section class="ap-sec ap-passo" style="display:none;">
-      <div class="ap-foto">
-        ${capaDe(sec,lista)?`<img class="ap-fundo" src="${esc(capaDe(sec,lista))}" alt="">`:""}
-        <div class="ap-foto-txt">
-          <h2>${esc(sec ? (sec.title||"") : t.qItinerary)}</h2>
-          ${sec && sec.note?`<div class="ap-note">${esc(sec.note)}</div>`:""}
-        </div>
+    <section class="ap-sec ap-sec-dias ap-passo" style="display:none;">
+      <div class="ap-dias-head">
+        <h2>${esc(sec ? (sec.title||"") : t.qItinerary)}</h2>
+        ${sec && sec.note?`<div class="ap-dias-note">${esc(sec.note)}</div>`:""}
       </div>
-      <div class="ap-lista">
+      <div class="ap-dias-lista">
         ${lista.map(i=>{
-          const foto = (i.photos||[]).filter(u=>u&&u.trim())[0]||"";
-          return `<div class="ap-dia">
-            ${foto?`<div class="ap-dia-foto"><img src="${esc(foto.trim())}" alt=""></div>`:""}
-            <div class="ap-dia-txt">
-              ${i.service_date?`<div class="ap-data">${esc(i.service_date)}</div>`:""}
+          const fotos = (i.photos||[]).filter(u=>u&&u.trim()).slice(0,4);
+          const hero = fotos[0], resto = fotos.slice(1);
+          return `<article class="ap-exp">
+            ${hero
+              ? `<div class="ap-exp-hero"><img src="${esc(hero.trim())}" alt="">${
+                   i.service_date?`<div class="ap-exp-data">${esc(i.service_date)}</div>`:""}</div>`
+              : (i.service_date?`<div class="ap-exp-data solo">${esc(i.service_date)}</div>`:"")}
+            <div class="ap-exp-corpo">
               <div class="ap-nome">${esc(i.title||"")}</div>
               ${mostra?`<div class="ap-preco-dia">${eur(linhaTotal(i))}</div>`:""}
               ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
               ${i.included?`<div class="ap-estrutura"><div class="k">${t.qIncluded}</div>${fmtDoc(i.included)}</div>`:""}
-            </div></div>`;}).join("")}
+              ${resto.length?`<div class="ap-exp-gal">${resto.map(u=>`<img src="${esc(u.trim())}" alt="">`).join("")}</div>`:""}
+            </div>
+          </article>`;}).join("")}
         ${avisoTarifa(p, mostra)}
         ${apNav(t)}
       </div>
