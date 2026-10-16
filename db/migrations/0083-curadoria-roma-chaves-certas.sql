@@ -27,8 +27,8 @@ update ops_proposals set curations = jsonb_build_array(
     'dest_en', null,
     'title_pt', E'Tuscany & Rome · Hotel Curation Brief',
     'title_en', E'Tuscany & Rome · Hotel Curation Brief',
-    'dias_pt', E'Here''s a first selection of hotels for June 20 to July 4, 2027.
-After your five nights in Cortona, we''d suggest four nights in the Tuscan countryside and four in Rome, flying home on the 4th. We started from what you love about Four Seasons and leaned toward smaller houses, where you get space, a real king bed and privacy. Rates are indicative for now and will move with the final dates, and the split between Tuscany and Rome can shift by a night depending on where you land.
+    'dias_pt', E'Here''s a first selection of hotels for June 20 to July 3, 2027.
+After your five nights in Cortona, we''d suggest four nights in the Tuscan countryside and four in Rome, flying home on the 3rd. We started from what you love about Four Seasons and leaned toward smaller houses, where you get space, a real king bed and privacy. Rates are indicative for now and will move with the final dates, and the split between Tuscany and Rome can shift by a night depending on where you land.
 
 TUSCANY, 4 nights
 
@@ -47,8 +47,8 @@ La Minerva. An Orient Express house in a 17th-century palazzo on Piazza della Mi
 Bulgari Hotel Roma. The group''s Rome house on Piazza Augusto Imperatore, facing the Mausoleum of Augustus, with interiors in travertine and coloured marble, a spa and the Niko Romito restaurant.
 
 If you''d like a few days by the sea before Rome, the Tuscan stay could move toward the southern coast near the islands — late June is the start of the season there.',
-    'dias_en', E'Here''s a first selection of hotels for June 20 to July 4, 2027.
-After your five nights in Cortona, we''d suggest four nights in the Tuscan countryside and four in Rome, flying home on the 4th. We started from what you love about Four Seasons and leaned toward smaller houses, where you get space, a real king bed and privacy. Rates are indicative for now and will move with the final dates, and the split between Tuscany and Rome can shift by a night depending on where you land.
+    'dias_en', E'Here''s a first selection of hotels for June 20 to July 3, 2027.
+After your five nights in Cortona, we''d suggest four nights in the Tuscan countryside and four in Rome, flying home on the 3rd. We started from what you love about Four Seasons and leaned toward smaller houses, where you get space, a real king bed and privacy. Rates are indicative for now and will move with the final dates, and the split between Tuscany and Rome can shift by a night depending on where you land.
 
 TUSCANY, 4 nights
 
@@ -69,5 +69,10 @@ Bulgari Hotel Roma. The group''s Rome house on Piazza Augusto Imperatore, facing
 If you''d like a few days by the sea before Rome, the Tuscan stay could move toward the southern coast near the islands — late June is the start of the season there.'
   ))
  where id = 'b59090ad-14dc-45d3-87f5-9f7206834668';
+
+-- A janela de viagem vai até 3/jul (a 0082 tinha posto 4/jul).
+update ops_proposals set travel_window = 'June 20-July 3, 2027'
+ where id = 'b59090ad-14dc-45d3-87f5-9f7206834668'
+   and travel_window in ('June 20-July 4, 2027','June 20-July 5, 2027');
 
 insert into ops_migrations (id) values ('0083-curadoria-roma-chaves-certas') on conflict (id) do nothing;
