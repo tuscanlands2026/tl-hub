@@ -46,7 +46,7 @@ La Minerva. An Orient Express house in a 17th-century palazzo on Piazza della Mi
 
 Bulgari Hotel Roma. The group''s Rome house on Piazza Augusto Imperatore, facing the Mausoleum of Augustus, with interiors in travertine and coloured marble, a spa and the Niko Romito restaurant.
 
-If you''d like a few days by the sea before Rome, the Tuscan stay could move toward the southern coast near the islands — late June is the start of the season there.',
+If you''d like more of Rome, there''s no shortage of it — the city and the towns and countryside around it hold far more than a few days can. Since you''ll already have explored one part of Tuscany from Cortona and have these nights in another, we could keep the Tuscan countryside to three nights and give Rome five. We can settle that at the proposal stage.',
     'dias_en', E'Here''s a first selection of hotels for June 20 to July 3, 2027.
 After your five nights in Cortona, we''d suggest four nights in the Tuscan countryside and four in Rome, flying home on the 3rd. We started from what you love about Four Seasons and leaned toward smaller houses, where you get space, a real king bed and privacy. Rates are indicative for now and will move with the final dates, and the split between Tuscany and Rome can shift by a night depending on where you land.
 
@@ -66,7 +66,7 @@ La Minerva. An Orient Express house in a 17th-century palazzo on Piazza della Mi
 
 Bulgari Hotel Roma. The group''s Rome house on Piazza Augusto Imperatore, facing the Mausoleum of Augustus, with interiors in travertine and coloured marble, a spa and the Niko Romito restaurant.
 
-If you''d like a few days by the sea before Rome, the Tuscan stay could move toward the southern coast near the islands — late June is the start of the season there.'
+If you''d like more of Rome, there''s no shortage of it — the city and the towns and countryside around it hold far more than a few days can. Since you''ll already have explored one part of Tuscany from Cortona and have these nights in another, we could keep the Tuscan countryside to three nights and give Rome five. We can settle that at the proposal stage.'
   ))
  where id = 'b59090ad-14dc-45d3-87f5-9f7206834668';
 
