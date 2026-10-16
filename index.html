@@ -684,6 +684,13 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-extra{font-size:12.5px;font-weight:300;line-height:1.6;color:var(--ink);}
 .ap-extra span{color:var(--muted);}
 .ap-foto-fim{background:var(--sage);}
+/* O resumo (folha comercial) é uma TABELA larga. A faixa de foto lateral
+   de 38% espremia a coluna de serviço numa tira estreita no desktop, e a
+   descrição de cada serviço quebrava feia. Aqui a folha do resumo vira
+   largura cheia — a foto como faixa no topo — e a tabela (doc, 900px)
+   ganha espaço. Pedido dela, out/26, abrindo o link no desktop. */
+.ap-sec.ap-fim{grid-template-columns:1fr;}
+.ap-sec.ap-fim .ap-foto{position:relative;min-height:0;height:38vh;max-height:360px;}
 .ap-foto-sobre{background:var(--ink);}
 .ap-sobre-txt{font-size:15px;font-weight:300;line-height:1.8;color:var(--ink);max-width:620px;}
 .ap-sobre-txt p{text-align:justify;margin-bottom:14px;}
@@ -9199,12 +9206,17 @@ function apNav(t, fim){
 function quoteLinha(i, t, p, mostra, respondida){
     // Toda linha vale só se marcada: é o cliente que monta a viagem dele.
     const dentro = !!QSEL.items[i.id];
+    /* Linha sem preço e sem unidades é cabeçalho de apresentação (o hotel,
+       quando os quartos vêm em linhas próprias): no resumo ela entra só
+       como NOME — sem a descrição longa espremida na coluna estreita, sem
+       € 0,00 e sem caixinha. O texto do hotel mora na folha da hospedagem. */
+    const temValor = Number(linhaTotal(i))>0 || (i.units||[]).length;
     return `<tr>
       <td class="date-cell">${esc(i.service_date||"")}</td>
       <td>
         <div class="svc-title">${esc(i.title)}</div>
         ${qtdLinha(i,mostra)?`<div class="svc-qtd">${qtdLinha(i,mostra)}</div>`:""}
-        ${i.details?`<div class="svc-sub">${fmtDoc(i.details)}</div>`:""}
+        ${(i.details && temValor)?`<div class="svc-sub">${fmtDoc(i.details)}</div>`:""}
         ${/* UMA CAIXINHA "APROVADO" EM TODA LINHA, e nada se exclui.
               Instrução dela em agosto/26. Existia um grupo de escolha,
               em que marcar uma desmarcava as irmãs; ela apontou que na
@@ -9223,7 +9235,7 @@ function quoteLinha(i, t, p, mostra, respondida){
               hotel quando os quartos vêm em linhas próprias) — não leva
               caixinha: aprovar "o hotel" não seleciona nada, quem escolhe
               são os quartos abaixo. */""}
-        ${(respondida || (p.rate_type==="net" && !p.net_view) || !(Number(linhaTotal(i))>0 || (i.units||[]).length)) ? "" : `<div class="check" style="margin:8px 0 0;">
+        ${(respondida || (p.rate_type==="net" && !p.net_view) || !temValor) ? "" : `<div class="check" style="margin:8px 0 0;">
           <input type="checkbox" id="qi-${esc(i.id)}"${QSEL.items[i.id]?" checked":""}
             onchange="marcaItem('${esc(i.id)}',this.checked)">
           <label for="qi-${esc(i.id)}">${esc((i.choice_group && !(i.units||[]).length)
@@ -9257,7 +9269,7 @@ function quoteLinha(i, t, p, mostra, respondida){
             por noite já aparece em cada categoria, dentro da própria
             linha. Pôr o total numa coluna chamada "Preço" afirmaria uma
             conta que a proposta não está fazendo. */""}
-      <td class="money">${(mostra && !indicativo(p)) ? (dentro?eur(linhaTotal(i))
+      <td class="money">${(mostra && !indicativo(p) && temValor) ? (dentro?eur(linhaTotal(i))
         :`<span class="fora">${eur(linhaTotal(i))}</span>`) : ""}</td>
     </tr>`;
   }
