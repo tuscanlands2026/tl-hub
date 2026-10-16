@@ -636,7 +636,7 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-fotos.f1{grid-template-columns:1fr;}
 .ap-fotos.f2{grid-template-columns:1fr 1fr;}
 .ap-fotos.f3{grid-template-columns:2fr 1fr 1fr;}
-.ap-fotos img{width:100%;height:190px;object-fit:cover;display:block;}
+.ap-fotos img{width:100%;height:190px;object-fit:cover;object-position:center 62%;display:block;}
 .ap-corpo{padding:20px 22px;}
 .ap-topo{display:flex;justify-content:space-between;align-items:baseline;gap:18px;}
 .ap-data{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--sage);
@@ -8834,7 +8834,7 @@ function drawQuoteApresentada(){
               </div>`:""}
               ${i.included?`<div class="ap-estrutura"><div class="k">${t.qIncluded}</div>${fmtDoc(i.included)}</div>`:""}
               ${i.website?`<div class="ap-link"><a href="${esc(i.website)}" target="_blank" rel="noopener">${
-                /youtu\.?be|vimeo/i.test(i.website) ? (p.lang==="en"?"▶ Watch a short film":"▶ Assista ao vídeo") : t.qSite}</a></div>`:""}
+                /youtu\.?be|vimeo/i.test(i.website) ? (p.lang==="en"?"▶ See this experience up close":"▶ Conheça essa experiência de perto") : t.qSite}</a></div>`:""}
               ${resto.length?`<div class="ap-exp-gal">${resto.map(u=>`<img src="${esc(u.trim())}" alt="">`).join("")}</div>`:""}
             </div>
           </article>`;}).join("")}
@@ -9208,7 +9208,11 @@ function quoteLinha(i, t, p, mostra, respondida){
               troca o rótulo para "selecione a opção aprovada", e marcar
               uma desmarca as irmãs. Continua caixinha, e não rádio, para
               poder desmarcar — foi o que a prendeu em agosto/26. */""}
-        ${(respondida || (p.rate_type==="net" && !p.net_view)) ? "" : `<div class="check" style="margin:8px 0 0;">
+        ${/* Linha sem preço e sem unidades é apresentação (o cabeçalho do
+              hotel quando os quartos vêm em linhas próprias) — não leva
+              caixinha: aprovar "o hotel" não seleciona nada, quem escolhe
+              são os quartos abaixo. */""}
+        ${(respondida || (p.rate_type==="net" && !p.net_view) || !(Number(linhaTotal(i))>0 || (i.units||[]).length)) ? "" : `<div class="check" style="margin:8px 0 0;">
           <input type="checkbox" id="qi-${esc(i.id)}"${QSEL.items[i.id]?" checked":""}
             onchange="marcaItem('${esc(i.id)}',this.checked)">
           <label for="qi-${esc(i.id)}">${esc(i.choice_group
