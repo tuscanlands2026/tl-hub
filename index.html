@@ -450,6 +450,7 @@ table.rows tr.par td{border-top:none;padding-top:0;}
 .ap-exp .ap-desc{font-size:14.5px;line-height:1.72;margin-top:12px;max-width:700px;}
 .ap-exp .ap-estrutura{margin-top:14px;}
 .ap-exp .ap-unidades{max-width:720px;margin-top:18px;}
+.unid-escolha{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--sage);margin:0 0 7px;font-weight:500;}
 .ap-exp .ap-link{margin-top:16px;}
 .ap-exp-gal{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px;max-width:760px;}
 .ap-exp-gal img{width:100%;height:150px;object-fit:cover;display:block;}
@@ -8422,7 +8423,16 @@ function marcaExtra(id, chave, on){
 }
 function marcaUnidade(id, chave, on){
   const atual = QSEL.units[id] || [];
-  QSEL.units[id] = on ? atual.concat([chave]) : atual.filter(k=>k!==chave);
+  /* Unidade que se exclui: quando o item tem choice_group, as unidades
+     são opções de um mesmo serviço (ex.: Frascati com cooking OU só
+     visita) — marcar uma deixa só ela. Sem choice_group, segue somando
+     (ex.: as noites de uma estadia, que entram as duas). */
+  const item = (QT.items||[]).find(x=>x.id===id);
+  if(on && item && item.choice_group){
+    QSEL.units[id] = [chave];
+  } else {
+    QSEL.units[id] = on ? atual.concat([chave]) : atual.filter(k=>k!==chave);
+  }
   redesenharEscolha();
 }
 
@@ -8829,6 +8839,7 @@ function drawQuoteApresentada(){
               ${/* Experiência com opções (ex.: Frascati com e sem cooking class):
                     cada opção é uma unidade com o seu preço, como no hotel. */""}
               ${(i.units||[]).length?`<div class="ap-unidades">
+                ${i.choice_group?`<div class="unid-escolha">${p.lang==="en"?"Choose one option":"Escolha uma opção"}</div>`:""}
                 ${(i.units||[]).map(u=>`<div class="ap-unidade"><span>${esc(u.label||"")}</span>${
                   mostra?`<b>${indicativo(p)?tarifaHTML(p,i,u.price):eur(u.price)}</b>`:""}</div>`).join("")}
               </div>`:""}
@@ -9215,10 +9226,11 @@ function quoteLinha(i, t, p, mostra, respondida){
         ${(respondida || (p.rate_type==="net" && !p.net_view) || !(Number(linhaTotal(i))>0 || (i.units||[]).length)) ? "" : `<div class="check" style="margin:8px 0 0;">
           <input type="checkbox" id="qi-${esc(i.id)}"${QSEL.items[i.id]?" checked":""}
             onchange="marcaItem('${esc(i.id)}',this.checked)">
-          <label for="qi-${esc(i.id)}">${esc(i.choice_group
+          <label for="qi-${esc(i.id)}">${esc((i.choice_group && !(i.units||[]).length)
             ? rot(p,"approve_choice", p.lang==="en" ? "Select the approved option" : "Selecione a opção aprovada")
             : rot(p,"approve",t.qChoose))}</label></div>`}
         ${(i.units||[]).length ? `<div class="unid-cli">
+          ${(i.choice_group && dentro && !respondida) ? `<div class="unid-escolha">${p.lang==="en"?"Choose one option:":"Escolha uma opção:"}</div>` : ""}
           ${(i.units||[]).map(u=>u.optional && dentro && !respondida
             ? `<div class="check unid"><span>
                  <input type="checkbox" id="qu-${esc(i.id)}-${esc(u.key)}"
