@@ -431,6 +431,26 @@ navegador mandou. Campo que não foi configurado não entra mesmo que venha no p
 `opportunity_code` é texto livre, o número gerado no CRM. Sem foreign key para
 `ops_opportunities` de propósito, para não acoplar aos objetos já existentes.
 
+### Quem executa SQL — mudou em outubro/26
+
+A seção 7 do `PLANO-HUB.md` diz *"quem executa SQL no painel do Supabase é sempre a
+Maria Fernanda, nunca o agente"*. Ela instalou o plugin oficial do Supabase em leitura
+e escrita, por decisão dela: *"instalei justamente para você mesmo subir as migrações."*
+
+**O agente passa a executar SQL.** O que NÃO muda, e ela manteve de propósito:
+
+- **`update` ou `delete` em linha que já existe precisa do sim dela, por escrito, ANTES.**
+  É a regra do passado não se mexer. Ganhar acesso não é ganhar permissão.
+- **`service_role` nunca.** O token pessoal basta.
+- **A cerca do `ops_` continua inteira aqui.** O banco é o mesmo do CRM, e nada deste
+  repositório toca objeto fora do prefixo — nem para corrigir, nem para migrar. Ler
+  tabela do CRM é permitido; escrever nela, nunca, e isso não mudou. (No repositório do
+  **CRM** é o contrário: lá as tabelas dele são o trabalho. Está escrito no CLAUDE.md
+  de lá, para as duas regras não se confundirem.)
+- **Migração continua sendo arquivo numerado**, registrado em `ops_migrations` e na lista
+  `MIGRACOES` do `index.html`. Rodar direto, sem arquivo, apaga o histórico — que é a
+  razão de a numeração existir.
+
 ### Segurança
 Tabelas fechadas para `authenticated`. O cliente nunca fala com elas: passa por duas
 funções `security definer` que só enxergam a order do token recebido.
