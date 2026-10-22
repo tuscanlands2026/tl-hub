@@ -6038,19 +6038,49 @@ async function saveOrder(){
     internal_notes: el("f-notes").value, updated_at: new Date().toISOString()
   };
   patch.crm_project = (ORDER.crm_project||"").trim() || null;
+
+  /* A LINHA DA ORDER GUARDA O MESMO ID DE SALVAMENTO EM SALVAMENTO.
+     Antes o save apagava todas e inseria de novo, e cada linha nascia com id
+     novo — a mesma armadilha registrada para ops_proposal_items. Só que o
+     Checklist do CRM pendura os serviços da operação no id da linha
+     (op_servicos.order_item_id): com id novo a cada save, o bilhete e o guia
+     ficavam sem a linha de onde vieram. Agora a linha que já existe é
+     atualizada, a nova é inserida, e só some a que ela tirou da tela.
+     E linha que já tem serviço lançado no Checklist não sai em silêncio: o
+     save para e diz qual é, antes de gravar qualquer coisa. */
+  const fica = new Set(ITEMS.filter(r=>r.id).map(r=>r.id));
+  const {data:antes} = await sb.from("ops_order_items").select("id,title").eq("order_id",ORDER.id);
+  const sai = (antes||[]).filter(r=>!fica.has(r.id));
+  if(sai.length){
+    const {data:op} = await sb.from("op_servicos").select("order_item_id,descricao").in("order_item_id", sai.map(r=>r.id));
+    if(op && op.length){
+      btn.disabled = false; btn.textContent = "Salvar";
+      const nomes = [...new Set(op.map(s=>(sai.find(r=>r.id===s.order_item_id)||{}).title))].filter(Boolean);
+      return alert("Não salvei. Você tirou da order "+(nomes.length>1?"as linhas":"a linha")+" “"+nomes.join("”, “")+
+        "”, e já há serviço lançado no Checklist do CRM para "+(nomes.length>1?"elas":"ela")+
+        ". Apague esses serviços no Checklist primeiro, ou devolva a linha à order.");
+    }
+  }
   const {error:e1} = await sb.from("ops_orders").update(patch).eq("id",ORDER.id);
-  await sb.from("ops_order_items").delete().eq("order_id",ORDER.id);
+  if(sai.length) await sb.from("ops_order_items").delete().in("id", sai.map(r=>r.id));
   await sb.from("ops_order_payments").delete().eq("order_id",ORDER.id);
   await sb.from("ops_order_fields").delete().eq("order_id",ORDER.id);
-  const {error:e2} = ITEMS.length ? await sb.from("ops_order_items").insert(
-    ITEMS.map((r,i)=>({order_id:ORDER.id,sort:i,service_date:r.service_date,title:r.title,
+  const linhaItem = (r,i)=>({order_id:ORDER.id,sort:i,service_date:r.service_date,title:r.title,
       details:r.details,price:r.price,supplier:(r.supplier||"").trim()||null,
       commission_basis:(r.commission_basis||"").trim()||null,
       commission_basis_en:(r.commission_basis_en||"").trim()||null,
       commission_pct:(r.commission_pct===""||r.commission_pct==null)?null:r.commission_pct,
       crm_type:r.crm_type||null, crm_service:(r.crm_service||"").trim()||null,
       vat_regime:r.vat_regime||null,
-      cost_estimate:(r.cost_estimate===""||r.cost_estimate==null)?null:r.cost_estimate}))) : {};
+      cost_estimate:(r.cost_estimate===""||r.cost_estimate==null)?null:r.cost_estimate});
+  const velhas = ITEMS.map((r,i)=>r.id ? Object.assign({id:r.id}, linhaItem(r,i)) : null).filter(Boolean);
+  const novas  = ITEMS.map((r,i)=>r.id ? null : linhaItem(r,i)).filter(Boolean);
+  const {error:e2a} = velhas.length ? await sb.from("ops_order_items").upsert(velhas, {onConflict:"id"}) : {};
+  const {data:criadas, error:e2b} = novas.length ? await sb.from("ops_order_items").insert(novas).select("id,sort") : {data:[]};
+  /* A linha nova ganha o id do banco aqui mesmo: sem isso, o segundo save
+     da mesma tela a inseriria outra vez. */
+  (criadas||[]).forEach(c=>{ if(ITEMS[c.sort] && !ITEMS[c.sort].id) ITEMS[c.sort].id = c.id; });
+  const e2 = e2a || e2b;
   const {error:e3} = PAYS.length ? await sb.from("ops_order_payments").insert(
     PAYS.map((p,i)=>({order_id:ORDER.id,sort:i,label:p.label,due_date:p.due_date,amount:p.amount,status:p.status}))) : {};
   const {error:e4} = FIELDS.length ? await sb.from("ops_order_fields").insert(
