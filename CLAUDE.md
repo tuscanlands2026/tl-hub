@@ -962,11 +962,11 @@ Também corrigido na 0030. Nada disso calcula imposto: é etiqueta que ela escol
   fora do hub: capa, quem é a Tuscan Lands, descrição das hospedagens com foto e link,
   moodboard. A quote cobre a parte operacional, que é o que o cliente escolhe e quanto
   custa. Decidido em agosto/26 deixar para depois, não esquecido.
-- Checklist operacional, gerado só após o checkout e só com os serviços que o cliente
-  efetivamente selecionou. Especificação já dada por ela: resumo do cliente com telefone,
-  agência e data; serviços dia por dia; o que está pendente de pagamento e de link;
-  conferência dos nomes contra o passaporte; bilhete comprado ou não; e caixas para marcar
-  agendado e reconfirmado. Falta ver a referência que ela quer mostrar.
+- **Checklist operacional: construído no CRM em outubro/26** (Operações → Checklist,
+  migração 0105 de lá). Desenho e regras no CLAUDE.md do `Claude-Finance-TL`, seção
+  "Checklist de Operações". O que importa aqui: a linha da order é a identidade, e
+  `op_servicos.order_item_id` aponta para `ops_order_items.id`. Hub e CRM vão virar um
+  sistema só, por decisão dela; quem puxa é o CRM, e o hub continua sem escrever lá.
 **Comissão de agência.** Relatório interno que sai da order: por serviço, o percentual e
 o valor da comissão, mais os dados para a agência emitir a nota e os dados da remessa.
 A alíquota fica na **linha** (`ops_order_items.commission_pct`), não na order, e é número
@@ -1202,6 +1202,15 @@ Daí duas regras para migração que mexe em dado:
 
 E, do lado da conferência: **"rodei" não é o mesmo que "aplicou".** Vale ler o estado pelo link
 público antes de dizer que está pronto — foi assim que isto apareceu.
+
+**O id de `ops_order_items` É estável, desde outubro/26.** O `saveOrder` apagava e
+reinseria todas as linhas, como o `salvarQuote` ainda faz. Mudou porque o Checklist do
+CRM pendura bilhete, guia e hotel no id da linha: com id novo a cada save, o primeiro
+salvamento depois de lançar a operação soltava os serviços da linha de onde vieram. Agora
+a linha que existe é atualizada (`upsert` por id), a nova é inserida e ganha o id na hora,
+e só sai a que ela tirou da tela. Linha com serviço lançado no Checklist **não sai**: o
+save para antes de gravar qualquer coisa e diz qual linha é. Ler `op_servicos` daqui é
+leitura de tabela do CRM, que sempre foi permitida.
 
 **O id de `ops_proposal_items` NÃO é estável** (achado na 0067, outubro/26, depois de três
 tentativas de apagar três linhas). Salvar a proposta no editor **apaga todas as linhas e recria**
