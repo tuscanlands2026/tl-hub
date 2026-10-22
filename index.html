@@ -5288,13 +5288,19 @@ function drawSelection(){
       <div><label>Quando</label><div class="muted">${stamp(PSEL.submitted_at,"pt")}</div></div>
       <div><label>Total escolhido</label><div class="muted">${PROP.show_prices===false?"proposta sem preços":eur(PSEL.total)}</div></div>
     </div>
+    ${/* O valor da linha some quando o preço mora nas unidades (quarto,
+         opção de day trip): sem somá-las, uma hospedagem escolhida saía
+         com ✓ e € 0,00, e as linhas visíveis não fechavam com o total.
+         A contribuição da linha é preço + unidades + extras, o mesmo que
+         o total guardado e que a order gerada já faziam. */""}
     <table class="rows" style="margin-top:14px;"><tbody>
       ${linhas.map(l=>`<tr>
         <td style="width:26px;padding:3px 6px 3px 0;">${l.chosen?"✓":`<span class="req">✕</span>`}</td>
         <td style="padding:3px 10px 3px 0;">${esc(l.title)}
           ${l.chosen && l.supplier?`<br><span style="color:var(--brown);font-size:12px;">${esc(l.supplier)}</span>`:""}
-          ${(l.extras||[]).map(e=>`<br><span style="color:var(--copper);font-size:12px;">+ ${esc(e.label_pt||e.key)}</span>`).join("")}</td>
-        <td style="text-align:right;padding:3px 0;">${l.chosen && PROP.show_prices!==false ? eur(l.price) : ""}</td>
+          ${l.chosen?(l.units||[]).map(u=>`<br><span style="color:var(--copper);font-size:12px;">${esc(u.label||u.label_en||u.key)}${PROP.show_prices!==false&&(Number(u.price)||0)?` · ${eur(u.price)}`:""}</span>`).join(""):""}
+          ${l.chosen?(l.extras||[]).map(e=>`<br><span style="color:var(--copper);font-size:12px;">+ ${esc(e.label_pt||e.label_en||e.key)}${PROP.show_prices!==false&&(Number(e.price)||0)?` · ${eur(e.price)}`:""}</span>`).join(""):""}</td>
+        <td style="text-align:right;padding:3px 0;">${l.chosen && PROP.show_prices!==false ? eur((Number(l.price)||0)+(l.units||[]).reduce((s,u)=>s+(Number(u.price)||0),0)+(l.extras||[]).reduce((s,e)=>s+(Number(e.price)||0),0)) : ""}</td>
       </tr>`).join("")}
     </tbody></table>
     ${PSEL.remarks?`<div style="margin-top:12px;"><label>Observações</label><div class="muted">${nl2br(PSEL.remarks)}</div></div>`:""}
