@@ -1212,6 +1212,18 @@ e só sai a que ela tirou da tela. Linha com serviço lançado no Checklist **n�
 save para antes de gravar qualquer coisa e diz qual linha é. Ler `op_servicos` daqui é
 leitura de tabela do CRM, que sempre foi permitida.
 
+**Tipo de OPERAÇÃO na linha da order** (0082, novembro/26). `ops_order_items.op_tipo` diz o que
+a linha é na operação — Hotel, Transfer, Self drive, Tour guiado, Full experience, Outro —, com a
+mesma lista de `op_servicos.tipo` do CRM, que escolhe modelo de voucher, cor na agenda e etapas
+do Checklist. **Não é o `crm_type`**, que é categoria de venda: "TL Signature Programs" vale para
+o hotel, o tour e o transfer do mesmo pacote, e foi lendo ele que o Checklist fez o Palazzo
+Ripetta da TL-055 nascer como guia. O seletor fica na coluna do fornecedor. A order que nasce da
+proposta já vem com Hotel (hospedagem e quartos) e Transfer; experiência e extra ficam em branco,
+porque degustação, aula de cozinha e tour são decisão dela. Interno: nenhuma função pública monta
+a linha inteira, então o campo não sai. **Não criar tipo novo aqui** (ex.: "Degustação"): exigiria
+voucher, cor e etapas novas no CRM. Catálogo, proposta e ficha ainda têm vocabulários próprios de
+tipo — ela quer voltar a esse assunto; até lá, não unificar por conta própria.
+
 **O id de `ops_proposal_items` NÃO é estável** (achado na 0067, outubro/26, depois de três
 tentativas de apagar três linhas). Salvar a proposta no editor **apaga todas as linhas e recria**
 (`salvarQuote`: `delete().eq("proposal_id", …)` e depois `insert`). As linhas são as mesmas aos
