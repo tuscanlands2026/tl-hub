@@ -1236,3 +1236,21 @@ ela edita o editor em português e isso escreve em `title`, não em `title_en`.
 O id da PROPOSTA é estável, e por isso tudo que é da proposta — curations, textos, chaves —
 continua podendo ser mirado por id. Foi exatamente essa diferença que apareceu: a limpeza da
 Curadoria funcionou e o delete das linhas não, no mesmo arquivo.
+
+### O estudo da Emily é modelo, e não se edita (novembro/26)
+
+Instrução dela: o estudo de viabilidade da TL-053-26 (**v1**, `b59090ad-…`, link
+`#/quote/d4e8e2a5945f40cd923f99d21d40792f`) fica **salvo como está**. É a referência do modelo
+**"Primeiro estudo · Luxo"**: capa, white label, folha de Curadoria, hotéis em card com as
+categorias como unidades, valor `indicativo` por noite, sem folha comercial e sem condições.
+Ela vai criar outros modelos; quando a biblioteca de modelos existir no hub, este é o primeiro.
+Até lá, **nenhuma migração mira a v1**.
+
+A proposta comercial é a **v2** (`e0530000-0000-0000-0000-000000000002`, migração 0083), feita
+em cima do estudo, como o botão "Nova versão" faria. Ordem combinada com ela: hotéis e valores
+primeiro, depois a primeira folha a partir do briefing aprovado (`#/b/aa1224ef…`), depois a
+cotação das atividades dia a dia.
+
+Dois sites recusam leitura automatizada e **não se contorna**: `bulgarihotels.com` (403) e a
+página da Junior Suite Terrace no `castelfalfi.com` (CAPTCHA). O que não se leu fica em branco
+ou vem dela.
