@@ -1295,10 +1295,6 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .j-optname{font-family:'Sorts Mill Goudy',serif;font-size:20px;color:var(--ink);margin-bottom:6px;hyphens:none;}
 .j-nota{font-size:11px;color:var(--muted);font-style:italic;margin-top:-20px;}
 .j-quarto{margin-left:38px;}
-/* Quarto com uma foto só: a foto inteira, na proporção dela. Na faixa de
-   190px da largura toda a cama do Bulgari saía cortada (instrução dela,
-   nov/26: "é inútil colocar aquele tipo de foto"). */
-.apres.jornada .j-quarto .ap-fotos.f1 img{height:auto;aspect-ratio:3/2;object-position:center center;}
 .j-ficha{font-size:12px;color:var(--muted);margin-top:4px;}
 .j-noite{font-size:12px;color:var(--muted);margin:-4px 0 10px;}
 .j-escolha{display:flex;align-items:center;gap:8px;margin-top:14px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink);font-weight:400;cursor:pointer;}
@@ -1353,9 +1349,6 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   /* A frase das fotos ilustrativas não abre folha sozinha: em Cortona ela
      transbordava e a folha seguinte saía com uma linha só. */
   .apres.jornada .j-nota{break-before:avoid;page-break-before:avoid;margin-top:-6mm;}
-  /* No papel a foto do quarto não pode ocupar meia folha: altura fixa, com
-     o enquadramento puxado para baixo, onde está a cama. */
-  .apres.jornada .j-quarto .ap-fotos.f1 img{aspect-ratio:auto;height:80mm;object-position:center 72%;}
 }
 </style>
 </head>
@@ -2650,7 +2643,9 @@ const MIGRACOES = [
   {id:"0112-link-respondido-e-aviso", arq:"0112-link-respondido-e-aviso.sql",
    oque:"o link respondido mostra a escolha do cliente, e o e-mail sai sem os dias que não se escolhem"},
   {id:"0113-emily-v2-foto-montalcino", arq:"0113-emily-v2-foto-montalcino.sql",
-   oque:"a foto da propriedade em Montalcino, no lugar da segunda foto de adega"}
+   oque:"a foto da propriedade em Montalcino, no lugar da segunda foto de adega"},
+  {id:"0114-emily-v2-foto-bulgari", arq:"0114-emily-v2-foto-bulgari.sql",
+   oque:"o enquadramento das fotos dos quartos do Bulgari, na cama"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
