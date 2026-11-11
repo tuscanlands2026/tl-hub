@@ -740,6 +740,20 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .doc table.svc,.doc table.svc thead,.doc table.svc tbody,.doc table.svc tr{display:block;}
   .doc table.svc thead{display:none;}
   .doc table.svc td{display:block;width:auto !important;text-align:left !important;}
+  /* Extras: uma caixinha é uma linha só. Empilhar data, rótulo e preço
+     em três blocos com régua entre eles fazia cada extra parecer três. */
+  .pub-order .doc table.svc tr{display:grid;grid-template-columns:1fr auto;column-gap:12px;
+    border-bottom:1px solid var(--cream);padding:10px 12px;}
+  .pub-order .doc table.svc td{border:0;padding:0;}
+  .pub-order .doc table.svc td.date-cell{grid-column:1 / -1;font-size:11px;margin-bottom:4px;}
+  .pub-order .doc table.svc td.money{text-align:right !important;white-space:nowrap;}
+  .pub-order .doc table.svc .svc-sub{text-align:left;}
+  .doc table.svc.extras-tab tr{display:grid;grid-template-columns:1fr auto;column-gap:12px;
+    border-bottom:1px solid var(--cream);padding:10px 12px;}
+  .doc table.svc.extras-tab td{border:0;padding:0;}
+  .doc table.svc.extras-tab td.date-cell{grid-column:1 / -1;font-size:11px;margin-bottom:4px;}
+  .doc table.svc.extras-tab td.money{text-align:right !important;}
+  .doc table.svc.extras-tab .svc-sub{margin-left:26px !important;text-align:left;}
   /* No celular o índice era uma tela inteira de menu antes de cada
      etapa — a proposta começava abaixo da dobra em todas elas. Aqui ele
      vira uma faixa: logo pequeno, as etapas numa fita que corre para o
@@ -869,6 +883,12 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .confirm-block h2{font-size:22px;color:var(--sage);font-weight:500;}
 .confirm-block .rule{background:var(--copper);}
 .confirm-block .section-title{color:var(--sage);letter-spacing:.2em;}
+/* Página da order: título de seção leva a régua de 30px da casa, e não
+   linha de largura inteira — régua comprida solta entre dois blocos
+   parecia separar o nada. */
+.pub-order .section-title,.pub-order .doc .blocktitle,.pub-order .doc .terms h3{border-bottom:0;padding-bottom:0;}
+.pub-order .section-title::after,.pub-order .doc .blocktitle::after,.pub-order .doc .terms h3::after{
+  content:"";display:block;width:30px;height:1.5px;background:var(--copper);margin-top:7px;}
 .pax-row{display:grid;grid-template-columns:1fr 30px;gap:7px;margin-bottom:7px;align-items:center;}
 /* Rótulo de duas linhas empurrava só a sua caixa para baixo, e a fileira
    saía torta. Cada célula vira coluna e a caixa desce para o rodapé dela,
@@ -1412,8 +1432,7 @@ const T = {
     passportNote:"Para a emissão de bilhetes para os monumentos que farão parte desta viagem, o nome informado precisa ser exatamente igual ao do passaporte.",
     logistics:"Informações de Logística e Saúde",
     ackVehicle:"Estou ciente do limite do volume de bagagens previsto para o tipo de veículo selecionado.",
-    ackPre:"Li e aceito os ", ackLink:"termos e condições",
-    ackPost:" para contratação dos serviços elencados.",
+    ackTerms:"Li e aceito os termos e condições acima para a contratação dos serviços elencados.",
     remarks:"Observações",
     submit:"Enviar", sending:"Enviando…",
     doneTitle:"Confirmação recebida",
@@ -1509,8 +1528,7 @@ const T = {
     passportNote:"For ticketing at the monuments included in this trip, the name given must match the passport exactly.",
     logistics:"Logistics and Health",
     ackVehicle:"I am aware of the luggage volume limit for the type of vehicle selected.",
-    ackPre:"I have read and accept the ", ackLink:"terms and conditions",
-    ackPost:" for the services listed.",
+    ackTerms:"I have read and accept the terms and conditions above for the services listed.",
     remarks:"Remarks",
     submit:"Send", sending:"Sending…",
     doneTitle:"Confirmation received",
@@ -2486,7 +2504,9 @@ const MIGRACOES = [
   {id:"0089-condicoes-da-order",      arq:"0089-condicoes-da-order.sql",
    oque:"condições específicas por order, dentro de Termos e Condições, sem mexer no texto da casa"},
   {id:"0091-termos-complementares",   arq:"0091-termos-complementares.sql",
-   oque:"a frase do link dos termos vira \"termos complementares\"; order já confirmada continua com a antiga"}
+   oque:"a frase do link dos termos vira \"termos complementares\"; order já confirmada continua com a antiga"},
+  {id:"0094-descricao-do-extra",      arq:"0094-descricao-do-extra.sql",
+   oque:"o extra que vira linha da order leva a descrição dele, e não o aviso genérico"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5947,7 +5967,11 @@ function drawFields(){
             title="Com preço, a caixinha é um EXTRA: sai abaixo dos serviços, soma no total e vira linha da order ao confirmar"
             oninput="FIELDS[${i}].price=this.value===''?null:parseFloat(this.value)">
           <input value="${esc(f.service_date||"")}" placeholder="Data do extra"
-            oninput="FIELDS[${i}].service_date=this.value"></div>`:""}
+            oninput="FIELDS[${i}].service_date=this.value"></div>
+          ${f.price!=null&&f.price!==""?`<textarea rows="2" style="margin-top:4px;" placeholder="Descrição do extra, em português"
+            oninput="FIELDS[${i}].help_pt=this.value">${esc(f.help_pt||"")}</textarea>
+          <textarea rows="2" style="margin-top:4px;" placeholder="Descrição do extra, em inglês"
+            oninput="FIELDS[${i}].help_en=this.value">${esc(f.help_en||"")}</textarea>`:""}`:""}
         <div class="muted" style="font-size:10.5px;margin-top:3px;">${esc(T.pt.grp[f.group_key]||f.group_key)} · ${esc(f.field_key)}${f.input_type==="checkbox"&&f.price!=null?" · extra":""}</div>
       </td>
       <td><select onchange="FIELDS[${i}].input_type=this.value;FIELDS[${i}].prefill_value='';drawFields()">
@@ -6149,7 +6173,10 @@ async function saveOrder(){
       mode:f.mode, prefill_value: f.mode==="prefilled" ? f.prefill_value : null,
       /* Preço só vale na caixinha: em outro tipo ele não teria como ser marcado. */
       price: f.input_type==="checkbox" && f.price!=null && f.price!=="" ? Number(f.price) : null,
-      service_date: f.input_type==="checkbox" ? ((f.service_date||"").trim()||null) : null}))) : {};
+      service_date: f.input_type==="checkbox" ? ((f.service_date||"").trim()||null) : null,
+      /* A descrição do campo não tinha onde ser editada e o save a apagava em
+         silêncio. Agora vai junto, sempre. */
+      help_pt: (f.help_pt||"").trim()||null, help_en: (f.help_en||"").trim()||null}))) : {};
   btn.disabled = false; btn.textContent = "Salvar";
   const err = e1||e2||e3||e4;
   if(err) return alert(err.message);
@@ -6249,7 +6276,8 @@ async function duplicateOrder(){
       order_id:novo.id, sort:i, group_key:r.group_key, field_key:r.field_key,
       label_pt:r.label_pt, label_en:r.label_en, input_type:r.input_type,
       options:r.options, required:r.required, mode:r.mode,
-      prefill_value:r.prefill_value, price:r.price, service_date:r.service_date}))); if(e) erros.push(e.message);
+      prefill_value:r.prefill_value, price:r.price, service_date:r.service_date,
+      help_pt:r.help_pt, help_en:r.help_en}))); if(e) erros.push(e.message);
   }
   btn.disabled = false; btn.textContent = "Duplicar";
   if(erros.length) alert("A cópia foi criada, mas parte do conteúdo não veio:\n"+erros.join("\n"));
@@ -9580,7 +9608,7 @@ function drawPublic(){
   });
 
   app.innerHTML = `
-  <div class="docpad" style="padding:24px 12px;background:var(--cream);">
+  <div class="docpad pub-order" style="padding:24px 12px;background:var(--cream);">
   <div class="doc">
     <div class="head">
       <div class="brand">
@@ -9618,14 +9646,15 @@ function drawPublic(){
 
     ${extras.length?`<div class="section-title" style="margin-top:22px;">${t.optExtras}</div>
     <div class="muted" style="margin-bottom:8px;">${t.optExtrasHint}</div>
-    <table class="svc"><tbody>${extras.map(f=>{
+    <table class="svc extras-tab"><tbody>${extras.map(f=>{
       const k = f.field_key.replace(/'/g,"\\'");
       const lbl = (o.lang==="en" ? (f.label_en||f.label_pt) : f.label_pt) || f.field_key;
       return `<tr>
         <td class="date-cell" style="width:100px;">${esc(f.service_date||"")}</td>
         <td><div class="check" style="margin:0;"><input type="checkbox" id="fx-${esc(f.field_key)}"${FLD[f.field_key]==="true"?" checked":""}
           onchange="FLD['${k}']=this.checked?'true':'false';atualizaTotalPub()">
-          <label for="fx-${esc(f.field_key)}">${esc(lbl)}</label></div></td>
+          <label for="fx-${esc(f.field_key)}">${esc(lbl)}</label></div>
+          ${(o.lang==="en"?f.help_en:f.help_pt)?`<div class="svc-sub" style="margin-left:26px;">${nl2br(o.lang==="en"?f.help_en:f.help_pt)}</div>`:""}</td>
         <td class="money" style="white-space:nowrap;">${eur(f.price)}</td></tr>`;}).join("")}</tbody></table>`:""}
 
     <div class="total-row"><div class="total-box"><span class="lbl">${t.total}</span><span class="amt" id="pub-total">${eur(total)}</span></div></div>
@@ -9690,9 +9719,10 @@ function drawPublic(){
     ${bVeh!=="off"?`<div class="check"><input type="checkbox" id="c-veh">
       <label for="c-veh">${t.ackVehicle} <span class="req">*</span></label></div>`:""}
     <div class="check"><input type="checkbox" id="c-terms">
-      <span id="c-terms-txt" class="checktext">${t.ackPre}${termsHref(o)
-        ? `<a href="${esc(termsHref(o))}" target="_blank" rel="noopener">${t.ackLink}</a>`
-        : `<u>${t.ackLink}</u>`}${t.ackPost} <span class="req">*</span></span></div>
+      ${/* O aceite vale pelo que está no documento, logo acima, e não por um
+            link: instrução dela, novembro/26. O link continua no fim dos
+            termos, como complemento. */""}
+      <span id="c-terms-txt" class="checktext">${t.ackTerms} <span class="req">*</span></span></div>
 
     ${bRem!=="off"?`<div style="margin-top:16px;"><label>${t.remarks}</label><textarea id="c-rem" rows="3"></textarea></div>`:""}
 
