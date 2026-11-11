@@ -846,6 +846,9 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .doc .terms ol{margin:0 0 4px 18px;}
 .doc .terms li{font-size:12px;line-height:1.7;margin-bottom:8px;text-align:justify;}
 .doc .terms ul{margin:7px 0 4px 18px;}
+.doc .terms-extra{font-size:12px;line-height:1.7;text-align:justify;hyphens:none;}
+.doc .terms-extra p{margin:0 0 8px;}
+.doc .terms-extra b,.doc .terms-extra strong{font-weight:500;}
 .doc .terms-link{margin-top:16px;font-size:12.5px;line-height:1.6;}
 .doc .terms-link a{color:var(--sage);text-decoration:underline;text-underline-offset:2px;word-break:break-word;}
 .doc .foot{margin-top:28px;text-align:center;font-size:10.5px;color:var(--muted);line-height:1.75;}
@@ -1428,6 +1431,7 @@ const T = {
           travellers:"viajantes",traveller_name:"nome do viajante",traveller_dob:"nascimento do viajante"},
     voucherNote:"Detalhes de horários e meeting point serão enviados no voucher de confirmação.",
     optExtras:"Extras opcionais",
+    termsExtra:"Condições específicas desta order",
     optExtrasHint:"Marque os extras que deseja incluir. O total se atualiza a cada escolha.",
     payNote:"Pagamento",
     yes:"Sim", no:"Não",
@@ -1523,6 +1527,7 @@ const T = {
           travellers:"travellers",traveller_name:"traveller name",traveller_dob:"traveller date of birth"},
     voucherNote:"Timings and meeting points will be sent in the confirmation voucher.",
     optExtras:"Optional extras",
+    termsExtra:"Specific conditions of this order",
     optExtrasHint:"Select the extras you would like to add. The total updates with each selection.",
     payNote:"Payment",
     yes:"Yes", no:"No",
@@ -2470,7 +2475,9 @@ const MIGRACOES = [
   {id:"0082-tipo-de-operacao",        arq:"0082-tipo-de-operacao.sql",
    oque:"tipo de operação em cada linha da order, que o Checklist do CRM lê em vez de adivinhar"},
   {id:"0087-extra-com-preco-na-order", arq:"0087-extra-com-preco-na-order.sql",
-   oque:"extra com preço na order: soma no total da página do cliente e vira linha ao confirmar"}
+   oque:"extra com preço na order: soma no total da página do cliente e vira linha ao confirmar"},
+  {id:"0089-condicoes-da-order",      arq:"0089-condicoes-da-order.sql",
+   oque:"condições específicas por order, dentro de Termos e Condições, sem mexer no texto da casa"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5534,6 +5541,10 @@ function renderEditor(){
         O texto integral continua dentro do documento: o link é acréscimo, não substituição.</div>
     </div>
     <div><label>Texto de abertura</label><textarea id="f-intro" rows="3">${esc(o.intro||"")}</textarea></div>
+    <div><label>Condições específicas desta order</label><textarea id="f-terms-extra" rows="4">${esc(o.terms_extra||"")}</textarea>
+      <div class="hint" style="margin:5px 0 0;">Sai dentro de Termos e Condições, antes do texto da casa, e vale só para esta
+        order. <b>**negrito**</b> e linha com <b>-</b> funcionam. Os termos da casa não mudam, porque eles valem também para as
+        orders já entregues.</div></div>
     <div><label>Notas internas — nunca aparecem para o cliente</label><textarea id="f-notes" rows="2">${esc(o.internal_notes||"")}</textarea></div>
   </div>
 
@@ -6070,6 +6081,7 @@ async function saveOrder(){
     final_client: el("f-client").value.trim(), pax_summary: el("f-pax").value.trim(),
     travel_window: el("f-window").value.trim(), intro: el("f-intro").value,
     terms_url: el("f-terms").value.trim() || null,
+    terms_extra: el("f-terms-extra").value.trim() || null,
     payment_note: el("f-paynote").value.trim() || null,
     payment_url: el("f-payurl").value.trim() || null,
     checkout_config: cfgToJson(),
@@ -6197,6 +6209,7 @@ async function duplicateOrder(){
     status:"draft", agency:o.agency, agency_contact:o.agency_contact,
     final_client:o.final_client, pax_summary:o.pax_summary, travel_window:o.travel_window,
     intro:o.intro, internal_notes:o.internal_notes, terms_url:o.terms_url,
+    terms_extra:o.terms_extra,
     payment_note:o.payment_note, checkout_config:o.checkout_config
   }).select().single();
   if(error){ btn.disabled=false; btn.textContent="Duplicar"; return alert(error.message); }
@@ -9620,7 +9633,7 @@ function drawPublic(){
       ${o.payment_note?`<div class="pay-note">${nl2br(o.payment_note)}</div>`:""}
     </div>`:""}
 
-    <div class="terms">${TERMS[o.lang||"pt"]}
+    <div class="terms">${termosDaOrder(o, t)}
       ${termsHref(o)?`<div class="terms-link">${t.termsLinkLabel}
         <a href="${esc(termsHref(o))}" target="_blank" rel="noopener">${esc(termsHref(o))}</a></div>`:""}
     </div>
@@ -9694,6 +9707,16 @@ function drawPublic(){
   el("c-go").onclick = submitConfirmation;
 }
 
+/* As condições específicas da order entram logo depois do título "Termos e
+   Condições" e antes do texto da casa. Ficam num campo da order, e não no
+   TERMS: o TERMS vale para toda order, inclusive as já entregues. */
+function termosDaOrder(o, t){
+  const casa = TERMS[o.lang||"pt"];
+  if(!o.terms_extra) return casa;
+  const extra = `<h3>${t.termsExtra}</h3><div class="terms-extra">${fmtDoc(o.terms_extra)}</div>`;
+  const i = casa.indexOf("</h2>");
+  return i < 0 ? extra + casa : casa.slice(0, i+5) + extra + casa.slice(i+5);
+}
 const ehExtra = f => f.input_type==="checkbox" && f.price!=null && f.price!=="";
 const extrasPub = () => (PUB.fields||[]).filter(ehExtra);
 function totalPub(){
