@@ -1292,7 +1292,12 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .j-lead{font-size:14px;line-height:1.7;margin-bottom:6px;max-width:760px;}
 .j-extra{font-size:13px;margin-top:8px;}
 @media screen and (max-width:900px){ .j-quarto{margin-left:0;} .j-cats{grid-template-columns:1fr;} }
-@media print{ .j-escolha{display:none;} .j-quarto{margin-left:0;} }
+@media print{ .j-escolha{display:none;} .j-quarto{margin-left:0;}
+  /* O "at a glance" abre folha própria. Sem isto ele começava no meio da
+     folha da abertura e transbordava para a seguinte, deixando três quartos
+     dela vazios. Só no modelo jornada: o PDF das propostas antigas não muda. */
+  .apres.jornada .ap-cur{break-before:page;min-height:296mm;box-sizing:border-box;}
+}
 </style>
 </head>
 <body>
@@ -9631,6 +9636,10 @@ async function baixarProposta(){
     btn.setAttribute("data-rot", rot); btn.disabled = true;
   }
   const diz = txt => { if(btn) btn.textContent = txt; };
+  /* Os avisos saem na língua da proposta: o botão está na página do
+     cliente, e numa proposta em inglês "Montando o PDF" era português
+     na cara de quem não lê português. */
+  const en = (QT && QT.proposal && QT.proposal.lang) === "en";
   const solta = () => { if(btn){ btn.disabled = false; btn.textContent = rot; } };
 
   const nome = (QT.proposal.crm_code || QT.proposal.title || "proposta")
@@ -9648,7 +9657,7 @@ async function baixarProposta(){
   const marca = Math.random().toString(36).slice(2) + Date.now().toString(36);
 
   try{
-    diz("Montando o PDF…");
+    diz(en ? "Preparing the PDF…" : "Montando o PDF…");
     /* Manda montar. A função de fundo responde na hora com 202 e segue
        trabalhando com 15 minutos, em vez dos ~25 segundos da síncrona,
        que era o que fazia a proposta com fotos falhar como se tivesse
@@ -9676,7 +9685,7 @@ async function baixarProposta(){
       catch(e){ continue; }
 
       if(st.estado === "pronto" && st.r === marca){
-        diz("Baixando…");
+        diz(en ? "Downloading…" : "Baixando…");
         /* Quem baixa é o NAVEGADOR indo ao endereço: a função responde
            com Content-Disposition: attachment e ele faz o que faz com
            qualquer arquivo da internet — baixa, com o nome certo, sem
@@ -9690,18 +9699,19 @@ async function baixarProposta(){
       }
       if(st.estado === "erro" && st.r === marca){
         solta();
-        return alert("Não consegui montar o PDF.\n\n" + (st.msg||"") 
-          + "\n\nTente de novo. Se repetir, me avise.");
+        return alert(en
+          ? "The PDF could not be prepared.\n\n" + (st.msg||"") + "\n\nPlease try again."
+          : "Não consegui montar o PDF.\n\n" + (st.msg||"") + "\n\nTente de novo. Se repetir, me avise.");
       }
-      if(i > 3 && i % 5 === 0) diz("Montando… " + (i*2) + "s");
+      if(i > 3 && i % 5 === 0) diz((en ? "Preparing… " : "Montando… ") + (i*2) + "s");
     }
     solta();
-    alert("O PDF está demorando mais que o normal. Tente de novo em um minuto.");
+    alert(en ? "The PDF is taking longer than usual. Please try again in a minute." : "O PDF está demorando mais que o normal. Tente de novo em um minuto.");
   }catch(e){
     solta();
     /* Nunca cair na caixa de impressão: instrução dela. Cair na
        impressão escondia o problema. */
-    alert("Não consegui falar com o servidor para montar o PDF.\n\n" + (e && e.message));
+    alert((en ? "Could not reach the server to prepare the PDF.\n\n" : "Não consegui falar com o servidor para montar o PDF.\n\n") + (e && e.message));
   }
 }
 
