@@ -1432,8 +1432,7 @@ const T = {
     passportNote:"Para a emissão de bilhetes para os monumentos que farão parte desta viagem, o nome informado precisa ser exatamente igual ao do passaporte.",
     logistics:"Informações de Logística e Saúde",
     ackVehicle:"Estou ciente do limite do volume de bagagens previsto para o tipo de veículo selecionado.",
-    ackPre:"Li e aceito os ", ackLink:"termos e condições",
-    ackPost:" para contratação dos serviços elencados.",
+    ackTerms:"Li e aceito os termos e condições acima para a contratação dos serviços elencados.",
     remarks:"Observações",
     submit:"Enviar", sending:"Enviando…",
     doneTitle:"Confirmação recebida",
@@ -1529,8 +1528,7 @@ const T = {
     passportNote:"For ticketing at the monuments included in this trip, the name given must match the passport exactly.",
     logistics:"Logistics and Health",
     ackVehicle:"I am aware of the luggage volume limit for the type of vehicle selected.",
-    ackPre:"I have read and accept the ", ackLink:"terms and conditions",
-    ackPost:" for the services listed.",
+    ackTerms:"I have read and accept the terms and conditions above for the services listed.",
     remarks:"Remarks",
     submit:"Send", sending:"Sending…",
     doneTitle:"Confirmation received",
@@ -9721,9 +9719,10 @@ function drawPublic(){
     ${bVeh!=="off"?`<div class="check"><input type="checkbox" id="c-veh">
       <label for="c-veh">${t.ackVehicle} <span class="req">*</span></label></div>`:""}
     <div class="check"><input type="checkbox" id="c-terms">
-      <span id="c-terms-txt" class="checktext">${t.ackPre}${termsHref(o)
-        ? `<a href="${esc(termsHref(o))}" target="_blank" rel="noopener">${t.ackLink}</a>`
-        : `<u>${t.ackLink}</u>`}${t.ackPost} <span class="req">*</span></span></div>
+      ${/* O aceite vale pelo que está no documento, logo acima, e não por um
+            link: instrução dela, novembro/26. O link continua no fim dos
+            termos, como complemento. */""}
+      <span id="c-terms-txt" class="checktext">${t.ackTerms} <span class="req">*</span></span></div>
 
     ${bRem!=="off"?`<div style="margin-top:16px;"><label>${t.remarks}</label><textarea id="c-rem" rows="3"></textarea></div>`:""}
 
