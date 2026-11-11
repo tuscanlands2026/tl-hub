@@ -9751,13 +9751,16 @@ function drawPublic(){
 /* As condições específicas da order entram logo depois do título "Termos e
    Condições" e antes do texto da casa. Ficam num campo da order, e não no
    TERMS: o TERMS vale para toda order, inclusive as já entregues. */
-/* Cláusula dos ingressos, instrução dela em novembro/26: entra como último
-   item da Política de Reserva e Cancelamento. O corte é o campo
+/* Cláusulas dos ingressos e do fechamento de monumentos, instrução dela em
+   novembro/26: entram como últimos itens da Política de Reserva e
+   Cancelamento. A do fechamento não fala de reembolso — palavra dela. O corte é o campo
    terms_tickets da order — as orders já confirmadas foram gravadas com
    false e continuam com os termos que o cliente assinou. */
 const TERMS_INGRESSOS = {
-  pt:`<li><b>Ingressos não são reembolsáveis.</b> Ingressos de monumentos, museus e demais atrações, uma vez emitidos, não são reembolsáveis em nenhuma hipótese, independentemente da data do cancelamento.</li>`,
-  en:`<li><b>Tickets are non-refundable.</b> Entrance tickets to monuments, museums and other sites, once issued, are non-refundable under any circumstances, regardless of the cancellation date.</li>`
+  pt:`<li><b>Ingressos não são reembolsáveis.</b> Ingressos de monumentos, museus e demais atrações, uma vez emitidos, não são reembolsáveis em nenhuma hipótese, independentemente da data do cancelamento.</li>
+<li><b>Fechamento de monumentos.</b> Monumentos, museus e demais atrações podem eventualmente ser fechados por motivo de força maior ou por determinação da própria administração dos locais.</li>`,
+  en:`<li><b>Tickets are non-refundable.</b> Entrance tickets to monuments, museums and other sites, once issued, are non-refundable under any circumstances, regardless of the cancellation date.</li>
+<li><b>Closure of monuments.</b> Monuments, museums and other sites may occasionally be closed due to force majeure or by decision of the sites' own management.</li>`
 };
 function termosDaCasa(o){
   const casa = TERMS[o.lang||"pt"];
