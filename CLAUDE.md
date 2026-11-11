@@ -1264,3 +1264,8 @@ categoria quando ela mandar os valores, calculada do total dela.
 se aceita animais, se aceita criança, qualquer coisa para criança, é inútil." Numa viagem de dois
 adultos não entra ocupação, cama extra, sofá-cama, quarto comunicante, idade mínima nem animal.
 O texto do hotel chega cheio disso; quem filtra sou eu, antes de pôr na peça.
+
+**A primeira folha da proposta comercial é o briefing inteiro, adaptado** (0090, nov/26). Não
+um resumo de uma linha por dia — ela recusou a 0089 por isso. Ordem: voos, transfers e
+transporte, sugestões dia a dia, e o bloco da agência ("A Customer Journey with…"). Onde o
+briefing oferecia duas opções e a advisor escolheu, sai só a escolhida.
