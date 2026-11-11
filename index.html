@@ -742,6 +742,12 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .doc table.svc td{display:block;width:auto !important;text-align:left !important;}
   /* Extras: uma caixinha é uma linha só. Empilhar data, rótulo e preço
      em três blocos com régua entre eles fazia cada extra parecer três. */
+  .pub-order .doc table.svc tr{display:grid;grid-template-columns:1fr auto;column-gap:12px;
+    border-bottom:1px solid var(--cream);padding:10px 12px;}
+  .pub-order .doc table.svc td{border:0;padding:0;}
+  .pub-order .doc table.svc td.date-cell{grid-column:1 / -1;font-size:11px;margin-bottom:4px;}
+  .pub-order .doc table.svc td.money{text-align:right !important;white-space:nowrap;}
+  .pub-order .doc table.svc .svc-sub{text-align:left;}
   .doc table.svc.extras-tab tr{display:grid;grid-template-columns:1fr auto;column-gap:12px;
     border-bottom:1px solid var(--cream);padding:10px 12px;}
   .doc table.svc.extras-tab td{border:0;padding:0;}
@@ -877,6 +883,12 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .confirm-block h2{font-size:22px;color:var(--sage);font-weight:500;}
 .confirm-block .rule{background:var(--copper);}
 .confirm-block .section-title{color:var(--sage);letter-spacing:.2em;}
+/* Página da order: título de seção leva a régua de 30px da casa, e não
+   linha de largura inteira — régua comprida solta entre dois blocos
+   parecia separar o nada. */
+.pub-order .section-title,.pub-order .doc .blocktitle,.pub-order .doc .terms h3{border-bottom:0;padding-bottom:0;}
+.pub-order .section-title::after,.pub-order .doc .blocktitle::after,.pub-order .doc .terms h3::after{
+  content:"";display:block;width:30px;height:1.5px;background:var(--copper);margin-top:7px;}
 .pax-row{display:grid;grid-template-columns:1fr 30px;gap:7px;margin-bottom:7px;align-items:center;}
 /* Rótulo de duas linhas empurrava só a sua caixa para baixo, e a fileira
    saía torta. Cada célula vira coluna e a caixa desce para o rodapé dela,
@@ -9598,7 +9610,7 @@ function drawPublic(){
   });
 
   app.innerHTML = `
-  <div class="docpad" style="padding:24px 12px;background:var(--cream);">
+  <div class="docpad pub-order" style="padding:24px 12px;background:var(--cream);">
   <div class="doc">
     <div class="head">
       <div class="brand">
