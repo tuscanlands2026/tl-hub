@@ -1326,6 +1326,10 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .j-tab tr.j-n1 td:first-child{padding-left:26px;}
 .j-tab tr.j-n2 td:first-child{padding-left:50px;}
 .j-tab tr.j-n2 .j-linha label{font-size:12.5px;}
+/* Serviço ainda sem valor ("Pending"): sem caixinha, no lugar dela um
+   espaço do mesmo tamanho, para o texto alinhar com as outras linhas. */
+.j-sem-caixa{display:inline-block;width:13px;flex:0 0 13px;}
+.j-tab tr.j-pend td.money{color:var(--muted);font-style:italic;}
 .j-sub{display:flex;gap:22px;margin:8px 0 0 26px;}
 .j-nota-tab{font-size:12.5px;color:var(--muted);margin:10px 12px 0;line-height:1.6;}
 /* O total não quebra entre o € e o número: no celular o "€" ficava sozinho
@@ -2632,7 +2636,9 @@ const MIGRACOES = [
   {id:"0109-grupo-da-linha", arq:"0109-grupo-da-linha.sql",
    oque:"o grupo de cada linha em Your proposal (a data, ou o serviço)"},
   {id:"0110-emily-v2-concierge-e-tabela", arq:"0110-emily-v2-concierge-e-tabela.sql",
-   oque:"concierge services, textos de Pienza e Arezzo, transfer em Roma e a tabela em grupos da proposta da Emily"}
+   oque:"concierge services, textos de Pienza e Arezzo, transfer em Roma e a tabela em grupos da proposta da Emily"},
+  {id:"0111-emily-v2-dia-a-dia", arq:"0111-emily-v2-dia-a-dia.sql",
+   oque:"o texto das linhas de transfer, meet and greet e Arezzo na proposta dia a dia da Emily"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -9034,7 +9040,8 @@ const JTXT = {
       nights:(n,v)=>`${n} nights · about ${v} per night`,
       lead:"This proposal is built as one program, with every experience included. If you'd like to adjust any part of it, your travel advisor will arrange it with us.",
       bStays:"Stays", bCar:"Car in Tuscany", bExp:"Experiences", bServ:"Services", bOpt:"Optional",
-      add:"Add", onRequest:"On request", needPick:"Please choose one option for:", total:"Your total"},
+      add:"Add", onRequest:"On request", needPick:"Please choose one option for:", total:"Your total",
+      bDays:"Day by day", pending:"Pending"},
   pt:{glance:"Em resumo", stay:"Onde você vai ficar", around:"Como se deslocar", prop:"Sua proposta",
       closing:"Encerramento", opening:"Abertura", opt:["Opção um","Opção dois","Opção três","Opção quatro"],
       good:"Bom saber", inc:"Incluso", notinc:"Não incluso",
@@ -9043,7 +9050,8 @@ const JTXT = {
       nights:(n,v)=>`${n} noites · cerca de ${v} por noite`,
       lead:"Esta proposta é um programa único, com todas as experiências incluídas. Para ajustar qualquer parte, a sua agência combina conosco.",
       bStays:"Hospedagem", bCar:"Carro na Toscana", bExp:"Experiências", bServ:"Serviços", bOpt:"Opcional",
-      add:"Adicionar", onRequest:"Sob consulta", needPick:"Escolha uma opção em:", total:"Seu total"}
+      add:"Adicionar", onRequest:"Sob consulta", needPick:"Escolha uma opção em:", total:"Seu total",
+      bDays:"Dia a dia", pending:"A confirmar"}
 };
 /* Foto com ponto focal: "url#p=50,72" centra a foto em 50% / 72%. O que vem
    depois de # não vai ao servidor, então o endereço da foto não muda. */
@@ -9365,29 +9373,48 @@ function drawJornada(){
     return out.join("");
   };
   const comValor = sec => itens.filter(i=>i.section===sec.key && jTemValor(i));
-  /* Em grupos (instrução dela, nov/26: "está muito bagunçado"). Nas
-     experiências o grupo é a data — o dia e, embaixo, cada serviço ou opção
-     daquele dia como subitem. Em Ground Services o grupo é o serviço
-     (row_group, 0109): os dois transfers juntos, o carro com as duas
-     categorias. Linha sem grupo sai solta, como as hospedagens. */
-  const emGrupos = (lista, porData) => {
+  /* DIA A DIA (instrução dela, nov/26: "uma visualização por dia fica mais
+     clean para o cliente"). Primeiro só a hospedagem; depois cada serviço de
+     transporte com opções (o carro) no seu bloco; depois um bloco só, dia
+     por dia em ordem de data, com tudo o que acontece naquele dia —
+     experiência, transfer, meet and greet; e por fim o que não tem dia (o
+     concierge), com a nota da seção.
+
+     A ordem vem da data escrita por ela ("Monday, June 21"): o hub lê o mês
+     e o dia só para ordenar, e não reescreve nada. Serviço que ainda não
+     tem valor mas tem texto de linha (Arezzo) entra como "Pending", sem
+     caixinha e sem somar. */
+  const MESES = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+  const ordemData = d => {
+    const m = /([A-Za-z]+)\s+(\d{1,2})/.exec(d||"");
+    const k = m ? MESES.indexOf(m[1].toLowerCase()) : -1;
+    return k < 0 ? null : k*100 + Number(m[2]);
+  };
+  const baseData = d => (d||"").split(" · ")[0].trim();
+  const pendente = i => !jTemValor(i) && (i.row||"").trim();
+  const linhaPendente = (i, nivel) => `<tr class="j-pend${nivel?" j-n"+nivel:""}"><td>
+      <div class="check j-linha"><span class="j-sem-caixa"></span><label>${esc(i.row)}</label></div></td>
+      <td class="money">${esc(J.pending)}</td></tr>`;
+  const transpItens = [...transp.flatMap(comValor), ...secs.filter(s=>s.tipo==="dining").flatMap(comValor)];
+  const comOpcoes = transpItens.filter(i=>(i.units||[]).length);
+  const doDia = [
+      ...secs.filter(s=>s.tipo==="narrativa").flatMap(sec=>itens.filter(i=>i.section===sec.key && (jTemValor(i) || pendente(i)))),
+      ...transpItens.filter(i=>!(i.units||[]).length && ordemData(i.service_date) != null)
+    ].map((i,k)=>({i, k, o: ordemData(i.service_date)}))
+     .sort((a,b)=>((a.o??9999)-(b.o??9999)) || (a.k-b.k)).map(x=>x.i);
+  const semDia = transpItens.filter(i=>!(i.units||[]).length && ordemData(i.service_date) == null);
+  const porDia = () => {
     const ordem = [], mapa = {};
-    lista.forEach(i=>{
-      const g = (i.row_group||"").trim() || (porData ? (i.service_date||"").split(" · ")[0].trim() : "");
-      if(!(g in mapa)){ mapa[g] = []; ordem.push(g); }
-      mapa[g].push(i);
-    });
+    doDia.forEach(i=>{ const g = baseData(i.service_date); if(!(g in mapa)){ mapa[g]=[]; ordem.push(g); } mapa[g].push(i); });
     return ordem.map(g => (g ? `<tr class="j-grupo"><td colspan="2">${esc(g)}</td></tr>` : "")
-      + mapa[g].map(i=>linhasDe(i, g ? 1 : 0)).join(""));
+      + mapa[g].map(i=>pendente(i) ? linhaPendente(i, g?1:0) : linhasDe(i, g?1:0)).join(""));
   };
   const blocos =
       tab(L("b_stays", J.bStays), hosp.flatMap(comValor).map(i=>linhasDe(i)))
-    + secs.filter(s=>s.tipo==="narrativa").map(sec=>tab(
-        L("b_exp_"+sec.key, `${J.bExp} · ${(sec.title||"").split(" · ")[0]}`),
-        emGrupos(comValor(sec), true))).join("")
-    + tab(transp.length ? (transp[0].title || J.around) : L("b_serv", J.bServ),
-          emGrupos([...transp.flatMap(comValor), ...secs.filter(s=>s.tipo==="dining").flatMap(comValor)], false),
-          transp.length ? transp[0].note : "");
+    + comOpcoes.map(i=>tab((i.row_group||"").trim() || i.title, [linhasDe(i)])).join("")
+    + tab(L("b_days", J.bDays), porDia())
+    + (semDia.length ? tab((semDia[0].row_group||"").trim() || J.bServ, semDia.map(i=>linhasDe(i)),
+                           transp.length ? transp[0].note : "") : "");
 
   /* O texto da agência vem ANTES da proposta (instrução dela, nov/26): depois
      que o cliente aprovou, ninguém lê. No white label não há contracapa da

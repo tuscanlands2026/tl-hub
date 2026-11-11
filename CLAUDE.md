@@ -1317,11 +1317,13 @@ categoria de carro e extra é **uma linha própria**, com o dia da semana, a dat
 - Nota da seção (`sections[].note`) sai embaixo da tabela dela, como observação que não soma —
   é onde está a taxa do concierge durante a viagem.
 - Sem campo de forma de pagamento quando `payment_options` é vazio.
-- **Em grupos** (0109/0110, "está muito bagunçado"): nas experiências o grupo é a data — o dia e,
-  embaixo, cada serviço ou opção como subitem; em Ground Services o grupo é o serviço
-  (`row_group_pt/_en`: Transfers, Car rental, Meet and greet, Concierge services). O texto da
-  linha não repete a data quando ela já é o grupo. Hospedagem sai solta, sem grupo. O título
-  de cada bloco de experiência é rótulo da proposta (`labels.j_b_exp_<seção>`).
+- **Dia a dia** (0111, instrução dela: "uma visualização por dia fica mais clean para o
+  cliente"). A tabela sai em blocos: Stays; cada serviço de transporte com opções (o carro, com o
+  título em `row_group`); "Day by day", com tudo o que acontece em cada dia — experiência,
+  transfer, meet and greet —, em ordem de data; e o que não tem dia (Concierge services), com a
+  nota da seção. A ordem é lida da data escrita por ela ("Monday, June 21"), só para ordenar. O
+  texto da linha não repete a data, que é o título do dia. Serviço com texto de linha e sem valor
+  sai "Pending", sem caixinha e sem somar (Arezzo, enquanto a proposta do ourives não vem).
 - **Concierge services, e não dining concierge**: concierge é mais amplo que restaurante. Os
   € 60 por dia são da seleção, curadoria e reservas antes da viagem; durante a viagem, o
   concierge on-site é a partir de € 150 por dia e sai como observação, sem somar.
