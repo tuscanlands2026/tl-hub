@@ -761,6 +761,11 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
     border-bottom:1px solid var(--cream);padding:10px 12px;}
   .doc table.svc.j-tab td{border:0;padding:0;}
   .doc table.svc.j-tab td.money{text-align:right !important;white-space:nowrap;font-size:12.5px;}
+  .doc table.svc.j-tab tr.j-grupo{display:block;}
+  .doc table.svc.j-tab tr.j-grupo td{font-size:10.5px;letter-spacing:.14em;}
+  .doc table.svc.j-tab tr.j-n1{padding-left:24px;}
+  .doc table.svc.j-tab tr.j-n2{padding-left:46px;}
+  .doc table.svc.j-tab tr.j-n1 td:first-child,.doc table.svc.j-tab tr.j-n2 td:first-child{padding-left:0;}
   /* No celular o índice era uma tela inteira de menu antes de cada
      etapa — a proposta começava abaixo da dobra em todas elas. Aqui ele
      vira uma faixa: logo pequeno, as etapas numa fita que corre para o
@@ -1311,6 +1316,16 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .j-tab tr.j-off label,.j-tab tr.j-off td.money{color:var(--muted);}
 .j-tab tr.j-off td.money{opacity:.6;}
 .j-tab td.money{white-space:nowrap;}
+/* Título do grupo (a data, ou o serviço em Ground Services) e os subitens
+   recuados embaixo dele. Sem zebra: com grupos, a listra alternada cortava
+   o grupo ao meio. */
+.doc table.svc.j-tab tbody tr{background:#fff;}
+.doc table.svc.j-tab tbody tr.j-grupo{background:var(--cream-light);}
+.j-tab tr.j-grupo td{font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--copper);padding-top:14px;padding-bottom:8px;hyphens:none;}
+.j-tab tr.j-n1 td:first-child{padding-left:26px;}
+.j-tab tr.j-n2 td:first-child{padding-left:50px;}
+.j-tab tr.j-n2 .j-linha label{font-size:12.5px;}
 .j-sub{display:flex;gap:22px;margin:8px 0 0 26px;}
 .j-nota-tab{font-size:12.5px;color:var(--muted);margin:10px 12px 0;line-height:1.6;}
 /* O total não quebra entre o € e o número: no celular o "€" ficava sozinho
@@ -2613,7 +2628,11 @@ const MIGRACOES = [
   {id:"0107-emily-v2-texto-final", arq:"0107-emily-v2-texto-final.sql",
    oque:"o texto final das telas da proposta da Emily, e a taxa do concierge como observação"},
   {id:"0108-emily-v2-transportation", arq:"0108-emily-v2-transportation.sql",
-   oque:"transportation no Not included dos dias de carro próprio da proposta da Emily"}
+   oque:"transportation no Not included dos dias de carro próprio da proposta da Emily"},
+  {id:"0109-grupo-da-linha", arq:"0109-grupo-da-linha.sql",
+   oque:"o grupo de cada linha em Your proposal (a data, ou o serviço)"},
+  {id:"0110-emily-v2-concierge-e-tabela", arq:"0110-emily-v2-concierge-e-tabela.sql",
+   oque:"concierge services, textos de Pienza e Arezzo, transfer em Roma e a tabela em grupos da proposta da Emily"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5309,6 +5328,7 @@ async function saveProposal(){
       /* O texto da linha em "Your proposal" (0105). Sem isto, salvar no
          editor apagaria o que a migração escreveu. */
       row_pt:r.row_pt||null, row_en:r.row_en||null,
+      row_group_pt:r.row_group_pt||null, row_group_en:r.row_group_en||null,
       units:(r.units||[]).filter(u=>(u.label||"").trim()),
       extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}));
   let e2 = null, semProcedencia = false;
@@ -9303,13 +9323,14 @@ function drawJornada(){
   const tab = (titulo, linhas, nota) => linhas.length ? `<div class="blocktitle" style="margin-top:28px;">${esc(titulo)}</div>
       <table class="svc j-tab">${cab}<tbody>${linhas.join("")}</tbody></table>
       ${(nota||"").trim()?`<div class="j-nota-tab">${fmtDoc(nota)}</div>`:""}` : "";
-  const tr = (id, on, travada, acao, rotulo, valor, sub) => `<tr class="${on?"":"j-off"}"><td>
+  const tr = (id, on, travada, acao, rotulo, valor, sub, nivel) => `<tr class="${on?"":"j-off"}${nivel?" j-n"+nivel:""}"><td>
       <div class="check j-linha"><input type="checkbox" id="${id}"${on?" checked":""}${travada||respondida?" disabled":""}
         onchange="${acao}"><label for="${id}">${esc(rotulo)}</label></div>${sub||""}</td>
       <td class="money">${valor}</td></tr>`;
   const rotuloExtra = e => p.lang==="en" ? (e.row_en||e.row||e.label_en||e.label_pt) : (e.row||e.label_pt);
-  const linhasDe = i => {
+  const linhasDe = (i, nivel) => {
     const id = esc(i.id), out = [];
+    const n1 = nivel||0, n2 = n1+1;
     const sel = QSEL.units[i.id]||[], ligado = !!QSEL.items[i.id];
     const exs = i.extras||[];
     /* Escolha de grupo (almoço OU jantar) mora embaixo da opção dela, sem
@@ -9326,11 +9347,11 @@ function drawJornada(){
         const on = !u.optional || sel.includes(u.key);
         out.push(tr(`jp-${id}-${esc(u.key)}`, on, !u.optional,
           `jMarcaU('${id}','${esc(u.key)}',this.checked)`,
-          u.row || `${i.title} · ${u.label||""}`, eur(u.price), subGrupo(u.key)));
+          u.row || `${i.title} · ${u.label||""}`, eur(u.price), subGrupo(u.key), n1));
       });
     } else {
       out.push(tr(`jp-${id}`, ligado, !i.optional, `jMarcaI('${id}',this.checked)`,
-        i.row || i.title, eur(i.price)));
+        i.row || i.title, eur(i.price), "", n1));
     }
     /* Extra avulso vira linha própria. Só se marca com o serviço — e com a
        opção dele — marcado; fora disso fica na tela, apagado e travado. */
@@ -9339,16 +9360,33 @@ function drawJornada(){
       const preco = e.price != null && e.price !== "" ? Number(e.price) : null;
       out.push(tr(`jx-${id}-${esc(e.key)}`, ativo && (QSEL.extras[i.id]||[]).includes(e.key), !ativo,
         `jExtra('${id}','${esc(e.key)}',this.checked)`, rotuloExtra(e),
-        preco == null ? esc(J.onRequest) : eur(preco)));
+        preco == null ? esc(J.onRequest) : eur(preco), "", n2));
     });
     return out.join("");
   };
   const comValor = sec => itens.filter(i=>i.section===sec.key && jTemValor(i));
+  /* Em grupos (instrução dela, nov/26: "está muito bagunçado"). Nas
+     experiências o grupo é a data — o dia e, embaixo, cada serviço ou opção
+     daquele dia como subitem. Em Ground Services o grupo é o serviço
+     (row_group, 0109): os dois transfers juntos, o carro com as duas
+     categorias. Linha sem grupo sai solta, como as hospedagens. */
+  const emGrupos = (lista, porData) => {
+    const ordem = [], mapa = {};
+    lista.forEach(i=>{
+      const g = (i.row_group||"").trim() || (porData ? (i.service_date||"").split(" · ")[0].trim() : "");
+      if(!(g in mapa)){ mapa[g] = []; ordem.push(g); }
+      mapa[g].push(i);
+    });
+    return ordem.map(g => (g ? `<tr class="j-grupo"><td colspan="2">${esc(g)}</td></tr>` : "")
+      + mapa[g].map(i=>linhasDe(i, g ? 1 : 0)).join(""));
+  };
   const blocos =
-      tab(L("b_stays", J.bStays), hosp.flatMap(comValor).map(linhasDe))
-    + secs.filter(s=>s.tipo==="narrativa").map(sec=>tab(`${L("b_exp", J.bExp)} · ${(sec.title||"").split(" · ")[0]}`, comValor(sec).map(linhasDe))).join("")
+      tab(L("b_stays", J.bStays), hosp.flatMap(comValor).map(i=>linhasDe(i)))
+    + secs.filter(s=>s.tipo==="narrativa").map(sec=>tab(
+        L("b_exp_"+sec.key, `${J.bExp} · ${(sec.title||"").split(" · ")[0]}`),
+        emGrupos(comValor(sec), true))).join("")
     + tab(transp.length ? (transp[0].title || J.around) : L("b_serv", J.bServ),
-          [...transp.flatMap(comValor), ...secs.filter(s=>s.tipo==="dining").flatMap(comValor)].map(linhasDe),
+          emGrupos([...transp.flatMap(comValor), ...secs.filter(s=>s.tipo==="dining").flatMap(comValor)], false),
           transp.length ? transp[0].note : "");
 
   /* O texto da agência vem ANTES da proposta (instrução dela, nov/26): depois
