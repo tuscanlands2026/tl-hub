@@ -2506,7 +2506,9 @@ const MIGRACOES = [
   {id:"0091-termos-complementares",   arq:"0091-termos-complementares.sql",
    oque:"a frase do link dos termos vira \"termos complementares\"; order já confirmada continua com a antiga"},
   {id:"0094-descricao-do-extra",      arq:"0094-descricao-do-extra.sql",
-   oque:"o extra que vira linha da order leva a descrição dele, e não o aviso genérico"}
+   oque:"o extra que vira linha da order leva a descrição dele, e não o aviso genérico"},
+  {id:"0100-ingressos-nao-reembolsaveis", arq:"0100-ingressos-nao-reembolsaveis.sql",
+   oque:"cláusula de ingressos não reembolsáveis nos termos da order; order já confirmada continua sem ela"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -9749,8 +9751,25 @@ function drawPublic(){
 /* As condições específicas da order entram logo depois do título "Termos e
    Condições" e antes do texto da casa. Ficam num campo da order, e não no
    TERMS: o TERMS vale para toda order, inclusive as já entregues. */
-function termosDaOrder(o, t){
+/* Cláusulas dos ingressos e do fechamento de monumentos, instrução dela em
+   novembro/26: entram como últimos itens da Política de Reserva e
+   Cancelamento. A do fechamento não fala de reembolso — palavra dela. O corte é o campo
+   terms_tickets da order — as orders já confirmadas foram gravadas com
+   false e continuam com os termos que o cliente assinou. */
+const TERMS_INGRESSOS = {
+  pt:`<li><b>Ingressos não são reembolsáveis.</b> Ingressos de monumentos, museus e demais atrações, uma vez emitidos, não são reembolsáveis em nenhuma hipótese, independentemente da data do cancelamento.</li>
+<li><b>Fechamento de monumentos.</b> Monumentos, museus e demais atrações podem eventualmente ser fechados por motivo de força maior ou por determinação da própria administração dos locais.</li>`,
+  en:`<li><b>Tickets are non-refundable.</b> Entrance tickets to monuments, museums and other sites, once issued, are non-refundable under any circumstances, regardless of the cancellation date.</li>
+<li><b>Closure of monuments.</b> Monuments, museums and other sites may occasionally be closed due to force majeure or by decision of the sites' own management.</li>`
+};
+function termosDaCasa(o){
   const casa = TERMS[o.lang||"pt"];
+  if(o.terms_tickets === false) return casa;
+  const i = casa.lastIndexOf("</ol>");
+  return casa.slice(0, i) + TERMS_INGRESSOS[o.lang||"pt"] + "\n" + casa.slice(i);
+}
+function termosDaOrder(o, t){
+  const casa = termosDaCasa(o);
   if(!o.terms_extra) return casa;
   const extra = `<h3>${t.termsExtra}</h3><div class="terms-extra">${fmtDoc(o.terms_extra)}</div>`;
   const i = casa.indexOf("</h2>");
