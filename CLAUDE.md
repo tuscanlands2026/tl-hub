@@ -1324,6 +1324,11 @@ categoria de carro e extra é **uma linha própria**, com o dia da semana, a dat
   nota da seção. A ordem é lida da data escrita por ela ("Monday, June 21"), só para ordenar. O
   texto da linha não repete a data, que é o título do dia. Serviço com texto de linha e sem valor
   sai "Pending", sem caixinha e sem somar (Arezzo, enquanto a proposta do ourives não vem).
+- **O link respondido reabre com a escolha do cliente** (0112). Antes reabria com a marcação
+  padrão, travada — quem conferisse veria outra coisa. `tl_get_quote` devolve `answer` (serviços,
+  opções, extras e total da resposta mais recente; nada de nome, e-mail ou observação). O aviso
+  por e-mail (`tl_notify_quote`, para `ops_notify_config.mail_to`) sai a cada envio e, no modelo
+  jornada, não lista os dias de narrativa que não se escolhem.
 - **Concierge services, e não dining concierge**: concierge é mais amplo que restaurante. Os
   € 60 por dia são da seleção, curadoria e reservas antes da viagem; durante a viagem, o
   concierge on-site é a partir de € 150 por dia e sai como observação, sem somar.
