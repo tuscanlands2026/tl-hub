@@ -740,6 +740,14 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .doc table.svc,.doc table.svc thead,.doc table.svc tbody,.doc table.svc tr{display:block;}
   .doc table.svc thead{display:none;}
   .doc table.svc td{display:block;width:auto !important;text-align:left !important;}
+  /* Extras: uma caixinha é uma linha só. Empilhar data, rótulo e preço
+     em três blocos com régua entre eles fazia cada extra parecer três. */
+  .doc table.svc.extras-tab tr{display:grid;grid-template-columns:1fr auto;column-gap:12px;
+    border-bottom:1px solid var(--cream);padding:10px 12px;}
+  .doc table.svc.extras-tab td{border:0;padding:0;}
+  .doc table.svc.extras-tab td.date-cell{grid-column:1 / -1;font-size:11px;margin-bottom:4px;}
+  .doc table.svc.extras-tab td.money{text-align:right !important;}
+  .doc table.svc.extras-tab .svc-sub{margin-left:26px !important;text-align:left;}
   /* No celular o índice era uma tela inteira de menu antes de cada
      etapa — a proposta começava abaixo da dobra em todas elas. Aqui ele
      vira uma faixa: logo pequeno, as etapas numa fita que corre para o
@@ -9628,7 +9636,7 @@ function drawPublic(){
 
     ${extras.length?`<div class="section-title" style="margin-top:22px;">${t.optExtras}</div>
     <div class="muted" style="margin-bottom:8px;">${t.optExtrasHint}</div>
-    <table class="svc"><tbody>${extras.map(f=>{
+    <table class="svc extras-tab"><tbody>${extras.map(f=>{
       const k = f.field_key.replace(/'/g,"\\'");
       const lbl = (o.lang==="en" ? (f.label_en||f.label_pt) : f.label_pt) || f.field_key;
       return `<tr>
