@@ -1259,3 +1259,8 @@ Na 0085 a v2 virou proposta comercial: **uma categoria por hotel** (`choice_grou
 um grupo para cada hotel, porque os hotéis não se excluem entre si), valor = **total das 4
 noites**, somando no total da hospedagem. A média por noite com impostos entra no rótulo da
 categoria quando ela mandar os valores, calculada do total dela.
+
+**Só o que serve para quem viaja** (instrução dela, nov/26, na 0087): "quantos dormem é inútil;
+se aceita animais, se aceita criança, qualquer coisa para criança, é inútil." Numa viagem de dois
+adultos não entra ocupação, cama extra, sofá-cama, quarto comunicante, idade mínima nem animal.
+O texto do hotel chega cheio disso; quem filtra sou eu, antes de pôr na peça.
