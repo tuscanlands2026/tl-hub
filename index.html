@@ -2486,7 +2486,9 @@ const MIGRACOES = [
   {id:"0089-condicoes-da-order",      arq:"0089-condicoes-da-order.sql",
    oque:"condições específicas por order, dentro de Termos e Condições, sem mexer no texto da casa"},
   {id:"0091-termos-complementares",   arq:"0091-termos-complementares.sql",
-   oque:"a frase do link dos termos vira \"termos complementares\"; order já confirmada continua com a antiga"}
+   oque:"a frase do link dos termos vira \"termos complementares\"; order já confirmada continua com a antiga"},
+  {id:"0094-descricao-do-extra",      arq:"0094-descricao-do-extra.sql",
+   oque:"o extra que vira linha da order leva a descrição dele, e não o aviso genérico"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5947,7 +5949,11 @@ function drawFields(){
             title="Com preço, a caixinha é um EXTRA: sai abaixo dos serviços, soma no total e vira linha da order ao confirmar"
             oninput="FIELDS[${i}].price=this.value===''?null:parseFloat(this.value)">
           <input value="${esc(f.service_date||"")}" placeholder="Data do extra"
-            oninput="FIELDS[${i}].service_date=this.value"></div>`:""}
+            oninput="FIELDS[${i}].service_date=this.value"></div>
+          ${f.price!=null&&f.price!==""?`<textarea rows="2" style="margin-top:4px;" placeholder="Descrição do extra, em português"
+            oninput="FIELDS[${i}].help_pt=this.value">${esc(f.help_pt||"")}</textarea>
+          <textarea rows="2" style="margin-top:4px;" placeholder="Descrição do extra, em inglês"
+            oninput="FIELDS[${i}].help_en=this.value">${esc(f.help_en||"")}</textarea>`:""}`:""}
         <div class="muted" style="font-size:10.5px;margin-top:3px;">${esc(T.pt.grp[f.group_key]||f.group_key)} · ${esc(f.field_key)}${f.input_type==="checkbox"&&f.price!=null?" · extra":""}</div>
       </td>
       <td><select onchange="FIELDS[${i}].input_type=this.value;FIELDS[${i}].prefill_value='';drawFields()">
@@ -6149,7 +6155,10 @@ async function saveOrder(){
       mode:f.mode, prefill_value: f.mode==="prefilled" ? f.prefill_value : null,
       /* Preço só vale na caixinha: em outro tipo ele não teria como ser marcado. */
       price: f.input_type==="checkbox" && f.price!=null && f.price!=="" ? Number(f.price) : null,
-      service_date: f.input_type==="checkbox" ? ((f.service_date||"").trim()||null) : null}))) : {};
+      service_date: f.input_type==="checkbox" ? ((f.service_date||"").trim()||null) : null,
+      /* A descrição do campo não tinha onde ser editada e o save a apagava em
+         silêncio. Agora vai junto, sempre. */
+      help_pt: (f.help_pt||"").trim()||null, help_en: (f.help_en||"").trim()||null}))) : {};
   btn.disabled = false; btn.textContent = "Salvar";
   const err = e1||e2||e3||e4;
   if(err) return alert(err.message);
@@ -6249,7 +6258,8 @@ async function duplicateOrder(){
       order_id:novo.id, sort:i, group_key:r.group_key, field_key:r.field_key,
       label_pt:r.label_pt, label_en:r.label_en, input_type:r.input_type,
       options:r.options, required:r.required, mode:r.mode,
-      prefill_value:r.prefill_value, price:r.price, service_date:r.service_date}))); if(e) erros.push(e.message);
+      prefill_value:r.prefill_value, price:r.price, service_date:r.service_date,
+      help_pt:r.help_pt, help_en:r.help_en}))); if(e) erros.push(e.message);
   }
   btn.disabled = false; btn.textContent = "Duplicar";
   if(erros.length) alert("A cópia foi criada, mas parte do conteúdo não veio:\n"+erros.join("\n"));
@@ -9625,7 +9635,8 @@ function drawPublic(){
         <td class="date-cell" style="width:100px;">${esc(f.service_date||"")}</td>
         <td><div class="check" style="margin:0;"><input type="checkbox" id="fx-${esc(f.field_key)}"${FLD[f.field_key]==="true"?" checked":""}
           onchange="FLD['${k}']=this.checked?'true':'false';atualizaTotalPub()">
-          <label for="fx-${esc(f.field_key)}">${esc(lbl)}</label></div></td>
+          <label for="fx-${esc(f.field_key)}">${esc(lbl)}</label></div>
+          ${(o.lang==="en"?f.help_en:f.help_pt)?`<div class="svc-sub" style="margin-left:26px;">${nl2br(o.lang==="en"?f.help_en:f.help_pt)}</div>`:""}</td>
         <td class="money" style="white-space:nowrap;">${eur(f.price)}</td></tr>`;}).join("")}</tbody></table>`:""}
 
     <div class="total-row"><div class="total-box"><span class="lbl">${t.total}</span><span class="amt" id="pub-total">${eur(total)}</span></div></div>
