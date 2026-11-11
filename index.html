@@ -1267,6 +1267,37 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .doc .terms li,.doc table.data tr{break-inside:avoid;}
   .doc table.svc thead{display:table-header-group;}
 }
+
+/* MODELO JORNADA (0101). Fundo no bege mais claro da marca, cards brancos
+   por cima — instrução dela, nov/26. Tudo escopado em .apres.jornada: o
+   desenho de antes não muda. */
+.apres.jornada .ap-main,.apres.jornada .ap-sec,.apres.jornada .ap-sec.ap-sec-dias{background:var(--cream-light);}
+.apres.jornada .ap-exp-corpo{background:#fff;padding:22px 26px 26px;}
+.apres.jornada .ap-card{background:#fff;}
+.apres.jornada input[type=radio],.apres.jornada input[type=checkbox]{accent-color:var(--sage);}
+.j-duas{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--cream-light);}
+.j-duas img{width:100%;}
+.j-opt{margin-top:22px;padding-top:16px;border-top:1px solid var(--cream);}
+.j-ov{font-weight:500;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);margin-bottom:4px;}
+.j-optname{font-family:'Sorts Mill Goudy',serif;font-size:20px;color:var(--ink);margin-bottom:6px;hyphens:none;}
+.j-nota{font-size:11px;color:var(--muted);font-style:italic;margin-top:-20px;}
+.j-quarto{margin-left:38px;}
+.j-ficha{font-size:12px;color:var(--muted);margin-top:4px;}
+.j-noite{font-size:12px;color:var(--muted);margin:-4px 0 10px;}
+.j-escolha{display:flex;align-items:center;gap:8px;margin-top:14px;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink);font-weight:400;cursor:pointer;}
+.j-escolha input{width:auto;}
+.j-cats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0;}
+.j-cat{border:1px solid var(--cream);padding:16px;background:#fff;display:flex;flex-direction:column;gap:6px;}
+.j-cat .ap-nome{font-size:20px;}
+.j-lead{font-size:14px;line-height:1.7;margin-bottom:6px;max-width:760px;}
+.j-extra{font-size:13px;margin-top:8px;}
+@media screen and (max-width:900px){ .j-quarto{margin-left:0;} .j-cats{grid-template-columns:1fr;} }
+@media print{ .j-escolha{display:none;} .j-quarto{margin-left:0;}
+  /* O "at a glance" abre folha própria. Sem isto ele começava no meio da
+     folha da abertura e transbordava para a seguinte, deixando três quartos
+     dela vazios. Só no modelo jornada: o PDF das propostas antigas não muda. */
+  .apres.jornada .ap-cur{break-before:page;min-height:296mm;box-sizing:border-box;}
+}
 </style>
 </head>
 <body>
@@ -2499,6 +2530,22 @@ const MIGRACOES = [
    oque:"os seis hotéis do briefing ganham link para o site de cada um"},
   {id:"0082-tipo-de-operacao",        arq:"0082-tipo-de-operacao.sql",
    oque:"tipo de operação em cada linha da order, que o Checklist do CRM lê em vez de adivinhar"},
+  {id:"0083-emily-proposta-comercial-v2", arq:"0083-emily-proposta-comercial-v2.sql",
+   oque:"a proposta comercial da Emily nasce como versão 2; o estudo (v1) fica como está"},
+  {id:"0084-emily-v2-cortona-na-secao", arq:"0084-emily-v2-cortona-na-secao.sql",
+   oque:"a menção a Cortona vai para o campo em inglês da seção"},
+  {id:"0085-emily-v2-proposta-comercial", arq:"0085-emily-v2-proposta-comercial.sql",
+   oque:"a v2 da Emily vira proposta comercial: uma categoria por hotel, total somado, condições e aceite"},
+  {id:"0086-emily-v2-quartos-castelfalfi", arq:"0086-emily-v2-quartos-castelfalfi.sql",
+   oque:"as duas categorias do Castelfalfi da v2 com cama, ocupação, descrição e o spa incluso"},
+  {id:"0087-emily-v2-so-o-que-serve", arq:"0087-emily-v2-so-o-que-serve.sql",
+   oque:"saem ocupação, cama extra, sofá-cama e idade mínima do spa: são dois adultos"},
+  {id:"0088-emily-v2-sem-quarto-comunicante", arq:"0088-emily-v2-sem-quarto-comunicante.sql",
+   oque:"sai o quarto comunicante do card do Castelfalfi"},
+  {id:"0089-emily-v2-primeira-folha", arq:"0089-emily-v2-primeira-folha.sql",
+   oque:"a primeira folha da v2 sai do briefing aprovado: voos, noites, deslocamentos e o dia a dia"},
+  {id:"0090-emily-v2-primeira-folha-completa", arq:"0090-emily-v2-primeira-folha-completa.sql",
+   oque:"a primeira folha da v2 com o texto completo do briefing, só com o que a Danielle escolheu"},
   {id:"0087-extra-com-preco-na-order", arq:"0087-extra-com-preco-na-order.sql",
    oque:"extra com preço na order: soma no total da página do cliente e vira linha ao confirmar"},
   {id:"0089-condicoes-da-order",      arq:"0089-condicoes-da-order.sql",
@@ -2508,7 +2555,15 @@ const MIGRACOES = [
   {id:"0094-descricao-do-extra",      arq:"0094-descricao-do-extra.sql",
    oque:"o extra que vira linha da order leva a descrição dele, e não o aviso genérico"},
   {id:"0100-ingressos-nao-reembolsaveis", arq:"0100-ingressos-nao-reembolsaveis.sql",
-   oque:"cláusula de ingressos não reembolsáveis nos termos da order; order já confirmada continua sem ela"}
+   oque:"cláusula de ingressos não reembolsáveis nos termos da order; order já confirmada continua sem ela"},
+  {id:"0101-modelo-jornada",          arq:"0101-modelo-jornada.sql",
+   oque:"o desenho jornada da proposta apresentada: telas por base, preço só em Your proposal (campo modelo)"},
+  {id:"0102-emily-v2-jornada",        arq:"0102-emily-v2-jornada.sql",
+   oque:"a v2 da Emily no modelo jornada: Parte B, valores, condições e fotos"},
+  {id:"0103-emily-v2-sem-valor-na-narrativa", arq:"0103-emily-v2-sem-valor-na-narrativa.sql",
+   oque:"tira um valor que tinha ficado no texto de uma tela de narrativa"},
+  {id:"0104-emily-v2-dining-13-dias", arq:"0104-emily-v2-dining-13-dias.sql",
+   oque:"dining concierge da Emily em 13 dias, da chegada à véspera da partida"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -3611,7 +3666,12 @@ function renderProposal(){
       <div><label>Formato</label><select id="q-layout" onchange="PROP.layout=this.value;renderProposal()">
         <option value="tabela"${(p.layout||"tabela")==="tabela"?" selected":""}>Orçamento em tabela</option>
         <option value="apresentada"${p.layout==="apresentada"?" selected":""}>Proposta apresentada</option>
-      </select></div>
+      </select>
+      ${(p.layout==="apresentada" && p.modelo !== undefined)?`<label style="margin-top:8px;">Desenho</label>
+      <select id="q-modelo" onchange="PROP.modelo=this.value||null;">
+        <option value=""${!p.modelo?" selected":""}>Clássico — seções em abas, preço nos cards</option>
+        <option value="jornada"${p.modelo==="jornada"?" selected":""}>Jornada — uma tela por base, preço só em "Your proposal"</option>
+      </select>`:""}</div>
       <div style="grid-column:span 2;"><label>Imagem da capa — link</label>
         <input id="q-cover" value="${esc(p.cover_img||"")}" placeholder="https://…"></div>
     </div>
@@ -5109,6 +5169,9 @@ async function saveProposal(){
     show_prices: PROP.show_prices, terms_url: PROP.terms_url,
     intro: PROP.intro, payment_note: PROP.payment_note,
     layout: PROP.layout || "tabela", cover_img: PROP.cover_img,
+    /* Só vai no salvar se a coluna existe (0101): sem ela PROP.modelo é
+       undefined, e mandar o campo faria o Salvar inteiro falhar. */
+    ...(PROP.modelo !== undefined ? {modelo: PROP.modelo || null} : {}),
     confirm_mode: PROP.confirm_mode === "simple" ? "simple" : "full",
     cover_title: PROP.cover_title, assurance_img: PROP.assurance_img || null,
     white_label: !!PROP.white_label, agency_logo: PROP.agency_logo || null,
@@ -5187,7 +5250,12 @@ async function saveProposal(){
       room_type:r.room_type||null, room_type_en:r.room_type_en||null,
       facilities:r.facilities||null, facilities_en:r.facilities_en||null,
       website:r.website||null, photos:r.photos||[], attachments:r.attachments||[],
-      kind:(r.kind==="extra"?"extra":"stay"),
+      /* O tipo passa como está: o modelo jornada (0101) usa transfer e
+         experience, e é deles que a order tira Hotel e Transfer. Antes só
+         existiam stay e extra, e para essas nada muda. */
+      kind:(["extra","transfer","experience","stay"].includes(r.kind) ? r.kind : "stay"),
+      not_included_pt:r.not_included_pt||null, not_included_en:r.not_included_en||null,
+      good_pt:r.good_pt||null, good_en:r.good_en||null,
       units:(r.units||[]).filter(u=>(u.label||"").trim()),
       extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}));
   let e2 = null, semProcedencia = false;
@@ -8794,11 +8862,14 @@ function apItem(i, t, p, mostra, respondida){
    "-" é marcador, com "--" é sub-marcador, e o trecho antes dos
    dois-pontos sai em itálico sublinhado, como na peça dela. Linha sem
    marcador nenhum sai como parágrafo — ela escreve como quiser. */
-function curDias(txt){
+function curDias(txt, estrito){
   const linhas = String(txt||"").split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
   if(!linhas.length) return "";
   const dia = (tx)=>{
-    const m = tx.match(/^([^:]{1,60}:)([\s\S]*)$/);
+    /* estrito (modelo jornada): rótulo é só o que vem antes de ": ", com
+       espaço — o "1:05 pm" de um voo não é rótulo. Sem o estrito, como
+       sempre foi, para a curadoria das propostas antigas não mudar. */
+    const m = estrito ? tx.match(/^([^:]{1,60}:)(\s[\s\S]*)$/) : tx.match(/^([^:]{1,60}:)([\s\S]*)$/);
     return m ? `<span class="cur-dia">${esc(m[1])}</span>${esc(m[2])}`
              : esc(tx);
   };
@@ -8861,6 +8932,338 @@ function apIr(n, manterRolagem){
   if(!manterRolagem && APASSO !== antes) window.scrollTo(0,0);
 }
 function apAnda(d){ apIr(APASSO + d); }
+
+/* ---------------------------------------------- MODELO JORNADA (0101) -- */
+/* Instrução dela, nov/26 (Parte A do arquivo da TL-053-26), para valer daqui
+   em diante: a proposta é contada em telas, e o preço só aparece onde existe
+   uma decisão. Capa · abertura · at a glance · uma tela de narrativa por base
+   (sem preço, sem caixinha) · onde vai ficar (hotel e, embaixo, cada quarto,
+   como na TL-055) · como se desloca · dining · "Your proposal", a única tela
+   com total · fechamento.
+
+   O corte é o campo ops_proposals.modelo, e não a data: toda proposta que já
+   existia continua no desenho de antes (drawQuoteApresentada).
+
+   O cliente escolhe três coisas e só elas: o quarto de cada hotel, o carro e
+   a opção dos dias que têm duas. Todo o resto é o programa, já incluído, sem
+   caixinha — se a agência quiser tirar algo, quem muda a proposta é a equipe.
+   O único "a mais" é o extra de um serviço (o support car), que só aparece
+   quando a opção a que ele pertence está escolhida.
+
+   A conta é a de sempre — quoteTotal, linhaTotal, unidadeDentro — e é a
+   mesma da tl_submit_quote. Esta tela só decide o que vem marcado. */
+const JTXT = {
+  en:{glance:"At a glance", stay:"Where you'll stay", around:"Getting around", prop:"Your proposal",
+      closing:"Closing", opening:"Opening", opt:["Option one","Option two","Option three","Option four"],
+      good:"Good to know", inc:"Included", notinc:"Not included",
+      photos:"Photos are illustrative, to give an idea of each experience.",
+      pickRoom:"Select this room", pickCar:"Select this category",
+      nights:(n,v)=>`${n} nights · about ${v} per night`,
+      lead:"This proposal is built as one program, with every experience included. If you'd like to adjust any part of it, your travel advisor will arrange it with us.",
+      bStays:"Stays", bCar:"Car in Tuscany", bExp:"Experiences", bServ:"Services", bOpt:"Optional",
+      add:"Add", onRequest:"On request", needPick:"Please choose one option for:", total:"Your total"},
+  pt:{glance:"Em resumo", stay:"Onde você vai ficar", around:"Como se deslocar", prop:"Sua proposta",
+      closing:"Encerramento", opening:"Abertura", opt:["Opção um","Opção dois","Opção três","Opção quatro"],
+      good:"Bom saber", inc:"Incluso", notinc:"Não incluso",
+      photos:"As fotos são ilustrativas, para dar uma ideia de cada experiência.",
+      pickRoom:"Selecionar este quarto", pickCar:"Selecionar esta categoria",
+      nights:(n,v)=>`${n} noites · cerca de ${v} por noite`,
+      lead:"Esta proposta é um programa único, com todas as experiências incluídas. Para ajustar qualquer parte, a sua agência combina conosco.",
+      bStays:"Hospedagem", bCar:"Carro na Toscana", bExp:"Experiências", bServ:"Serviços", bOpt:"Opcional",
+      add:"Adicionar", onRequest:"Sob consulta", needPick:"Escolha uma opção em:", total:"Seu total"}
+};
+/* Foto com ponto focal: "url#p=50,72" centra a foto em 50% / 72%. O que vem
+   depois de # não vai ao servidor, então o endereço da foto não muda. */
+const jFoto = u => { const [src, f] = String(u||"").split("#p=");
+  return {src:(src||"").trim(), pos: f ? f.split(",").map(x=>x.trim()+"%").join(" ") : "50% 50%"}; };
+const jTemValor = i => Number(i.price) > 0 || (i.units||[]).length > 0;
+const jEscolha  = i => !!(i.choice_group && (i.units||[]).length);
+const jSecDe = (p, i) => (p.sections||[]).find(s=>s.key===i.section) || {};
+
+/* O que vem marcado ao abrir. Feito uma vez por carga: depois disso quem
+   decide é ela, e o redesenho não pode desfazer a escolha. */
+function jPreparar(){
+  if(QT._jornada) return; QT._jornada = true;
+  (QT.items||[]).forEach(i=>{
+    if(!jTemValor(i)) return;                        // texto da narrativa
+    QSEL.items[i.id] = true;                         // o programa vem inteiro
+    const opc = (i.units||[]).filter(u=>u.optional);
+    if(jEscolha(i)) QSEL.units[i.id] = [];           // escolha única: ninguém pré-marcado
+    else if(opc.length) QSEL.units[i.id] = opc.map(u=>u.key);
+    QSEL.extras[i.id] = [];
+  });
+}
+/* Escolha única de quarto, carro ou opção. O extra que pertence a outra
+   opção sai junto: support car sem a opção dois não existe. */
+function jUnid(id, key){
+  QSEL.items[id] = true;
+  QSEL.units[id] = [key];
+  const it = (QT.items||[]).find(x=>x.id===id);
+  QSEL.extras[id] = (QSEL.extras[id]||[]).filter(k=>{
+    const ex = ((it&&it.extras)||[]).find(e=>e.key===k);
+    return ex && (!ex.unit || ex.unit === key);
+  });
+  redesenharEscolha();
+}
+function jExtra(id, key, on){
+  const atual = QSEL.extras[id] || [];
+  QSEL.extras[id] = on ? atual.concat([key]) : atual.filter(k=>k!==key);
+  redesenharEscolha();
+}
+/* Serviço de escolha única sem nada escolhido: o envio não passa. */
+function jFaltam(){
+  return (QT.items||[]).filter(i=>jEscolha(i) && QSEL.items[i.id] && !(QSEL.units[i.id]||[]).length)
+    .map(i=>i.title);
+}
+
+function drawJornada(){
+  jPreparar();
+  const p = QT.proposal, t = T[p.lang||"pt"], J = JTXT[p.lang==="en"?"en":"pt"];
+  const L = (k, d) => rot(p, "j_"+k, d);
+  const respondida = !!p.responded_at;
+  const itens = QT.items||[];
+  const secs = (p.sections||[]);
+  const daAgencia = !!p.white_label;
+  const logoCapa  = daAgencia ? (p.agency_logo||"") : LOGO_BRANCO;
+  const marcaCapa = daAgencia ? (p.agency||"") : "TUSCAN LANDS TRAVEL";
+  const fundoLogo = daAgencia && p.agency_logo_bg ? " com-fundo" : "";
+  const blk = (k, v) => v ? `<div class="ap-estrutura"><div class="k">${esc(k)}</div>${fmtDoc(v)}</div>` : "";
+  const hero = (fotos, data) => {
+    const fs = (fotos||[]).filter(u=>u&&String(u).trim()).slice(0,2).map(jFoto);
+    if(!fs.length) return data ? `<div class="ap-exp-data solo">${esc(data)}</div>` : "";
+    return `<div class="ap-exp-hero${fs.length>1?" j-duas":""}">${fs.map(f=>
+      `<img src="${esc(f.src)}" alt="" style="object-position:${f.pos}">`).join("")}${
+      data?`<div class="ap-exp-data">${esc(data)}</div>`:""}</div>`;
+  };
+  const fotosCard = fotos => {
+    const fs = (fotos||[]).filter(u=>u&&String(u).trim()).slice(0,2).map(jFoto);
+    return fs.length ? `<div class="ap-fotos f${fs.length}">${fs.map(f=>
+      `<img src="${esc(f.src)}" alt="" style="object-position:${f.pos}">`).join("")}</div>` : "";
+  };
+  const radio = (i, u, rotulo) => respondida ? "" : `<label class="j-escolha"><input type="radio" name="ju-${esc(i.id)}"${
+    (QSEL.units[i.id]||[]).includes(u.key)?" checked":""} onchange="jUnid('${esc(i.id)}','${esc(u.key)}')"> ${esc(rotulo)}</label>`;
+
+  const passos = [];
+  /* Capa e abertura: as mesmas peças da apresentada. */
+  passos.push({txt:rot(p,"cover_menu",t.qCover), html:`
+    <section class="ap-capa-sec ap-passo">
+      <div class="ap-capa">
+        ${p.cover_img?`<img class="ap-fundo" src="${esc(p.cover_img)}" alt="">`:""}
+        <div class="ap-capa-topo">
+          ${logoCapa?`<img class="ap-logo-capa${fundoLogo}${daAgencia?" da-agencia":""}" src="${esc(logoCapa)}" alt="${esc(marcaCapa)}"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='block';">`:""}
+          <div class="ap-marca-capa" style="display:${logoCapa?"none":"block"};">${esc(marcaCapa)}</div>
+        </div>
+        <div class="ap-capa-in">
+          ${p.cover_tag?`<div class="ap-tag">${esc(p.cover_tag)}</div>`:""}
+          ${(p.cover_title||"").trim()?`<h1>${esc(p.cover_title)}</h1>`:""}
+          <div class="ap-datas">${esc(p.travel_window||"")}</div>
+          ${p.crm_code?`<div class="ap-ref">${esc(p.crm_code)}</div>`:""}
+          <button class="ap-cta" onclick="apAnda(1)">${esc(rot(p,"cta",t.qStart))}</button>
+        </div>
+      </div>
+    </section>`});
+  const abertura = daAgencia ? (p.assurance||"") : (p.about||"");
+  const fotoAb   = daAgencia ? (p.assurance_img||"") : (p.about_img||"");
+  if(abertura) passos.push({txt:L("opening", J.opening), html:`
+    <section class="ap-sec ap-passo${fotoAb?" faixa-topo":" sem-foto"}" style="display:none;">
+      ${fotoAb?`<div class="ap-foto ap-foto-sobre sem-tarja"><img class="ap-fundo" src="${esc(fotoAb)}" alt=""></div>`:""}
+      <div class="ap-lista"><div class="ap-sobre-txt">${fmtDoc(abertura)}</div>${apNav(t)}</div>
+    </section>`});
+  /* At a glance é a folha da curadoria. No formatador, só vira itálico o
+     que vem antes de ": " — o "1:05 pm" dos voos não é rótulo. */
+  (p.curations||[]).forEach(c=>{
+    passos.push({txt:(c.opcao||"").trim() || L("glance", J.glance), html:`
+      <section class="ap-cur ap-passo ${c.cor==="terracota"?"terra":"verde"}" style="display:none;">
+        ${(c.title||"").trim()?`<h2>${esc(c.title)}</h2>`:""}
+        ${(c.destinos||"").trim()?`<div class="cur-dest">${esc(c.destinos).replace(/\n/g,"<br>")}</div>`:""}
+        <div class="cur-dias">${curDias(c.dias, true)}</div>
+        ${p.crm_code?`<div class="cur-ref">${esc(p.crm_code)}</div>`:""}
+        <div class="ap-lista" style="padding:0;margin-top:26px;">${apNav(t)}</div>
+      </section>`});
+  });
+
+  /* Narrativa: uma tela por base. Sem preço e sem caixinha — o dia com duas
+     opções mostra as duas, uma embaixo da outra; a escolha é na proposta. */
+  const exp = i => `<article class="ap-exp">${hero(i.photos, i.service_date)}
+    <div class="ap-exp-corpo">
+      ${(i.title||"").trim()?`<div class="ap-nome">${esc(i.title)}</div>`:""}
+      ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
+      ${jEscolha(i) ? (i.units||[]).map((u,k)=>`<div class="j-opt">
+          <div class="j-ov">${esc(J.opt[k]||"")}</div><div class="j-optname">${esc(u.label||"")}</div>
+          ${u.desc?`<div class="ap-desc">${fmtDoc(u.desc)}</div>`:""}
+          ${blk(J.good,u.good)}${blk(J.inc,u.included)}${blk(J.notinc,u.not_included)}</div>`).join("") : ""}
+      ${blk(J.good,i.good)}${blk(J.inc,i.included)}${blk(J.notinc,i.not_included)}
+    </div></article>`;
+  secs.filter(s=>s.tipo==="narrativa").forEach(sec=>{
+    const lista = itens.filter(i=>i.section===sec.key);
+    if(!lista.length) return;
+    passos.push({txt:(sec.title||"").split(" · ")[0], html:`
+      <section class="ap-sec ap-sec-dias ap-passo" style="display:none;">
+        <div class="ap-dias-head"><h2>${esc(sec.title||"")}</h2>
+          ${sec.intro?`<div class="ap-dias-note">${fmtDoc(sec.intro)}</div>`:""}</div>
+        <div class="ap-dias-lista">${lista.map(exp).join("")}
+          <div class="j-nota">${esc(L("photos", J.photos))}</div>${apNav(t)}</div>
+      </section>`});
+  });
+
+  /* Onde vai ficar: o hotel, e embaixo cada quarto com foto, texto e valor
+     (o desenho da TL-055). Hotel sem quartos é hospedagem já definida. */
+  const hosp = secs.filter(s=>s.tipo==="hospedagem");
+  const hotelHTML = (i, sec) => {
+    if(!(i.units||[]).length) return `<div class="ap-card"><div class="ap-corpo"><div class="ap-topo"><div>
+        ${i.service_date?`<div class="ap-data">${esc(i.service_date)}</div>`:""}<div class="ap-nome">${esc(i.title)}</div></div></div>
+        ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}</div></div>`;
+    const anexos = (i.attachments||[]).filter(a=>a&&a.url);
+    const noites = Number(sec.nights)||0;
+    return `<div class="ap-card">${fotosCard(i.photos)}<div class="ap-corpo">
+        <div class="ap-topo"><div>${i.service_date?`<div class="ap-data">${esc(i.service_date)}</div>`:""}
+          <div class="ap-nome">${esc(i.title)}</div></div></div>
+        ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
+        ${blk(t.qIncluded, i.included)}${blk(t.qFacilities, i.facilities)}
+        ${i.website?`<div class="ap-link"><a href="${esc(i.website)}" target="_blank" rel="noopener">${t.qSite}</a></div>`:""}
+        ${anexos.length?`<div class="ap-anexos">${anexos.map(a=>`<a href="${esc(a.url)}" target="_blank" rel="noopener" class="ap-anexo">${esc(a.name||"PDF")}</a>`).join("")}</div>`:""}
+      </div></div>
+      ${(i.units||[]).map(u=>`<div class="ap-card j-quarto">${fotosCard(u.photos)}<div class="ap-corpo">
+        <div class="ap-topo"><div><div class="ap-nome">${esc(u.label||"")}</div>
+          ${u.ficha?`<div class="j-ficha">${esc(u.ficha)}</div>`:""}</div>
+          <div class="ap-preco">${eur(u.price)}</div></div>
+        ${noites?`<div class="j-noite">${esc(J.nights(noites, eur(Number(u.price)/noites)))}</div>`:""}
+        ${u.desc?`<div class="ap-desc">${fmtDoc(u.desc)}</div>`:""}
+        ${radio(i, u, L("pick_room", J.pickRoom))}
+      </div></div>`).join("")}`;
+  };
+  if(hosp.length) passos.push({txt:L("stay", J.stay), html:`
+    <section class="ap-sec ap-sec-dias ap-passo" style="display:none;">
+      <div class="ap-dias-head"><h2>${esc(L("stay", J.stay))}</h2>
+        ${hosp[0].intro?`<div class="ap-dias-note">${fmtDoc(hosp[0].intro)}</div>`:""}</div>
+      <div class="ap-dias-lista">${hosp.map(sec=>itens.filter(i=>i.section===sec.key).map(i=>hotelHTML(i,sec)).join("")).join("")}
+        ${apNav(t)}</div>
+    </section>`});
+
+  /* Como se desloca: os transfers como texto; o carro com as categorias lado
+     a lado, cada uma com o valor — é decisão, então tem preço. */
+  const transp = secs.filter(s=>s.tipo==="transporte");
+  const transpHTML = i => {
+    if(!jEscolha(i)) return `<article class="ap-exp">${hero(i.photos, i.service_date)}<div class="ap-exp-corpo">
+        <div class="ap-nome">${esc(i.title)}</div>${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
+        ${blk(J.inc,i.included)}${blk(J.good,i.good)}</div></article>`;
+    return `<article class="ap-exp">${hero(i.photos, i.service_date)}<div class="ap-exp-corpo">
+        <div class="ap-nome">${esc(i.title)}</div>${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
+        <div class="j-cats">${(i.units||[]).map(u=>`<div class="j-cat">
+          <div class="ap-nome">${esc(u.label||"")}</div>${u.ficha?`<div class="j-ficha">${esc(u.ficha)}</div>`:""}
+          ${u.desc?`<div class="ap-desc">${fmtDoc(u.desc)}</div>`:""}
+          <div class="ap-preco">${eur(u.price)}</div>${radio(i, u, L("pick_car", J.pickCar))}</div>`).join("")}</div>
+        ${blk(J.good,i.good)}${blk(J.inc,i.included)}</div></article>`;
+  };
+  transp.forEach(sec=>{
+    const lista = itens.filter(i=>i.section===sec.key);
+    if(!lista.length) return;
+    passos.push({txt:(sec.title||"").split(" · ")[0] || L("around", J.around), html:`
+      <section class="ap-sec ap-sec-dias ap-passo" style="display:none;">
+        <div class="ap-dias-head"><h2>${esc(sec.title||J.around)}</h2>
+          ${sec.intro?`<div class="ap-dias-note">${fmtDoc(sec.intro)}</div>`:""}</div>
+        <div class="ap-dias-lista">${lista.map(transpHTML).join("")}${apNav(t)}</div>
+      </section>`});
+  });
+
+  /* Dining: texto e o valor do serviço, que entra no programa. */
+  secs.filter(s=>s.tipo==="dining").forEach(sec=>{
+    const lista = itens.filter(i=>i.section===sec.key);
+    if(!lista.length) return;
+    passos.push({txt:(sec.title||"").split(",")[0], html:`
+      <section class="ap-sec ap-sec-dias ap-passo" style="display:none;">
+        <div class="ap-dias-head"><h2>${esc(sec.title||"")}</h2></div>
+        <div class="ap-dias-lista">${lista.map(i=>`<article class="ap-exp">${hero(i.photos, "")}<div class="ap-exp-corpo">
+          ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
+          ${Number(i.price)>0?`<div class="ap-preco">${eur(i.price)}${qtdLinha(i,true)?` <span class="ap-qtd">${qtdLinha(i,true)}</span>`:""}</div>`:""}
+          </div></article>`).join("")}${apNav(t)}</div>
+      </section>`});
+  });
+
+  /* YOUR PROPOSAL — a única tela com valor e total. */
+  const cab = `<thead><tr><th style="width:110px;">${t.date}</th><th>${t.service}</th><th class="money">${t.price}</th></tr></thead>`;
+  const tab = (titulo, linhas) => linhas.length ? `<div class="blocktitle" style="margin-top:28px;">${esc(titulo)}</div>
+      <table class="svc">${cab}<tbody>${linhas.join("")}</tbody></table>` : "";
+  const curto = s => String(s||"").split(" · ")[0];
+  const linhaEscolha = (i, titulo) => `<tr><td class="date-cell">${esc(i.service_date||"")}</td><td>
+      <div class="svc-title">${esc(titulo||i.title)}</div>
+      <div class="unid-cli">${(i.units||[]).map((u,k)=>`<div class="check unid"><span>
+        <input type="radio" name="jp-${esc(i.id)}" id="jp-${esc(i.id)}-${esc(u.key)}"${(QSEL.units[i.id]||[]).includes(u.key)?" checked":""}${respondida?" disabled":""}
+          onchange="jUnid('${esc(i.id)}','${esc(u.key)}')">
+        <label for="jp-${esc(i.id)}-${esc(u.key)}">${esc(i.section && jSecDe(p,i).tipo==="narrativa" ? (J.opt[k]+": "+(u.label||"")) : curto(u.label))}</label></span>
+        <b>${eur(u.price)}</b></div>`).join("")}</div>
+      ${extrasHTML(i)}</td>
+      <td class="money">${(QSEL.units[i.id]||[]).length ? eur(linhaTotal(i)) : ""}</td></tr>`;
+  const extrasHTML = i => (i.extras||[]).filter(e=>!e.unit || (QSEL.units[i.id]||[]).includes(e.unit)).map(e=>{
+      const preco = e.price != null && e.price !== "" ? Number(e.price) : null;
+      const rotulo = esc(p.lang==="en"?(e.label_en||e.label_pt):e.label_pt);
+      return preco == null
+        ? `<div class="j-extra">${rotulo} <span class="muted">· ${esc(J.onRequest)}</span></div>`
+        : `<div class="check" style="margin:8px 0 0;"><input type="checkbox" id="jx-${esc(i.id)}-${esc(e.key)}"${
+            (QSEL.extras[i.id]||[]).includes(e.key)?" checked":""}${respondida?" disabled":""}
+            onchange="jExtra('${esc(i.id)}','${esc(e.key)}',this.checked)">
+          <label for="jx-${esc(i.id)}-${esc(e.key)}">${rotulo} <span style="color:var(--muted);">· ${eur(preco)}</span></label></div>`;
+    }).join("");
+  const linhaFixa = i => `<tr><td class="date-cell">${esc(i.service_date||"")}</td><td>
+      <div class="svc-title">${esc(i.title)}</div>
+      ${qtdLinha(i,true)?`<div class="svc-qtd">${qtdLinha(i,true)}</div>`:""}
+      ${(i.units||[]).length?`<div class="unid-cli">${(i.units||[]).map(u=>`<div class="unid"><span>${esc(u.label||"")}</span><b>${eur(u.price)}</b></div>`).join("")}</div>`:""}
+      ${extrasHTML(i)}</td>
+      <td class="money">${eur(linhaTotal(i))}</td></tr>`;
+  const linha = i => jEscolha(i) ? linhaEscolha(i) : linhaFixa(i);
+  const comValor = sec => itens.filter(i=>i.section===sec.key && jTemValor(i));
+  const blocos =
+      tab(L("b_stays", J.bStays), hosp.flatMap(comValor).map(i=>linhaEscolha(i, i.title)))
+    + tab(L("b_car", J.bCar), transp.flatMap(comValor).filter(jEscolha).map(i=>linhaEscolha(i, i.title)))
+    + secs.filter(s=>s.tipo==="narrativa").map(sec=>tab(`${L("b_exp", J.bExp)} · ${(sec.title||"").split(" · ")[0]}`, comValor(sec).map(linha))).join("")
+    + tab(L("b_serv", J.bServ), [...transp.flatMap(comValor).filter(i=>!jEscolha(i)),
+                                 ...secs.filter(s=>s.tipo==="dining").flatMap(comValor)].map(linhaFixa));
+  if(p.show_summary !== false) passos.push({txt:rot(p,"prop_menu",L("prop", J.prop)), html:`
+    <section class="ap-sec ap-fim ap-passo" style="display:none;">
+      <div class="ap-foto ap-foto-fim">
+        ${p.cover_img?`<img class="ap-fundo" src="${esc(p.cover_img)}" alt="">`:""}
+        <div class="ap-foto-txt"><div class="ap-ey">${esc(p.crm_code||"")}</div>
+          <h2>${esc(rot(p,"prop_title",L("prop", J.prop)))}</h2></div></div>
+      <div class="ap-lista larga">
+        <div class="j-lead">${fmtDoc(L("lead", J.lead))}</div>
+        <div class="doc" style="box-shadow:none;padding:0;background:transparent;">
+          ${blocos}
+          <div class="total-row"><div class="total-box"><span class="lbl">${esc(J.total)}</span>
+            <span class="amt" id="ap-total">${eur(quoteTotal())}</span></div></div>
+          ${quoteFecho(p, t, true, respondida, false, true)}
+        </div>
+        <div class="ap-aviso">${esc(rot(p,"notice",t.qNaoBloqueio))}</div>
+        ${quoteConfirmar(t, respondida, p.payment_options, p)}
+        ${apNav(t)}
+      </div>
+    </section>`});
+
+  /* Fechamento: no white label a contracapa da casa não sai, e a peça
+     termina aqui, com o texto da agência. */
+  if((p.closing||"").trim()) passos.push({txt:L("closing", J.closing), html:`
+    <section class="ap-sec ap-passo sem-foto" style="display:none;">
+      <div class="ap-lista"><div class="ap-sobre-txt">${fmtDoc(p.closing)}</div>${apNav(t)}</div>
+    </section>`});
+
+  app.innerHTML = `
+  <div class="apres jornada">
+    <aside class="ap-indice noprint">
+      ${logoCapa?`<img class="ap-logo${fundoLogo}" src="${esc(logoCapa)}" alt="${esc(marcaCapa)}"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block';">`:""}
+      <div class="ap-marca" style="display:${logoCapa?"none":"block"};">${esc(marcaCapa)}</div>
+      <nav>${passos.map((x,k)=>`<button onclick="apIr(${k})" class="${k===0?"on":""}">${esc(x.txt)}</button>`).join("")}</nav>
+      ${/* Sem total na barra lateral: o total só existe em "Your proposal". */""}
+      <div class="ap-rodape-idx"><button class="ap-baixar" onclick="baixarProposta()">${t.qDownload}</button></div>
+    </aside>
+    <main class="ap-main">${passos.map(x=>x.html||"").join("")}</main>
+  </div>`;
+  if(!respondida && el("qc-go")) el("qc-go").onclick = submitQuote;
+  precarregarFotos(p, itens);
+  paginaSemMargem();
+  apIr(APASSO, true);
+  if(ROLAGEM != null){ window.scrollTo(0, ROLAGEM); ROLAGEM = null; }
+}
 
 function drawQuoteApresentada(){
   const p = QT.proposal, t = T[p.lang||"pt"], mostra = p.show_prices !== false;
@@ -9235,6 +9638,10 @@ async function baixarProposta(){
     btn.setAttribute("data-rot", rot); btn.disabled = true;
   }
   const diz = txt => { if(btn) btn.textContent = txt; };
+  /* Os avisos saem na língua da proposta: o botão está na página do
+     cliente, e numa proposta em inglês "Montando o PDF" era português
+     na cara de quem não lê português. */
+  const en = (QT && QT.proposal && QT.proposal.lang) === "en";
   const solta = () => { if(btn){ btn.disabled = false; btn.textContent = rot; } };
 
   const nome = (QT.proposal.crm_code || QT.proposal.title || "proposta")
@@ -9252,7 +9659,7 @@ async function baixarProposta(){
   const marca = Math.random().toString(36).slice(2) + Date.now().toString(36);
 
   try{
-    diz("Montando o PDF…");
+    diz(en ? "Preparing the PDF…" : "Montando o PDF…");
     /* Manda montar. A função de fundo responde na hora com 202 e segue
        trabalhando com 15 minutos, em vez dos ~25 segundos da síncrona,
        que era o que fazia a proposta com fotos falhar como se tivesse
@@ -9280,7 +9687,7 @@ async function baixarProposta(){
       catch(e){ continue; }
 
       if(st.estado === "pronto" && st.r === marca){
-        diz("Baixando…");
+        diz(en ? "Downloading…" : "Baixando…");
         /* Quem baixa é o NAVEGADOR indo ao endereço: a função responde
            com Content-Disposition: attachment e ele faz o que faz com
            qualquer arquivo da internet — baixa, com o nome certo, sem
@@ -9294,18 +9701,19 @@ async function baixarProposta(){
       }
       if(st.estado === "erro" && st.r === marca){
         solta();
-        return alert("Não consegui montar o PDF.\n\n" + (st.msg||"") 
-          + "\n\nTente de novo. Se repetir, me avise.");
+        return alert(en
+          ? "The PDF could not be prepared.\n\n" + (st.msg||"") + "\n\nPlease try again."
+          : "Não consegui montar o PDF.\n\n" + (st.msg||"") + "\n\nTente de novo. Se repetir, me avise.");
       }
-      if(i > 3 && i % 5 === 0) diz("Montando… " + (i*2) + "s");
+      if(i > 3 && i % 5 === 0) diz((en ? "Preparing… " : "Montando… ") + (i*2) + "s");
     }
     solta();
-    alert("O PDF está demorando mais que o normal. Tente de novo em um minuto.");
+    alert(en ? "The PDF is taking longer than usual. Please try again in a minute." : "O PDF está demorando mais que o normal. Tente de novo em um minuto.");
   }catch(e){
     solta();
     /* Nunca cair na caixa de impressão: instrução dela. Cair na
        impressão escondia o problema. */
-    alert("Não consegui falar com o servidor para montar o PDF.\n\n" + (e && e.message));
+    alert((en ? "Could not reach the server to prepare the PDF.\n\n" : "Não consegui falar com o servidor para montar o PDF.\n\n") + (e && e.message));
   }
 }
 
@@ -9404,7 +9812,7 @@ function drawQuote(){
   // A proposta apresentada troca só o corpo: capa, índice e blocos de
   // hospedagem no lugar das tabelas. Resumo, condições e envio são os
   // mesmos — é a mesma proposta, com outra roupa.
-  if(p.layout === "apresentada") return drawQuoteApresentada();
+  if(p.layout === "apresentada") return p.modelo === "jornada" ? drawJornada() : drawQuoteApresentada();
 
   /* O link dos valores é este mesmo documento em tabela, e ele precisa
      dizer o que é: preço NET, para a agência, e não peça de cliente. */
@@ -9490,6 +9898,10 @@ async function submitQuote(){
   if(!el("qc-ack").checked){
     el("qc-msg").innerHTML = `<div class="msg">${t.qNeedAck}</div>`; return;
   }
+  if(p.modelo === "jornada"){
+    const f = jFaltam();
+    if(f.length){ el("qc-msg").innerHTML = `<div class="msg">${esc(JTXT[p.lang==="en"?"en":"pt"].needPick+" "+f.join(" · "))}</div>`; return; }
+  }
   if(!Object.keys(QSEL.items).filter(k=>QSEL.items[k]).length){
     el("qc-msg").innerHTML = `<div class="msg">${t.qNeedItems}</div>`; return;
   }
@@ -9513,6 +9925,7 @@ async function submitQuote(){
     if(data && data.error==="missing_ack") txt = t.qNeedAck;
     if(data && data.error==="missing_items") txt = t.qNeedItems;
     if(data && data.error==="missing_units") txt = t.qNeedUnits+" "+(data.missing||[]).join(" · ");
+    if(data && data.error==="choice_conflict") txt = JTXT[p.lang==="en"?"en":"pt"].needPick+" "+(data.missing||[]).join(" · ");
     el("qc-msg").innerHTML = `<div class="msg">${esc(txt)}</div>`;
     btn.disabled = false; btn.textContent = t.qSend; return;
   }

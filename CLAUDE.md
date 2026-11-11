@@ -1246,3 +1246,72 @@ ela edita o editor em português e isso escreve em `title`, não em `title_en`.
 O id da PROPOSTA é estável, e por isso tudo que é da proposta — curations, textos, chaves —
 continua podendo ser mirado por id. Foi exatamente essa diferença que apareceu: a limpeza da
 Curadoria funcionou e o delete das linhas não, no mesmo arquivo.
+
+### O estudo da Emily é modelo, e não se edita (novembro/26)
+
+Instrução dela: o estudo de viabilidade da TL-053-26 (**v1**, `b59090ad-…`, link
+`#/quote/d4e8e2a5945f40cd923f99d21d40792f`) fica **salvo como está**. É a referência do modelo
+**"Primeiro estudo · Luxo"**: capa, white label, folha de Curadoria, hotéis em card com as
+categorias como unidades, valor `indicativo` por noite, sem folha comercial e sem condições.
+Ela vai criar outros modelos; quando a biblioteca de modelos existir no hub, este é o primeiro.
+Até lá, **nenhuma migração mira a v1**.
+
+A proposta comercial é a **v2** (`e0530000-0000-0000-0000-000000000002`, migração 0083), feita
+em cima do estudo, como o botão "Nova versão" faria. Ordem combinada com ela: hotéis e valores
+primeiro, depois a primeira folha a partir do briefing aprovado (`#/b/aa1224ef…`), depois a
+cotação das atividades dia a dia.
+
+Dois sites recusam leitura automatizada e **não se contorna**: `bulgarihotels.com` (403) e a
+página da Junior Suite Terrace no `castelfalfi.com` (CAPTCHA). O que não se leu fica em branco
+ou vem dela.
+
+Na 0085 a v2 virou proposta comercial: **uma categoria por hotel** (`choice_group` por card,
+um grupo para cada hotel, porque os hotéis não se excluem entre si), valor = **total das 4
+noites**, somando no total da hospedagem. A média por noite com impostos entra no rótulo da
+categoria quando ela mandar os valores, calculada do total dela.
+
+**Só o que serve para quem viaja** (instrução dela, nov/26, na 0087): "quantos dormem é inútil;
+se aceita animais, se aceita criança, qualquer coisa para criança, é inútil." Numa viagem de dois
+adultos não entra ocupação, cama extra, sofá-cama, quarto comunicante, idade mínima nem animal.
+O texto do hotel chega cheio disso; quem filtra sou eu, antes de pôr na peça.
+
+**A primeira folha da proposta comercial é o briefing inteiro, adaptado** (0090, nov/26). Não
+um resumo de uma linha por dia — ela recusou a 0089 por isso. Ordem: voos, transfers e
+transporte, sugestões dia a dia, e o bloco da agência ("A Customer Journey with…"). Onde o
+briefing oferecia duas opções e a advisor escolheu, sai só a escolhida.
+
+**Numeração repetida 0083–0090** (11/11/26): duas sessões em paralelo, uma na TL-050 e outra na
+TL-053, numeraram a partir do mesmo 0082. O banco confere o nome inteiro, então as duas séries
+coexistem e estão aplicadas. Não renumerar. **A próxima é a 0101** — e antes de numerar, olhar o
+`main`, não só a própria branch.
+
+### O modelo "jornada" da proposta apresentada (novembro/26)
+
+Pedido dela, com especificação em arquivo (Parte A da TL-053-26), para valer daqui em diante. O
+corte é o campo `ops_proposals.modelo`: nulo é o desenho de antes (`drawQuoteApresentada`), e
+`jornada` liga `drawJornada`. Proposta antiga não muda.
+
+Ordem das telas: capa · abertura · at a glance (curadoria) · uma narrativa por base (seção
+`tipo='narrativa'`) · onde vai ficar (`hospedagem`) · como se desloca (`transporte`) · dining ·
+"Your proposal" · fechamento (`closing_*`; no white label não há contracapa).
+
+**Preço só onde há decisão.** Narrativa sem preço e sem caixinha. Quarto e carro mostram valor
+porque são escolha. Sem total na barra lateral: o total só existe em "Your proposal".
+
+**O cliente escolhe três coisas:** o quarto de cada hotel, o carro e a opção dos dias que têm
+duas — rádio, por `choice_group` na linha e unidades. O resto é o programa, incluído; tirar algo é
+a equipe que faz. Extra só aparece com a opção a que pertence (`extras[].unit`); extra sem preço
+sai "On request" e não soma. O banco recusa duas opções marcadas no mesmo serviço
+(`choice_conflict`).
+
+**Hotel em blocos, como na TL-055:** o hotel, e depois cada quarto com foto, ficha, valor das
+noites e média por noite — tudo em `units[]` (`desc`, `ficha`, `photos`, `included`,
+`not_included`, `good`). Foto aceita ponto focal: `url#p=50,72`.
+
+**No papel** o "at a glance" abre folha própria e o verde ocupa a folha inteira — só no modelo
+jornada, para não mudar o PDF de proposta antiga. Os avisos do botão de baixar saem na língua da
+proposta.
+
+**Testado na v2 da Emily (11/11/26):** 15 trocas de quarto, carro, opção e extra, no computador e
+no celular, todas com o total esperado; PDF de 28 folhas A4, sem foto quebrada.
+
