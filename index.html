@@ -2508,7 +2508,9 @@ const MIGRACOES = [
   {id:"0094-descricao-do-extra",      arq:"0094-descricao-do-extra.sql",
    oque:"o extra que vira linha da order leva a descrição dele, e não o aviso genérico"},
   {id:"0100-ingressos-nao-reembolsaveis", arq:"0100-ingressos-nao-reembolsaveis.sql",
-   oque:"cláusula de ingressos não reembolsáveis nos termos da order; order já confirmada continua sem ela"}
+   oque:"cláusula de ingressos não reembolsáveis nos termos da order; order já confirmada continua sem ela"},
+  {id:"0101-email-com-os-extras",     arq:"0101-email-com-os-extras.sql",
+   oque:"o e-mail da confirmação já sai com os extras marcados na lista e no total"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
