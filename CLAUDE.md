@@ -1254,3 +1254,8 @@ cotação das atividades dia a dia.
 Dois sites recusam leitura automatizada e **não se contorna**: `bulgarihotels.com` (403) e a
 página da Junior Suite Terrace no `castelfalfi.com` (CAPTCHA). O que não se leu fica em branco
 ou vem dela.
+
+Na 0085 a v2 virou proposta comercial: **uma categoria por hotel** (`choice_group` por card,
+um grupo para cada hotel, porque os hotéis não se excluem entre si), valor = **total das 4
+noites**, somando no total da hospedagem. A média por noite com impostos entra no rótulo da
+categoria quando ela mandar os valores, calculada do total dela.
