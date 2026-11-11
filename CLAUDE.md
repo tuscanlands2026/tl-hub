@@ -1298,11 +1298,32 @@ Ordem das telas: capa · abertura · at a glance (curadoria) · uma narrativa po
 **Preço só onde há decisão.** Narrativa sem preço e sem caixinha. Quarto e carro mostram valor
 porque são escolha. Sem total na barra lateral: o total só existe em "Your proposal".
 
-**O cliente escolhe três coisas:** o quarto de cada hotel, o carro e a opção dos dias que têm
-duas — rádio, por `choice_group` na linha e unidades. O resto é o programa, incluído; tirar algo é
-a equipe que faz. Extra só aparece com a opção a que pertence (`extras[].unit`); extra sem preço
-sai "On request" e não soma. O banco recusa duas opções marcadas no mesmo serviço
-(`choice_conflict`).
+**Tudo opcional, e tudo caixinha** (correções dela na TL-053-26, nov/26 — substitui o "o cliente
+escolhe três coisas, por rádio" da primeira versão). Em "Your proposal" cada opção, quarto,
+categoria de carro e extra é **uma linha própria**, com o dia da semana, a data e o nome inteiro
+— no celular ninguém volta às telas de dia para lembrar o que era a "Option two". Esse texto é
+`row_pt/_en` na linha e `row/row_en` na opção e no extra (0105); sem ele, cai no título.
+- O programa vem marcado e o cliente tira o que não quer. O que vem marcado é dado:
+  `units[].selected` e `extras[].selected`.
+- `choice_group` na linha faz as opções dela se excluírem (hotel, carro, opção do dia): marcar
+  uma desmarca a outra, e dá para ficar sem nenhuma. Sem `choice_group` as opções são
+  independentes (Siena e San Gimignano).
+- Desmarcar a última opção desmarca o serviço — o banco recusa serviço sem opção
+  (`missing_units`).
+- Extra com `unit` só vale com a opção dele marcada; fora disso aparece apagado e travado.
+  Extra sem preço sai "On request" e não soma.
+- Extra com `grupo` é escolha sem valor embaixo da opção (almoço OU jantar): troca dentro do
+  grupo e não fica vazio.
+- Nota da seção (`sections[].note`) sai embaixo da tabela dela, como observação que não soma —
+  é onde está a taxa do concierge durante a viagem.
+- Sem campo de forma de pagamento quando `payment_options` é vazio.
+
+**A data do dia sai fora da foto**, acima do título, com o dia da semana. É o `service_date`
+dela, escrito por extenso ("Thursday, July 1 · Morning"); o hub não calcula dia.
+
+**"A journey with…" (o `closing`) vem antes de "Your proposal"**, e não no fim: depois que o
+cliente aprovou, ninguém lê. Serviço da folha de transporte sem texto não vira bloco, só linha
+da tabela (o meet and greet, que a folha descreve junto da partida).
 
 **Hotel em blocos, como na TL-055:** o hotel, e depois cada quarto com foto, ficha, valor das
 noites e média por noite — tudo em `units[]` (`desc`, `ficha`, `photos`, `included`,
@@ -1312,6 +1333,12 @@ noites e média por noite — tudo em `units[]` (`desc`, `ficha`, `photos`, `inc
 jornada, para não mudar o PDF de proposta antiga. Os avisos do botão de baixar saem na língua da
 proposta.
 
-**Testado na v2 da Emily (11/11/26):** 15 trocas de quarto, carro, opção e extra, no computador e
-no celular, todas com o total esperado; PDF de 28 folhas A4, sem foto quebrada.
+**Testado na v2 da Emily (11/11/26), depois das correções (0105–0108):** 22 trocas — quarto,
+carro, opção, extra, almoço ou jantar, e as linhas exclusivas — no computador e no celular,
+todas com o total esperado; e a `tl_submit_quote`, chamada numa transação desfeita, soma o
+mesmo que a tela (€ 57.825 na marcação padrão).
+
+**`[texto](endereço)` vira link com nome em `fmtDoc`** (o vídeo do aperitivo no Tibre). Antes de
+ligar, conferido que nenhuma proposta, order ou padrão da casa usava esse formato — nada do que
+já existe muda de cara. O briefing da advisor tem formatador próprio e não passa por aqui.
 

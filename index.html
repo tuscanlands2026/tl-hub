@@ -754,6 +754,13 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .doc table.svc.extras-tab td.date-cell{grid-column:1 / -1;font-size:11px;margin-bottom:4px;}
   .doc table.svc.extras-tab td.money{text-align:right !important;}
   .doc table.svc.extras-tab .svc-sub{margin-left:26px !important;text-align:left;}
+  /* "Your proposal" do modelo jornada: a mesma linha só, com o preço à
+     direita do texto. Empilhado, o preço virava uma segunda linha e no
+     celular parecia outro serviço. */
+  .doc table.svc.j-tab tr{display:grid;grid-template-columns:1fr auto;column-gap:12px;
+    border-bottom:1px solid var(--cream);padding:10px 12px;}
+  .doc table.svc.j-tab td{border:0;padding:0;}
+  .doc table.svc.j-tab td.money{text-align:right !important;white-space:nowrap;font-size:12.5px;}
   /* No celular o índice era uma tela inteira de menu antes de cada
      etapa — a proposta começava abaixo da dobra em todas elas. Aqui ele
      vira uma faixa: logo pequeno, as etapas numa fita que corre para o
@@ -1291,12 +1298,37 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .j-cat .ap-nome{font-size:20px;}
 .j-lead{font-size:14px;line-height:1.7;margin-bottom:6px;max-width:760px;}
 .j-extra{font-size:13px;margin-top:8px;}
+/* A data do dia, fora da foto e acima do título (instrução dela, nov/26).
+   Overline em copper, como as datas de documento. */
+.j-dia{font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--copper);
+  margin-bottom:8px;hyphens:none;}
+/* A tabela de "Your proposal": tudo caixinha, a linha desmarcada apagada
+   (o preço continua lá, só não soma). */
+.j-tab td{vertical-align:top;}
+.j-tab .j-linha{margin:0;align-items:flex-start;}
+.j-tab .j-linha input{margin-top:3px;flex:0 0 auto;width:auto;}
+.j-tab .j-linha label{font-size:13px;line-height:1.5;text-transform:none;letter-spacing:0;color:var(--ink);font-weight:400;}
+.j-tab tr.j-off label,.j-tab tr.j-off td.money{color:var(--muted);}
+.j-tab tr.j-off td.money{opacity:.6;}
+.j-tab td.money{white-space:nowrap;}
+.j-sub{display:flex;gap:22px;margin:8px 0 0 26px;}
+.j-nota-tab{font-size:12.5px;color:var(--muted);margin:10px 12px 0;line-height:1.6;}
+/* O total não quebra entre o € e o número: no celular o "€" ficava sozinho
+   numa linha e o valor na de baixo. */
+.apres.jornada .total-box .amt{white-space:nowrap;}
+.j-nota-tab p{margin:0;}
+.j-sub .check{margin:0;display:inline-flex;align-items:center;gap:6px;}
+.j-sub input{width:auto;}
+.j-sub label{font-size:12.5px;text-transform:none;letter-spacing:0;color:var(--ink);font-weight:400;}
 @media screen and (max-width:900px){ .j-quarto{margin-left:0;} .j-cats{grid-template-columns:1fr;} }
 @media print{ .j-escolha{display:none;} .j-quarto{margin-left:0;}
   /* O "at a glance" abre folha própria. Sem isto ele começava no meio da
      folha da abertura e transbordava para a seguinte, deixando três quartos
      dela vazios. Só no modelo jornada: o PDF das propostas antigas não muda. */
   .apres.jornada .ap-cur{break-before:page;min-height:296mm;box-sizing:border-box;}
+  /* A frase das fotos ilustrativas não abre folha sozinha: em Cortona ela
+     transbordava e a folha seguinte saía com uma linha só. */
+  .apres.jornada .j-nota{break-before:avoid;page-break-before:avoid;margin-top:-6mm;}
 }
 </style>
 </head>
@@ -1369,6 +1401,15 @@ const nl2br = s => esc(s).replace(/\n/g,"<br>");
 const href1 = u => String(u).replace(/&amp;/g,"&")
   .replace(/&quot;/g,"%22").replace(/&lt;/g,"%3C").replace(/&gt;/g,"%3E").replace(/"/g,"%22");
 function linkar(h){
+  /* [texto](endereço): o link com nome, como o "See this experience up
+     close" do aperitivo no Tibre (nov/26). Sai antes do endereço solto e
+     fica guardado num marcador, senão o endereço de dentro seria linkado
+     de novo. Texto sem esse formato sai exatamente como antes. */
+  const nomeados = [];
+  h = String(h).replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (m, txt, u)=>{
+    nomeados.push(`<a href="${href1(u)}" target="_blank" rel="noopener">${txt}</a>`);
+    return `\u0000${nomeados.length-1}\u0000`;
+  });
   return String(h)
     .replace(/https?:\/\/[^\s<]+/g, m=>{
       // pontuação de fim de frase não é parte do endereço
@@ -1377,7 +1418,8 @@ function linkar(h){
       return `<a href="${href1(u)}" target="_blank" rel="noopener">${u}</a>` + cauda;
     })
     .replace(/(^|[\s>(])([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g,
-      (m,antes,mail)=>`${antes}<a href="mailto:${mail}">${mail}</a>`);
+      (m,antes,mail)=>`${antes}<a href="mailto:${mail}">${mail}</a>`)
+    .replace(/\u0000(\d+)\u0000/g, (m,k)=>nomeados[Number(k)]);
 }
 function fmtDoc(txt){
   const linhas = String(txt||"").split("\n");
@@ -2563,7 +2605,15 @@ const MIGRACOES = [
   {id:"0103-emily-v2-sem-valor-na-narrativa", arq:"0103-emily-v2-sem-valor-na-narrativa.sql",
    oque:"tira um valor que tinha ficado no texto de uma tela de narrativa"},
   {id:"0104-emily-v2-dining-13-dias", arq:"0104-emily-v2-dining-13-dias.sql",
-   oque:"dining concierge da Emily em 13 dias, da chegada à véspera da partida"}
+   oque:"dining concierge da Emily em 13 dias, da chegada à véspera da partida"},
+  {id:"0105-linha-da-proposta", arq:"0105-linha-da-proposta.sql",
+   oque:"o texto de cada linha da tabela em Your proposal, com dia e nome inteiro"},
+  {id:"0106-emily-v2-correcoes", arq:"0106-emily-v2-correcoes.sql",
+   oque:"as correções da proposta da Emily, ponto por ponto"},
+  {id:"0107-emily-v2-texto-final", arq:"0107-emily-v2-texto-final.sql",
+   oque:"o texto final das telas da proposta da Emily, e a taxa do concierge como observação"},
+  {id:"0108-emily-v2-transportation", arq:"0108-emily-v2-transportation.sql",
+   oque:"transportation no Not included dos dias de carro próprio da proposta da Emily"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5256,6 +5306,9 @@ async function saveProposal(){
       kind:(["extra","transfer","experience","stay"].includes(r.kind) ? r.kind : "stay"),
       not_included_pt:r.not_included_pt||null, not_included_en:r.not_included_en||null,
       good_pt:r.good_pt||null, good_en:r.good_en||null,
+      /* O texto da linha em "Your proposal" (0105). Sem isto, salvar no
+         editor apagaria o que a migração escreveu. */
+      row_pt:r.row_pt||null, row_en:r.row_en||null,
       units:(r.units||[]).filter(u=>(u.label||"").trim()),
       extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}));
   let e2 = null, semProcedencia = false;
@@ -8981,36 +9034,84 @@ const jEscolha  = i => !!(i.choice_group && (i.units||[]).length);
 const jSecDe = (p, i) => (p.sections||[]).find(s=>s.key===i.section) || {};
 
 /* O que vem marcado ao abrir. Feito uma vez por carga: depois disso quem
-   decide é ela, e o redesenho não pode desfazer a escolha. */
+   decide é o cliente, e o redesenho não pode desfazer a escolha.
+
+   Tudo é opcional e tudo é caixinha (instrução dela, nov/26, nas correções
+   da TL-053-26): o programa vem marcado e ele tira o que não quer. O que vem
+   marcado é dado da proposta, não do código — units[].selected e
+   extras[].selected. Sem nenhuma marca, vale o de antes: na escolha única a
+   primeira opção, nas outras todas. */
 function jPreparar(){
   if(QT._jornada) return; QT._jornada = true;
   (QT.items||[]).forEach(i=>{
     if(!jTemValor(i)) return;                        // texto da narrativa
-    QSEL.items[i.id] = true;                         // o programa vem inteiro
-    const opc = (i.units||[]).filter(u=>u.optional);
-    if(jEscolha(i)) QSEL.units[i.id] = [];           // escolha única: ninguém pré-marcado
-    else if(opc.length) QSEL.units[i.id] = opc.map(u=>u.key);
-    QSEL.extras[i.id] = [];
+    const us = i.units||[], opc = us.filter(u=>u.optional);
+    let sel = opc.filter(u=>u.selected).map(u=>u.key);
+    if(!sel.length && opc.length) sel = jEscolha(i) ? [opc[0].key] : opc.map(u=>u.key);
+    if(opc.length) QSEL.units[i.id] = sel;
+    /* Serviço com opções só entra com alguma marcada: o banco recusa
+       serviço marcado sem opção (missing_units). */
+    QSEL.items[i.id] = opc.length ? (sel.length > 0 || us.some(u=>!u.optional)) : true;
+    QSEL.extras[i.id] = (i.extras||[]).filter(e=>e.selected && (!e.unit || sel.includes(e.unit))).map(e=>e.key);
   });
 }
-/* Escolha única de quarto, carro ou opção. O extra que pertence a outra
-   opção sai junto: support car sem a opção dois não existe. */
-function jUnid(id, key){
-  QSEL.items[id] = true;
-  QSEL.units[id] = [key];
-  const it = (QT.items||[]).find(x=>x.id===id);
-  QSEL.extras[id] = (QSEL.extras[id]||[]).filter(k=>{
-    const ex = ((it&&it.extras)||[]).find(e=>e.key===k);
-    return ex && (!ex.unit || ex.unit === key);
+/* O extra só vale com a opção a que pertence (support car só com o
+   conversível, almoço ou jantar só com a vinícola), e só com o serviço
+   marcado. Desmarcou a opção, o extra dela sai; marcou de novo, a escolha
+   de grupo (almoço ou jantar) volta ao padrão. */
+function jAjustaExtras(it){
+  const sel = QSEL.units[it.id]||[], on = !!QSEL.items[it.id];
+  let ex = on ? (QSEL.extras[it.id]||[]).filter(k=>{
+    const e = (it.extras||[]).find(x=>x.key===k);
+    return e && (!e.unit || sel.includes(e.unit));
+  }) : [];
+  (it.extras||[]).filter(e=>e.grupo && on && (!e.unit || sel.includes(e.unit))).forEach(e=>{
+    const doGrupo = (it.extras||[]).filter(x=>x.grupo===e.grupo).map(x=>x.key);
+    if(!ex.some(k=>doGrupo.includes(k))){
+      const pad = (it.extras||[]).find(x=>x.grupo===e.grupo && x.selected) || e;
+      ex.push(pad.key);
+    }
   });
+  QSEL.extras[it.id] = [...new Set(ex)];
+}
+/* Uma opção, um quarto, uma categoria de carro. Com choice_group é escolha
+   única — marcar uma desmarca a outra —, e continua caixinha para poder
+   ficar sem nenhuma: foi o rádio que a prendeu em agosto/26. */
+function jMarcaU(id, key, on){
+  const it = (QT.items||[]).find(x=>x.id===id); if(!it) return;
+  let cur = QSEL.units[id]||[];
+  cur = on ? (it.choice_group ? [key] : cur.filter(k=>k!==key).concat([key])) : cur.filter(k=>k!==key);
+  QSEL.units[id] = cur;
+  QSEL.items[id] = cur.length > 0 || (it.units||[]).some(u=>!u.optional);
+  jAjustaExtras(it);
   redesenharEscolha();
 }
+/* O serviço inteiro, quando ele não tem opções. */
+function jMarcaI(id, on){
+  const it = (QT.items||[]).find(x=>x.id===id); if(!it) return;
+  QSEL.items[id] = on;
+  jAjustaExtras(it);
+  redesenharEscolha();
+}
+/* Extra avulso liga e desliga. Extra de grupo (almoço OU jantar) troca
+   dentro do grupo e não fica vazio: a vinícola marcada pede uma das duas. */
 function jExtra(id, key, on){
+  const it = (QT.items||[]).find(x=>x.id===id); if(!it) return;
+  const e = (it.extras||[]).find(x=>x.key===key);
   const atual = QSEL.extras[id] || [];
-  QSEL.extras[id] = on ? atual.concat([key]) : atual.filter(k=>k!==key);
+  if(e && e.grupo){
+    if(on){
+      const doGrupo = (it.extras||[]).filter(x=>x.grupo===e.grupo).map(x=>x.key);
+      QSEL.extras[id] = atual.filter(k=>!doGrupo.includes(k)).concat([key]);
+    }
+  } else {
+    QSEL.extras[id] = on ? atual.filter(k=>k!==key).concat([key]) : atual.filter(k=>k!==key);
+  }
   redesenharEscolha();
 }
-/* Serviço de escolha única sem nada escolhido: o envio não passa. */
+/* Serviço de escolha única marcado sem nada escolhido. Com as caixinhas
+   isso não acontece mais (desmarcar a última opção desmarca o serviço),
+   mas o envio continua conferindo, porque tela se contorna. */
 function jFaltam(){
   return (QT.items||[]).filter(i=>jEscolha(i) && QSEL.items[i.id] && !(QSEL.units[i.id]||[]).length)
     .map(i=>i.title);
@@ -9028,20 +9129,25 @@ function drawJornada(){
   const marcaCapa = daAgencia ? (p.agency||"") : "TUSCAN LANDS TRAVEL";
   const fundoLogo = daAgencia && p.agency_logo_bg ? " com-fundo" : "";
   const blk = (k, v) => v ? `<div class="ap-estrutura"><div class="k">${esc(k)}</div>${fmtDoc(v)}</div>` : "";
-  const hero = (fotos, data) => {
+  /* A data sai FORA da foto, logo acima do título, com o dia da semana
+     (instrução dela, nov/26): em cima da foto ninguém lia. O texto da data
+     é o service_date dela, como ela escreveu — o hub não calcula dia. */
+  const hero = fotos => {
     const fs = (fotos||[]).filter(u=>u&&String(u).trim()).slice(0,2).map(jFoto);
-    if(!fs.length) return data ? `<div class="ap-exp-data solo">${esc(data)}</div>` : "";
+    if(!fs.length) return "";
     return `<div class="ap-exp-hero${fs.length>1?" j-duas":""}">${fs.map(f=>
-      `<img src="${esc(f.src)}" alt="" style="object-position:${f.pos}">`).join("")}${
-      data?`<div class="ap-exp-data">${esc(data)}</div>`:""}</div>`;
+      `<img src="${esc(f.src)}" alt="" style="object-position:${f.pos}">`).join("")}</div>`;
   };
+  const dia = d => (d||"").trim() ? `<div class="j-dia">${esc(d)}</div>` : "";
   const fotosCard = fotos => {
     const fs = (fotos||[]).filter(u=>u&&String(u).trim()).slice(0,2).map(jFoto);
     return fs.length ? `<div class="ap-fotos f${fs.length}">${fs.map(f=>
       `<img src="${esc(f.src)}" alt="" style="object-position:${f.pos}">`).join("")}</div>` : "";
   };
-  const radio = (i, u, rotulo) => respondida ? "" : `<label class="j-escolha"><input type="radio" name="ju-${esc(i.id)}"${
-    (QSEL.units[i.id]||[]).includes(u.key)?" checked":""} onchange="jUnid('${esc(i.id)}','${esc(u.key)}')"> ${esc(rotulo)}</label>`;
+  /* Caixinha, e não bolinha, para poder desmarcar (instrução dela, nov/26).
+     No mesmo hotel ou no mesmo carro, marcar uma desmarca a outra. */
+  const caixa = (i, u, rotulo) => respondida ? "" : `<label class="j-escolha"><input type="checkbox"${
+    (QSEL.units[i.id]||[]).includes(u.key)?" checked":""} onchange="jMarcaU('${esc(i.id)}','${esc(u.key)}',this.checked)"> ${esc(rotulo)}</label>`;
 
   const passos = [];
   /* Capa e abertura: as mesmas peças da apresentada. */
@@ -9085,8 +9191,8 @@ function drawJornada(){
 
   /* Narrativa: uma tela por base. Sem preço e sem caixinha — o dia com duas
      opções mostra as duas, uma embaixo da outra; a escolha é na proposta. */
-  const exp = i => `<article class="ap-exp">${hero(i.photos, i.service_date)}
-    <div class="ap-exp-corpo">
+  const exp = i => `<article class="ap-exp">${hero(i.photos)}
+    <div class="ap-exp-corpo">${dia(i.service_date)}
       ${(i.title||"").trim()?`<div class="ap-nome">${esc(i.title)}</div>`:""}
       ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
       ${jEscolha(i) ? (i.units||[]).map((u,k)=>`<div class="j-opt">
@@ -9130,7 +9236,7 @@ function drawJornada(){
           <div class="ap-preco">${eur(u.price)}</div></div>
         ${noites?`<div class="j-noite">${esc(J.nights(noites, eur(Number(u.price)/noites)))}</div>`:""}
         ${u.desc?`<div class="ap-desc">${fmtDoc(u.desc)}</div>`:""}
-        ${radio(i, u, L("pick_room", J.pickRoom))}
+        ${caixa(i, u, L("pick_room", J.pickRoom))}
       </div></div>`).join("")}`;
   };
   if(hosp.length) passos.push({txt:L("stay", J.stay), html:`
@@ -9144,16 +9250,19 @@ function drawJornada(){
   /* Como se desloca: os transfers como texto; o carro com as categorias lado
      a lado, cada uma com o valor — é decisão, então tem preço. */
   const transp = secs.filter(s=>s.tipo==="transporte");
+  /* Serviço sem texto não vira bloco na folha: é só linha da tabela (o
+     meet and greet da partida, que a folha já descreve junto do transfer). */
   const transpHTML = i => {
-    if(!jEscolha(i)) return `<article class="ap-exp">${hero(i.photos, i.service_date)}<div class="ap-exp-corpo">
+    if(!(i.details||"").trim() && !jEscolha(i)) return "";
+    if(!jEscolha(i)) return `<article class="ap-exp">${hero(i.photos)}<div class="ap-exp-corpo">${dia(i.service_date)}
         <div class="ap-nome">${esc(i.title)}</div>${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
         ${blk(J.inc,i.included)}${blk(J.good,i.good)}</div></article>`;
-    return `<article class="ap-exp">${hero(i.photos, i.service_date)}<div class="ap-exp-corpo">
+    return `<article class="ap-exp">${hero(i.photos)}<div class="ap-exp-corpo">${dia(i.service_date)}
         <div class="ap-nome">${esc(i.title)}</div>${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
         <div class="j-cats">${(i.units||[]).map(u=>`<div class="j-cat">
           <div class="ap-nome">${esc(u.label||"")}</div>${u.ficha?`<div class="j-ficha">${esc(u.ficha)}</div>`:""}
           ${u.desc?`<div class="ap-desc">${fmtDoc(u.desc)}</div>`:""}
-          <div class="ap-preco">${eur(u.price)}</div>${radio(i, u, L("pick_car", J.pickCar))}</div>`).join("")}</div>
+          <div class="ap-preco">${eur(u.price)}</div>${caixa(i, u, L("pick_car", J.pickCar))}</div>`).join("")}</div>
         ${blk(J.good,i.good)}${blk(J.inc,i.included)}</div></article>`;
   };
   transp.forEach(sec=>{
@@ -9174,51 +9283,82 @@ function drawJornada(){
     passos.push({txt:(sec.title||"").split(",")[0], html:`
       <section class="ap-sec ap-sec-dias ap-passo" style="display:none;">
         <div class="ap-dias-head"><h2>${esc(sec.title||"")}</h2></div>
-        <div class="ap-dias-lista">${lista.map(i=>`<article class="ap-exp">${hero(i.photos, "")}<div class="ap-exp-corpo">
+        <div class="ap-dias-lista">${lista.map(i=>`<article class="ap-exp">${hero(i.photos)}<div class="ap-exp-corpo">
           ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
           ${Number(i.price)>0?`<div class="ap-preco">${eur(i.price)}${qtdLinha(i,true)?` <span class="ap-qtd">${qtdLinha(i,true)}</span>`:""}</div>`:""}
           </div></article>`).join("")}${apNav(t)}</div>
       </section>`});
   });
 
-  /* YOUR PROPOSAL — a única tela com valor e total. */
-  const cab = `<thead><tr><th style="width:110px;">${t.date}</th><th>${t.service}</th><th class="money">${t.price}</th></tr></thead>`;
-  const tab = (titulo, linhas) => linhas.length ? `<div class="blocktitle" style="margin-top:28px;">${esc(titulo)}</div>
-      <table class="svc">${cab}<tbody>${linhas.join("")}</tbody></table>` : "";
-  const curto = s => String(s||"").split(" · ")[0];
-  const linhaEscolha = (i, titulo) => `<tr><td class="date-cell">${esc(i.service_date||"")}</td><td>
-      <div class="svc-title">${esc(titulo||i.title)}</div>
-      <div class="unid-cli">${(i.units||[]).map((u,k)=>`<div class="check unid"><span>
-        <input type="radio" name="jp-${esc(i.id)}" id="jp-${esc(i.id)}-${esc(u.key)}"${(QSEL.units[i.id]||[]).includes(u.key)?" checked":""}${respondida?" disabled":""}
-          onchange="jUnid('${esc(i.id)}','${esc(u.key)}')">
-        <label for="jp-${esc(i.id)}-${esc(u.key)}">${esc(i.section && jSecDe(p,i).tipo==="narrativa" ? (J.opt[k]+": "+(u.label||"")) : curto(u.label))}</label></span>
-        <b>${eur(u.price)}</b></div>`).join("")}</div>
-      ${extrasHTML(i)}</td>
-      <td class="money">${(QSEL.units[i.id]||[]).length ? eur(linhaTotal(i)) : ""}</td></tr>`;
-  const extrasHTML = i => (i.extras||[]).filter(e=>!e.unit || (QSEL.units[i.id]||[]).includes(e.unit)).map(e=>{
+  /* YOUR PROPOSAL — a única tela com valor e total.
+
+     Uma linha por coisa que se marca, e TUDO caixinha (instrução dela, nov/26):
+     cada opção, quarto, categoria de carro e extra é a sua linha, com o dia da
+     semana, a data e o nome inteiro — no celular ninguém volta às telas de dia
+     para lembrar o que era a "Option two". O texto da linha é row/row_en (0105);
+     sem ele, cai no título. Sem coluna de data: a data já está no texto. */
+  const cab = `<thead><tr><th>${t.service}</th><th class="money">${t.price}</th></tr></thead>`;
+  /* A nota da seção sai embaixo da tabela dela: é observação, e não linha
+     que soma (a taxa do concierge durante a viagem, nov/26). */
+  const tab = (titulo, linhas, nota) => linhas.length ? `<div class="blocktitle" style="margin-top:28px;">${esc(titulo)}</div>
+      <table class="svc j-tab">${cab}<tbody>${linhas.join("")}</tbody></table>
+      ${(nota||"").trim()?`<div class="j-nota-tab">${fmtDoc(nota)}</div>`:""}` : "";
+  const tr = (id, on, travada, acao, rotulo, valor, sub) => `<tr class="${on?"":"j-off"}"><td>
+      <div class="check j-linha"><input type="checkbox" id="${id}"${on?" checked":""}${travada||respondida?" disabled":""}
+        onchange="${acao}"><label for="${id}">${esc(rotulo)}</label></div>${sub||""}</td>
+      <td class="money">${valor}</td></tr>`;
+  const rotuloExtra = e => p.lang==="en" ? (e.row_en||e.row||e.label_en||e.label_pt) : (e.row||e.label_pt);
+  const linhasDe = i => {
+    const id = esc(i.id), out = [];
+    const sel = QSEL.units[i.id]||[], ligado = !!QSEL.items[i.id];
+    const exs = i.extras||[];
+    /* Escolha de grupo (almoço OU jantar) mora embaixo da opção dela, sem
+       valor: não é linha da conta, é como a opção vai acontecer. */
+    const subGrupo = uk => {
+      const g = exs.filter(e=>e.grupo && e.unit===uk);
+      if(!g.length || !sel.includes(uk)) return "";
+      return `<div class="j-sub">${g.map(e=>`<span class="check"><input type="checkbox" id="jx-${id}-${esc(e.key)}"${
+        (QSEL.extras[i.id]||[]).includes(e.key)?" checked":""}${respondida?" disabled":""}
+        onchange="jExtra('${id}','${esc(e.key)}',this.checked)"><label for="jx-${id}-${esc(e.key)}">${esc(rotuloExtra(e))}</label></span>`).join("")}</div>`;
+    };
+    if((i.units||[]).length){
+      (i.units||[]).forEach(u=>{
+        const on = !u.optional || sel.includes(u.key);
+        out.push(tr(`jp-${id}-${esc(u.key)}`, on, !u.optional,
+          `jMarcaU('${id}','${esc(u.key)}',this.checked)`,
+          u.row || `${i.title} · ${u.label||""}`, eur(u.price), subGrupo(u.key)));
+      });
+    } else {
+      out.push(tr(`jp-${id}`, ligado, !i.optional, `jMarcaI('${id}',this.checked)`,
+        i.row || i.title, eur(i.price)));
+    }
+    /* Extra avulso vira linha própria. Só se marca com o serviço — e com a
+       opção dele — marcado; fora disso fica na tela, apagado e travado. */
+    exs.filter(e=>!e.grupo).forEach(e=>{
+      const ativo = ligado && (!e.unit || sel.includes(e.unit));
       const preco = e.price != null && e.price !== "" ? Number(e.price) : null;
-      const rotulo = esc(p.lang==="en"?(e.label_en||e.label_pt):e.label_pt);
-      return preco == null
-        ? `<div class="j-extra">${rotulo} <span class="muted">· ${esc(J.onRequest)}</span></div>`
-        : `<div class="check" style="margin:8px 0 0;"><input type="checkbox" id="jx-${esc(i.id)}-${esc(e.key)}"${
-            (QSEL.extras[i.id]||[]).includes(e.key)?" checked":""}${respondida?" disabled":""}
-            onchange="jExtra('${esc(i.id)}','${esc(e.key)}',this.checked)">
-          <label for="jx-${esc(i.id)}-${esc(e.key)}">${rotulo} <span style="color:var(--muted);">· ${eur(preco)}</span></label></div>`;
-    }).join("");
-  const linhaFixa = i => `<tr><td class="date-cell">${esc(i.service_date||"")}</td><td>
-      <div class="svc-title">${esc(i.title)}</div>
-      ${qtdLinha(i,true)?`<div class="svc-qtd">${qtdLinha(i,true)}</div>`:""}
-      ${(i.units||[]).length?`<div class="unid-cli">${(i.units||[]).map(u=>`<div class="unid"><span>${esc(u.label||"")}</span><b>${eur(u.price)}</b></div>`).join("")}</div>`:""}
-      ${extrasHTML(i)}</td>
-      <td class="money">${eur(linhaTotal(i))}</td></tr>`;
-  const linha = i => jEscolha(i) ? linhaEscolha(i) : linhaFixa(i);
+      out.push(tr(`jx-${id}-${esc(e.key)}`, ativo && (QSEL.extras[i.id]||[]).includes(e.key), !ativo,
+        `jExtra('${id}','${esc(e.key)}',this.checked)`, rotuloExtra(e),
+        preco == null ? esc(J.onRequest) : eur(preco)));
+    });
+    return out.join("");
+  };
   const comValor = sec => itens.filter(i=>i.section===sec.key && jTemValor(i));
   const blocos =
-      tab(L("b_stays", J.bStays), hosp.flatMap(comValor).map(i=>linhaEscolha(i, i.title)))
-    + tab(L("b_car", J.bCar), transp.flatMap(comValor).filter(jEscolha).map(i=>linhaEscolha(i, i.title)))
-    + secs.filter(s=>s.tipo==="narrativa").map(sec=>tab(`${L("b_exp", J.bExp)} · ${(sec.title||"").split(" · ")[0]}`, comValor(sec).map(linha))).join("")
-    + tab(L("b_serv", J.bServ), [...transp.flatMap(comValor).filter(i=>!jEscolha(i)),
-                                 ...secs.filter(s=>s.tipo==="dining").flatMap(comValor)].map(linhaFixa));
+      tab(L("b_stays", J.bStays), hosp.flatMap(comValor).map(linhasDe))
+    + secs.filter(s=>s.tipo==="narrativa").map(sec=>tab(`${L("b_exp", J.bExp)} · ${(sec.title||"").split(" · ")[0]}`, comValor(sec).map(linhasDe))).join("")
+    + tab(transp.length ? (transp[0].title || J.around) : L("b_serv", J.bServ),
+          [...transp.flatMap(comValor), ...secs.filter(s=>s.tipo==="dining").flatMap(comValor)].map(linhasDe),
+          transp.length ? transp[0].note : "");
+
+  /* O texto da agência vem ANTES da proposta (instrução dela, nov/26): depois
+     que o cliente aprovou, ninguém lê. No white label não há contracapa da
+     casa, e é esta a folha que fala de quem cuida da viagem. */
+  if((p.closing||"").trim()) passos.push({txt:L("closing", J.closing), html:`
+    <section class="ap-sec ap-passo sem-foto" style="display:none;">
+      <div class="ap-lista"><div class="ap-sobre-txt">${fmtDoc(p.closing)}</div>${apNav(t)}</div>
+    </section>`});
+
   if(p.show_summary !== false) passos.push({txt:rot(p,"prop_menu",L("prop", J.prop)), html:`
     <section class="ap-sec ap-fim ap-passo" style="display:none;">
       <div class="ap-foto ap-foto-fim">
@@ -9237,13 +9377,6 @@ function drawJornada(){
         ${quoteConfirmar(t, respondida, p.payment_options, p)}
         ${apNav(t)}
       </div>
-    </section>`});
-
-  /* Fechamento: no white label a contracapa da casa não sai, e a peça
-     termina aqui, com o texto da agência. */
-  if((p.closing||"").trim()) passos.push({txt:L("closing", J.closing), html:`
-    <section class="ap-sec ap-passo sem-foto" style="display:none;">
-      <div class="ap-lista"><div class="ap-sobre-txt">${fmtDoc(p.closing)}</div>${apNav(t)}</div>
     </section>`});
 
   app.innerHTML = `
