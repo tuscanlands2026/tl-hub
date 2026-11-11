@@ -1354,6 +1354,11 @@ function fmtDoc(txt){
    línguas. O campo da order existe para a exceção; quando está vazio,
    vale o padrão. Assim nenhuma order antiga fica com as palavras
    sublinhadas e sem link atrás. */
+/* A frase antes do link dos termos mudou em novembro/26 para "termos
+   complementares". O corte é o campo terms_complementary da order: as
+   orders já confirmadas foram gravadas com false e continuam com a frase
+   que o cliente assinou. A proposta não usa isto. */
+const rotuloTermos = (o, t) => (o && o.terms_complementary === false) ? t.termsLinkLabel : t.termsLinkCompl;
 const termsHref = o => ((o && o.terms_url) || DEFAULT_TERMS_URL || "").trim();
 
 /* Monta o link do cliente. Devolve null quando não há endereço público
@@ -1422,6 +1427,7 @@ const T = {
     required:"obrigatório",
     prefilled:"Pré-preenchido pela Tuscan Lands — confira e corrija se precisar.",
     termsLinkLabel:"Termos e condições completos:",
+    termsLinkCompl:"Os termos e condições complementares a esta contratação estão disponíveis em:",
     grp:{health:"Informações de Logística e Saúde",
          transfer:"Serviços de Transfer e/ou VIP Meet and Greet",
          tour:"Tours",hotel:"Hospedagem",dinner:"Jantares",
@@ -1518,6 +1524,7 @@ const T = {
     required:"required",
     prefilled:"Pre-filled by Tuscan Lands — please check and correct if needed.",
     termsLinkLabel:"Full terms and conditions:",
+    termsLinkCompl:"The complementary terms and conditions for this booking are available at:",
     grp:{health:"Logistics and Health",
          transfer:"Transfer and/or VIP Meet and Greet Services",
          tour:"Tours",hotel:"Accommodation",dinner:"Dinners",
@@ -2477,7 +2484,9 @@ const MIGRACOES = [
   {id:"0087-extra-com-preco-na-order", arq:"0087-extra-com-preco-na-order.sql",
    oque:"extra com preço na order: soma no total da página do cliente e vira linha ao confirmar"},
   {id:"0089-condicoes-da-order",      arq:"0089-condicoes-da-order.sql",
-   oque:"condições específicas por order, dentro de Termos e Condições, sem mexer no texto da casa"}
+   oque:"condições específicas por order, dentro de Termos e Condições, sem mexer no texto da casa"},
+  {id:"0091-termos-complementares",   arq:"0091-termos-complementares.sql",
+   oque:"a frase do link dos termos vira \"termos complementares\"; order já confirmada continua com a antiga"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -8359,7 +8368,7 @@ function renderSummary(){
       ${linha(t.sumSignedAt, esc(stamp(c.submitted_at, o.lang)))}
       ${linha(t.sumAckTerms, c.ack_terms ? t.accepted : `<span class="blank">${t.notAccepted}</span>`)}
       ${linha(t.sumAckVehicle, c.ack_vehicle ? t.accepted : t.notMarked)}
-      ${termsHref(o)?linha(t.termsLinkLabel.replace(":",""),
+      ${termsHref(o)?linha(rotuloTermos(o,t).replace(/:$/,""),
           `<a href="${esc(termsHref(o))}" style="color:var(--sage);">${esc(termsHref(o))}</a>`):""}
     </table>
 
@@ -9634,7 +9643,7 @@ function drawPublic(){
     </div>`:""}
 
     <div class="terms">${termosDaOrder(o, t)}
-      ${termsHref(o)?`<div class="terms-link">${t.termsLinkLabel}
+      ${termsHref(o)?`<div class="terms-link">${rotuloTermos(o,t)}
         <a href="${esc(termsHref(o))}" target="_blank" rel="noopener">${esc(termsHref(o))}</a></div>`:""}
     </div>
 
