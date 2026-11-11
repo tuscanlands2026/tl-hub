@@ -846,6 +846,9 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .doc .terms ol{margin:0 0 4px 18px;}
 .doc .terms li{font-size:12px;line-height:1.7;margin-bottom:8px;text-align:justify;}
 .doc .terms ul{margin:7px 0 4px 18px;}
+.doc .terms-extra{font-size:12px;line-height:1.7;text-align:justify;hyphens:none;}
+.doc .terms-extra p{margin:0 0 8px;}
+.doc .terms-extra b,.doc .terms-extra strong{font-weight:500;}
 .doc .terms-link{margin-top:16px;font-size:12.5px;line-height:1.6;}
 .doc .terms-link a{color:var(--sage);text-decoration:underline;text-underline-offset:2px;word-break:break-word;}
 .doc .foot{margin-top:28px;text-align:center;font-size:10.5px;color:var(--muted);line-height:1.75;}
@@ -1351,6 +1354,11 @@ function fmtDoc(txt){
    línguas. O campo da order existe para a exceção; quando está vazio,
    vale o padrão. Assim nenhuma order antiga fica com as palavras
    sublinhadas e sem link atrás. */
+/* A frase antes do link dos termos mudou em novembro/26 para "termos
+   complementares". O corte é o campo terms_complementary da order: as
+   orders já confirmadas foram gravadas com false e continuam com a frase
+   que o cliente assinou. A proposta não usa isto. */
+const rotuloTermos = (o, t) => (o && o.terms_complementary === false) ? t.termsLinkLabel : t.termsLinkCompl;
 const termsHref = o => ((o && o.terms_url) || DEFAULT_TERMS_URL || "").trim();
 
 /* Monta o link do cliente. Devolve null quando não há endereço público
@@ -1419,6 +1427,7 @@ const T = {
     required:"obrigatório",
     prefilled:"Pré-preenchido pela Tuscan Lands — confira e corrija se precisar.",
     termsLinkLabel:"Termos e condições completos:",
+    termsLinkCompl:"Os termos e condições complementares a esta contratação estão disponíveis em:",
     grp:{health:"Informações de Logística e Saúde",
          transfer:"Serviços de Transfer e/ou VIP Meet and Greet",
          tour:"Tours",hotel:"Hospedagem",dinner:"Jantares",
@@ -1427,6 +1436,9 @@ const T = {
           lead_phone:"telefone do contato",lead_email:"e-mail do contato",
           travellers:"viajantes",traveller_name:"nome do viajante",traveller_dob:"nascimento do viajante"},
     voucherNote:"Detalhes de horários e meeting point serão enviados no voucher de confirmação.",
+    optExtras:"Extras opcionais",
+    termsExtra:"Condições específicas desta order",
+    optExtrasHint:"Marque os extras que deseja incluir. O total se atualiza a cada escolha.",
     payNote:"Pagamento",
     yes:"Sim", no:"Não",
     sumTitle:"Resumo da confirmação", sumServices:"Serviços confirmados",
@@ -1512,6 +1524,7 @@ const T = {
     required:"required",
     prefilled:"Pre-filled by Tuscan Lands — please check and correct if needed.",
     termsLinkLabel:"Full terms and conditions:",
+    termsLinkCompl:"The complementary terms and conditions for this booking are available at:",
     grp:{health:"Logistics and Health",
          transfer:"Transfer and/or VIP Meet and Greet Services",
          tour:"Tours",hotel:"Accommodation",dinner:"Dinners",
@@ -1520,6 +1533,9 @@ const T = {
           lead_phone:"contact phone",lead_email:"contact email",
           travellers:"travellers",traveller_name:"traveller name",traveller_dob:"traveller date of birth"},
     voucherNote:"Timings and meeting points will be sent in the confirmation voucher.",
+    optExtras:"Optional extras",
+    termsExtra:"Specific conditions of this order",
+    optExtrasHint:"Select the extras you would like to add. The total updates with each selection.",
     payNote:"Payment",
     yes:"Yes", no:"No",
     sumTitle:"Confirmation summary", sumServices:"Confirmed services",
@@ -2464,7 +2480,13 @@ const MIGRACOES = [
   {id:"0069-links-no-briefing",       arq:"0069-links-no-briefing.sql",
    oque:"os seis hotéis do briefing ganham link para o site de cada um"},
   {id:"0082-tipo-de-operacao",        arq:"0082-tipo-de-operacao.sql",
-   oque:"tipo de operação em cada linha da order, que o Checklist do CRM lê em vez de adivinhar"}
+   oque:"tipo de operação em cada linha da order, que o Checklist do CRM lê em vez de adivinhar"},
+  {id:"0087-extra-com-preco-na-order", arq:"0087-extra-com-preco-na-order.sql",
+   oque:"extra com preço na order: soma no total da página do cliente e vira linha ao confirmar"},
+  {id:"0089-condicoes-da-order",      arq:"0089-condicoes-da-order.sql",
+   oque:"condições específicas por order, dentro de Termos e Condições, sem mexer no texto da casa"},
+  {id:"0091-termos-complementares",   arq:"0091-termos-complementares.sql",
+   oque:"a frase do link dos termos vira \"termos complementares\"; order já confirmada continua com a antiga"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5528,6 +5550,10 @@ function renderEditor(){
         O texto integral continua dentro do documento: o link é acréscimo, não substituição.</div>
     </div>
     <div><label>Texto de abertura</label><textarea id="f-intro" rows="3">${esc(o.intro||"")}</textarea></div>
+    <div><label>Condições específicas desta order</label><textarea id="f-terms-extra" rows="4">${esc(o.terms_extra||"")}</textarea>
+      <div class="hint" style="margin:5px 0 0;">Sai dentro de Termos e Condições, antes do texto da casa, e vale só para esta
+        order. <b>**negrito**</b> e linha com <b>-</b> funcionam. Os termos da casa não mudam, porque eles valem também para as
+        orders já entregues.</div></div>
     <div><label>Notas internas — nunca aparecem para o cliente</label><textarea id="f-notes" rows="2">${esc(o.internal_notes||"")}</textarea></div>
   </div>
 
@@ -5916,7 +5942,13 @@ function drawFields(){
         ${f.input_type==="select"?`<input class="fld-lbl-en" value="${esc((f.options||[]).join(", "))}"
           placeholder="Opções separadas por vírgula"
           oninput="FIELDS[${i}].options=this.value.split(',').map(s=>s.trim()).filter(Boolean)">`:""}
-        <div class="muted" style="font-size:10.5px;margin-top:3px;">${esc(T.pt.grp[f.group_key]||f.group_key)} · ${esc(f.field_key)}</div>
+        ${f.input_type==="checkbox"?`<div class="grid2" style="margin-top:4px;gap:6px;">
+          <input type="number" step="0.01" value="${f.price==null?"":esc(f.price)}" placeholder="Preço (vira extra)"
+            title="Com preço, a caixinha é um EXTRA: sai abaixo dos serviços, soma no total e vira linha da order ao confirmar"
+            oninput="FIELDS[${i}].price=this.value===''?null:parseFloat(this.value)">
+          <input value="${esc(f.service_date||"")}" placeholder="Data do extra"
+            oninput="FIELDS[${i}].service_date=this.value"></div>`:""}
+        <div class="muted" style="font-size:10.5px;margin-top:3px;">${esc(T.pt.grp[f.group_key]||f.group_key)} · ${esc(f.field_key)}${f.input_type==="checkbox"&&f.price!=null?" · extra":""}</div>
       </td>
       <td><select onchange="FIELDS[${i}].input_type=this.value;FIELDS[${i}].prefill_value='';drawFields()">
         ${TYPES.map(([v,l])=>`<option value="${v}"${f.input_type===v?" selected":""}>${l}</option>`).join("")}</select></td>
@@ -6058,6 +6090,7 @@ async function saveOrder(){
     final_client: el("f-client").value.trim(), pax_summary: el("f-pax").value.trim(),
     travel_window: el("f-window").value.trim(), intro: el("f-intro").value,
     terms_url: el("f-terms").value.trim() || null,
+    terms_extra: el("f-terms-extra").value.trim() || null,
     payment_note: el("f-paynote").value.trim() || null,
     payment_url: el("f-payurl").value.trim() || null,
     checkout_config: cfgToJson(),
@@ -6113,7 +6146,10 @@ async function saveOrder(){
     FIELDS.map((f,i)=>({order_id:ORDER.id, sort:i, group_key:f.group_key, field_key:f.field_key,
       label_pt:(f.label_pt||"").trim(), label_en:(f.label_en||"").trim()||null,
       input_type:f.input_type, options:f.options||[], required:!!f.required,
-      mode:f.mode, prefill_value: f.mode==="prefilled" ? f.prefill_value : null}))) : {};
+      mode:f.mode, prefill_value: f.mode==="prefilled" ? f.prefill_value : null,
+      /* Preço só vale na caixinha: em outro tipo ele não teria como ser marcado. */
+      price: f.input_type==="checkbox" && f.price!=null && f.price!=="" ? Number(f.price) : null,
+      service_date: f.input_type==="checkbox" ? ((f.service_date||"").trim()||null) : null}))) : {};
   btn.disabled = false; btn.textContent = "Salvar";
   const err = e1||e2||e3||e4;
   if(err) return alert(err.message);
@@ -6182,6 +6218,7 @@ async function duplicateOrder(){
     status:"draft", agency:o.agency, agency_contact:o.agency_contact,
     final_client:o.final_client, pax_summary:o.pax_summary, travel_window:o.travel_window,
     intro:o.intro, internal_notes:o.internal_notes, terms_url:o.terms_url,
+    terms_extra:o.terms_extra,
     payment_note:o.payment_note, checkout_config:o.checkout_config
   }).select().single();
   if(error){ btn.disabled=false; btn.textContent="Duplicar"; return alert(error.message); }
@@ -6212,7 +6249,7 @@ async function duplicateOrder(){
       order_id:novo.id, sort:i, group_key:r.group_key, field_key:r.field_key,
       label_pt:r.label_pt, label_en:r.label_en, input_type:r.input_type,
       options:r.options, required:r.required, mode:r.mode,
-      prefill_value:r.prefill_value}))); if(e) erros.push(e.message);
+      prefill_value:r.prefill_value, price:r.price, service_date:r.service_date}))); if(e) erros.push(e.message);
   }
   btn.disabled = false; btn.textContent = "Duplicar";
   if(erros.length) alert("A cópia foi criada, mas parte do conteúdo não veio:\n"+erros.join("\n"));
@@ -8331,7 +8368,7 @@ function renderSummary(){
       ${linha(t.sumSignedAt, esc(stamp(c.submitted_at, o.lang)))}
       ${linha(t.sumAckTerms, c.ack_terms ? t.accepted : `<span class="blank">${t.notAccepted}</span>`)}
       ${linha(t.sumAckVehicle, c.ack_vehicle ? t.accepted : t.notMarked)}
-      ${termsHref(o)?linha(t.termsLinkLabel.replace(":",""),
+      ${termsHref(o)?linha(rotuloTermos(o,t).replace(/:$/,""),
           `<a href="${esc(termsHref(o))}" style="color:var(--sage);">${esc(termsHref(o))}</a>`):""}
     </table>
 
@@ -9522,15 +9559,19 @@ function pubField(f, t){
 
 function drawPublic(){
   const o = PUB.order, t = T[o.lang||"pt"], items = PUB.items, pays = PUB.payments;
-  const total = items.reduce((s,r)=>s+(Number(r.price)||0),0);
   const confirmed = o.status === "confirmed";
+  /* Caixinha com preço é extra: sai embaixo dos serviços e soma no total.
+     Depois de confirmada a order, o extra marcado já virou linha — por
+     isso some daqui, senão contaria duas vezes. */
+  const extras = confirmed ? [] : extrasPub();
+  const total = totalPub();
   const p = prefill(o);
   const bLead = blockMode(o,"lead"), bTrav = blockMode(o,"travellers"),
         bVeh = blockMode(o,"ack_vehicle"), bRem = blockMode(o,"remarks");
 
   // Campos agrupados por tipo de serviço, na ordem em que ela montou.
   let campos = "", grpAtual = null;
-  (PUB.fields||[]).forEach(f=>{
+  (PUB.fields||[]).filter(f=>!ehExtra(f)).forEach(f=>{
     if(f.group_key !== grpAtual){
       grpAtual = f.group_key;
       campos += `<div class="section-title" style="margin-top:22px;">${esc(t.grp[grpAtual]||grpAtual)}</div>`;
@@ -9575,7 +9616,19 @@ function drawPublic(){
         <td class="money">${eur(r.price)}</td></tr>`).join("")}</tbody>
     </table>
 
-    <div class="total-row"><div class="total-box"><span class="lbl">${t.total}</span><span class="amt">${eur(total)}</span></div></div>
+    ${extras.length?`<div class="section-title" style="margin-top:22px;">${t.optExtras}</div>
+    <div class="muted" style="margin-bottom:8px;">${t.optExtrasHint}</div>
+    <table class="svc"><tbody>${extras.map(f=>{
+      const k = f.field_key.replace(/'/g,"\\'");
+      const lbl = (o.lang==="en" ? (f.label_en||f.label_pt) : f.label_pt) || f.field_key;
+      return `<tr>
+        <td class="date-cell" style="width:100px;">${esc(f.service_date||"")}</td>
+        <td><div class="check" style="margin:0;"><input type="checkbox" id="fx-${esc(f.field_key)}"${FLD[f.field_key]==="true"?" checked":""}
+          onchange="FLD['${k}']=this.checked?'true':'false';atualizaTotalPub()">
+          <label for="fx-${esc(f.field_key)}">${esc(lbl)}</label></div></td>
+        <td class="money" style="white-space:nowrap;">${eur(f.price)}</td></tr>`;}).join("")}</tbody></table>`:""}
+
+    <div class="total-row"><div class="total-box"><span class="lbl">${t.total}</span><span class="amt" id="pub-total">${eur(total)}</span></div></div>
 
     <div class="voucher-note">${t.voucherNote}</div>
 
@@ -9589,8 +9642,8 @@ function drawPublic(){
       ${o.payment_note?`<div class="pay-note">${nl2br(o.payment_note)}</div>`:""}
     </div>`:""}
 
-    <div class="terms">${TERMS[o.lang||"pt"]}
-      ${termsHref(o)?`<div class="terms-link">${t.termsLinkLabel}
+    <div class="terms">${termosDaOrder(o, t)}
+      ${termsHref(o)?`<div class="terms-link">${rotuloTermos(o,t)}
         <a href="${esc(termsHref(o))}" target="_blank" rel="noopener">${esc(termsHref(o))}</a></div>`:""}
     </div>
 
@@ -9662,6 +9715,27 @@ function drawPublic(){
   };
   el("c-go").onclick = submitConfirmation;
 }
+
+/* As condições específicas da order entram logo depois do título "Termos e
+   Condições" e antes do texto da casa. Ficam num campo da order, e não no
+   TERMS: o TERMS vale para toda order, inclusive as já entregues. */
+function termosDaOrder(o, t){
+  const casa = TERMS[o.lang||"pt"];
+  if(!o.terms_extra) return casa;
+  const extra = `<h3>${t.termsExtra}</h3><div class="terms-extra">${fmtDoc(o.terms_extra)}</div>`;
+  const i = casa.indexOf("</h2>");
+  return i < 0 ? extra + casa : casa.slice(0, i+5) + extra + casa.slice(i+5);
+}
+const ehExtra = f => f.input_type==="checkbox" && f.price!=null && f.price!=="";
+const extrasPub = () => (PUB.fields||[]).filter(ehExtra);
+function totalPub(){
+  const base = (PUB.items||[]).reduce((s,r)=>s+(Number(r.price)||0),0);
+  if(PUB.order.status==="confirmed") return base;
+  return base + extrasPub().filter(f=>FLD[f.field_key]==="true").reduce((s,f)=>s+(Number(f.price)||0),0);
+}
+/* Só o número muda: redesenhar a página inteira apagaria o que a pessoa
+   já digitou no contato. */
+function atualizaTotalPub(){ const a = el("pub-total"); if(a) a.textContent = eur(totalPub()); }
 
 function drawPax(){
   const t = T[PUB.order.lang||"pt"], host = el("tv-host");

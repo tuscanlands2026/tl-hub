@@ -1212,6 +1212,16 @@ e só sai a que ela tirou da tela. Linha com serviço lançado no Checklist **n�
 save para antes de gravar qualquer coisa e diz qual linha é. Ler `op_servicos` daqui é
 leitura de tabela do CRM, que sempre foi permitida.
 
+**Extra com preço na order** (0087, novembro/26). Na TL-050 os serviços já estavam aprovados e
+só os extras ficavam à escolha, com os dados dos viajantes na mesma página. A quote soma extra e
+não pede viajante; a order pede viajante e não somava. Agora caixinha do checkout com `price` é
+**extra**: sai embaixo dos serviços, soma no total da página, e ao confirmar o banco grava cada
+extra marcado como linha da order, com o preço do banco. Sem parcela fixa nessas orders: o total
+depende do que ele marca, e a proforma sai depois com o número certo.
+**É exceção, e não o fluxo novo** — palavra dela: o normal continua sendo proposta, aprovação, e
+só depois a order com as perguntas. A TL-050 juntou tudo porque a venda já vinha aprovada fora
+do hub. Não oferecer este desenho como padrão.
+
 **Tipo de OPERAÇÃO na linha da order** (0082, novembro/26). `ops_order_items.op_tipo` diz o que
 a linha é na operação — Hotel, Transfer, Self drive, Tour guiado, Full experience, Outro —, com a
 mesma lista de `op_servicos.tipo` do CRM, que escolhe modelo de voucher, cor na agenda e etapas
