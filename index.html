@@ -754,21 +754,6 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .doc table.svc.extras-tab td.date-cell{grid-column:1 / -1;font-size:11px;margin-bottom:4px;}
   .doc table.svc.extras-tab td.money{text-align:right !important;}
   .doc table.svc.extras-tab .svc-sub{margin-left:26px !important;text-align:left;}
-  /* "Your proposal" do modelo jornada: a mesma linha só, com o preço à
-     direita do texto. Empilhado, o preço virava uma segunda linha e no
-     celular parecia outro serviço. */
-  .doc table.svc.j-tab tr{display:grid;grid-template-columns:1fr auto;column-gap:12px;
-    border-bottom:1px solid var(--cream);padding:10px 12px;}
-  .doc table.svc.j-tab td{border:0;padding:0;}
-  .doc table.svc.j-tab td.money{text-align:right !important;white-space:nowrap;font-size:12.5px;}
-  .doc table.svc.j-tab tr.j-grupo{display:block;}
-  .doc table.svc.j-tab tr.j-grupo{padding-top:8px;padding-bottom:5px;}
-  .doc table.svc.j-tab tr.j-ou{display:block;border-bottom:0;padding-top:2px;padding-bottom:2px;}
-  .doc table.svc.j-tab tr.j-ou td{padding-left:24px;}
-  .doc table.svc.j-tab tr.j-grupo td{font-size:9.5px;letter-spacing:.12em;}
-  .doc table.svc.j-tab tr.j-n1{padding-left:24px;}
-  .doc table.svc.j-tab tr.j-n2{padding-left:46px;}
-  .doc table.svc.j-tab tr.j-n1 td:first-child,.doc table.svc.j-tab tr.j-n2 td:first-child{padding-left:0;}
   /* No celular o índice era uma tela inteira de menu antes de cada
      etapa — a proposta começava abaixo da dobra em todas elas. Aqui ele
      vira uma faixa: logo pequeno, as etapas numa fita que corre para o
@@ -1310,42 +1295,118 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
    Overline em copper, como as datas de documento. */
 .j-dia{font-weight:500;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--copper);
   margin-bottom:8px;hyphens:none;}
-/* A tabela de "Your proposal": tudo caixinha, a linha desmarcada apagada
-   (o preço continua lá, só não soma). */
-.j-tab td{vertical-align:top;}
-.j-tab .j-linha{margin:0;align-items:flex-start;}
-.j-tab .j-linha input{margin-top:3px;flex:0 0 auto;width:auto;}
-.j-tab .j-linha label{font-size:13px;line-height:1.5;text-transform:none;letter-spacing:0;color:var(--ink);font-weight:400;}
-.j-tab tr.j-off label,.j-tab tr.j-off td.money{color:var(--muted);}
-.j-tab tr.j-off td.money{opacity:.6;}
-.j-tab td.money{white-space:nowrap;}
-/* Título do grupo (a data, ou o serviço em Ground Services) e os subitens
-   recuados embaixo dele. Sem zebra: com grupos, a listra alternada cortava
-   o grupo ao meio. */
+/* ── "Your proposal", no modelo da TL-055 (mudanças visuais dela, nov/26) ── */
+.j-btit{font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);
+  margin:34px 0 10px;hyphens:none;}
+.doc table.svc.j-tab{margin-top:0;background:#fff;}
+.doc table.svc.j-tab thead th.j-cd{width:170px;}
 .doc table.svc.j-tab tbody tr{background:#fff;}
-.doc table.svc.j-tab tbody tr.j-grupo{background:var(--cream-light);}
-.j-tab tr.j-grupo td{font-weight:500;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--copper);padding-top:9px;padding-bottom:5px;hyphens:none;}
-.j-tab tr.j-n1 td:first-child{padding-left:26px;}
-.j-tab tr.j-n2 td:first-child{padding-left:50px;}
-.j-tab tr.j-n2 .j-linha label{font-size:12.5px;}
-/* Serviço ainda sem valor ("Pending"): sem caixinha, no lugar dela um
-   espaço do mesmo tamanho, para o texto alinhar com as outras linhas. */
-.j-sem-caixa{display:inline-block;width:13px;flex:0 0 13px;}
-.j-tab tr.j-pend td.money{color:var(--muted);font-style:italic;}
-.j-tab .j-rdesc{display:block;font-size:12px;color:var(--muted);line-height:1.5;margin-top:2px;}
-.j-tab tr.j-ou td{font-size:11px;font-style:italic;color:var(--muted);padding-top:2px;padding-bottom:2px;border-bottom:0;}
-.j-tab tr.j-ou.j-n1 td{padding-left:48px;}
-.j-sub{display:flex;gap:22px;margin:8px 0 0 26px;}
-.j-nota-tab{font-size:12.5px;color:var(--muted);margin:10px 12px 0;line-height:1.6;}
-/* O total não quebra entre o € e o número: no celular o "€" ficava sozinho
-   numa linha e o valor na de baixo. */
-.apres.jornada .total-box .amt{white-space:nowrap;}
-.j-nota-tab p{margin:0;}
+.doc table.svc.j-tab tbody tr.alt{background:var(--cream-light);}
+.doc table.svc.j-tab tbody td{padding:13px 14px;vertical-align:top;}
+.j-tab td.j-cd{font-size:13px;color:var(--ink);white-space:nowrap;}
+.j-tab .j-sn{font-family:'Sorts Mill Goudy',Georgia,serif;font-size:16.5px;line-height:1.35;color:var(--ink);hyphens:none;}
+.j-tab .j-sn.plain,.j-tab .j-sn.extra{font-family:inherit;font-size:13.5px;font-weight:400;}
+.j-tab .j-sd{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:3px;}
+.j-tab .j-sd2{font-size:11.5px;}
+.j-tab tr.j-hrow td{padding-bottom:4px;border-bottom:0;}
+.j-tab tr.j-or td{padding-top:0;padding-bottom:0;border-bottom:0;}
+.j-tab tr.j-or td.j-cs{font-family:'Sorts Mill Goudy',Georgia,serif;font-style:italic;color:var(--muted);font-size:13px;text-align:center;}
+.j-tab td.money{white-space:nowrap;text-align:right;}
+.j-pw{display:inline-flex;align-items:center;gap:10px;cursor:pointer;font-size:13.5px;color:var(--ink);
+  text-transform:none;letter-spacing:0;font-weight:400;margin:0;}
+.j-pw input{width:auto;margin:0;}
+.j-pw.trava{cursor:default;}
+.j-pend{font-style:italic;color:var(--muted);font-size:12.5px;}
+.j-sub{display:flex;gap:18px;margin:7px 0 0;}
 .j-sub .check{margin:0;display:inline-flex;align-items:center;gap:6px;}
 .j-sub input{width:auto;}
-.j-sub label{font-size:12.5px;text-transform:none;letter-spacing:0;color:var(--ink);font-weight:400;}
-@media screen and (max-width:900px){ .j-quarto{margin-left:0;} .j-cats{grid-template-columns:1fr;} }
+.j-sub label{font-size:12px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400;}
+.j-total{margin-top:40px;padding:26px 30px;background:#fff;border:1px solid var(--cream);
+  display:flex;justify-content:space-between;align-items:baseline;gap:16px;}
+.j-total .j-tl,.j-total .j-tv{font-family:'Sorts Mill Goudy',Georgia,serif;color:var(--ink);}
+.j-total .j-tl{font-size:28px;}
+.j-total .j-tv{font-size:32px;white-space:nowrap;}
+.apres.jornada .j-cond-h{font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--copper);margin:22px 0 8px;hyphens:none;}
+.apres.jornada .condicoes ul,.apres.jornada .doc ul{padding-left:18px;}
+.apres.jornada .doc li::marker{color:var(--muted);}
+
+/* ── Where you'll stay: hotel primeiro, quartos depois ── */
+.apres.jornada .j-hosp .ap-lista{background:var(--cream-light);}
+.j-cortona,.j-hotel{background:#fff;border:1px solid var(--cream);}
+.j-cortona{padding:22px 28px;}
+.j-ey{font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);hyphens:none;}
+.j-hnome{font-family:'Sorts Mill Goudy',Georgia,serif;font-weight:400;font-size:27px;line-height:1.2;
+  margin:6px 0 14px;color:var(--ink);hyphens:none;}
+.j-cortona .j-hnome{font-size:23px;margin-bottom:6px;}
+.j-mosaico{display:grid;gap:4px;}
+.j-mosaico img{width:100%;height:100%;object-fit:cover;display:block;}
+.j-mosaico.m1{grid-template-rows:300px;}
+.j-mosaico.m2{grid-template-columns:1fr 1fr;grid-template-rows:240px;}
+.j-mosaico.m3{grid-template-columns:2fr 1fr;grid-template-rows:150px 150px;}
+.j-mosaico.m3 img:first-child{grid-row:1 / span 2;}
+.j-hcorpo{padding:24px 28px 26px;}
+.j-htexto{font-size:14.5px;}
+.j-rlabel{font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--sage);
+  margin:24px 0 4px;padding-top:18px;border-top:1px solid var(--cream);hyphens:none;}
+.j-rnote{font-size:12px;color:var(--muted);font-style:italic;margin:2px 0 10px;}
+.j-rlink{display:inline-block;margin-top:6px;font-size:12.5px;color:var(--sage);text-decoration:underline;text-underline-offset:3px;}
+.j-ropt,.j-car{border:1px solid var(--cream);background:#fff;margin-top:14px;cursor:pointer;transition:border-color .2s;}
+.j-ropt.sel,.j-car.sel{border-color:var(--sage);box-shadow:inset 0 0 0 1px var(--sage);}
+.j-ropt.trava,.j-car.trava{cursor:default;}
+.j-rfotos{display:grid;grid-template-columns:1fr 1fr;gap:3px;height:190px;}
+.j-rfotos.um{grid-template-columns:1fr;}
+.j-rfotos img{width:100%;height:190px;object-fit:cover;display:block;}
+.j-rcorpo,.j-ccorpo{padding:15px 18px 17px;}
+.j-rtopo{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;}
+.j-rnome{font-family:'Sorts Mill Goudy',Georgia,serif;font-size:19px;color:var(--ink);display:flex;align-items:center;hyphens:none;}
+.j-check{display:inline-flex;width:16px;height:16px;border:1px solid #bdb6aa;align-items:center;justify-content:center;
+  font-size:11px;color:transparent;margin-right:10px;flex:none;font-family:'Libre Franklin',sans-serif;}
+.sel > .j-rcorpo .j-check,.sel > .j-ccorpo .j-check{background:var(--sage);border-color:var(--sage);color:#fff;}
+.j-rmeta{font-size:12.5px;color:var(--muted);margin-top:3px;}
+.j-rmeta p{margin:0;}
+.j-rpreco{text-align:right;white-space:nowrap;}
+.j-pn{font-size:17px;color:var(--ink);}
+.j-plbl{color:var(--copper);font-size:10px;letter-spacing:.14em;margin-left:6px;font-weight:500;text-transform:uppercase;}
+.j-ptot{font-size:12.5px;color:var(--muted);}
+.j-rtexto{font-size:14px;margin:10px 0 4px;}
+/* ── Carros: dois cartões, três fotos de modelo em cada ── */
+.j-cars{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0 0;}
+.j-cars .j-car{margin-top:0;}
+.j-cfotos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;height:120px;}
+.j-cfoto{position:relative;background:linear-gradient(135deg,#d8d2c6,#b7b0a2);overflow:hidden;}
+.j-cfoto img{width:100%;height:100%;object-fit:cover;display:block;}
+.j-cfoto span{position:absolute;left:0;right:0;bottom:0;padding:14px 7px 5px;color:#fff;font-size:10.5px;
+  line-height:1.25;background:linear-gradient(transparent,rgba(42,42,40,.65));}
+.j-cars + .j-rnote{margin-top:10px;}
+@media screen and (max-width:900px){
+  .j-cars{grid-template-columns:1fr;}
+  .j-hcorpo,.j-cortona{padding:18px 18px 20px;}
+  .j-hnome{font-size:23px;}
+  .j-mosaico.m3{grid-template-rows:120px 120px;}
+  .j-mosaico.m2{grid-template-rows:170px;}
+  .j-rfotos,.j-rfotos img{height:150px;}
+  .j-rtopo{flex-direction:column;gap:6px;}
+  .j-rpreco{text-align:left;}
+  /* A folha da proposta no celular: a data sobe para cima do nome, o preço
+     e a caixinha ficam na linha do nome, à direita. */
+  .doc table.svc.j-tab thead{display:none;}
+  .doc table.svc.j-tab,.doc table.svc.j-tab tbody{display:block;}
+  .doc table.svc.j-tab tr{display:grid;grid-template-columns:1fr auto;column-gap:10px;padding:11px 12px;
+    border-bottom:1px solid var(--cream);}
+  .doc table.svc.j-tab td{display:block;border:0;padding:0 !important;}
+  .doc table.svc.j-tab td.j-cd{grid-column:1 / -1;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--copper);font-weight:500;margin-bottom:4px;white-space:normal;}
+  .doc table.svc.j-tab td.j-cd:empty{display:none;}
+  .doc table.svc.j-tab tr.j-hrow{border-bottom:0;padding-bottom:2px;}
+  .doc table.svc.j-tab tr.j-or{display:block;text-align:center;padding:1px 12px;border-bottom:0;}
+  .doc table.svc.j-tab tr.j-or td.j-cd,.doc table.svc.j-tab tr.j-or td.money{display:none;}
+  .doc table.svc.j-tab tr.j-or td.j-cs{text-align:center;}
+  .j-tab .j-sn{font-size:15.5px;}
+  .j-total{padding:18px 16px;}
+  .j-total .j-tl{font-size:22px;}
+  .j-total .j-tv{font-size:24px;}
+}
 @media print{ .j-escolha{display:none;} .j-quarto{margin-left:0;}
   /* O "at a glance" abre folha própria. Sem isto ele começava no meio da
      folha da abertura e transbordava para a seguinte, deixando três quartos
@@ -2656,7 +2717,11 @@ const MIGRACOES = [
   {id:"0116-emily-v2-texto-final-2", arq:"0116-emily-v2-texto-final-2.sql",
    oque:"o texto final da proposta da Emily, segunda versão"},
   {id:"0117-emily-v2-select", arq:"0117-emily-v2-select.sql",
-   oque:"select no lugar de choose na proposta da Emily"}
+   oque:"select no lugar de choose na proposta da Emily"},
+  {id:"0118-nota-das-opcoes-e-data-da-tabela", arq:"0118-nota-das-opcoes-e-data-da-tabela.sql",
+   oque:"nota das opções, data da tabela, modelos de carro e links de quarto"},
+  {id:"0119-emily-v2-desenho-novo", arq:"0119-emily-v2-desenho-novo.sql",
+   oque:"os dados do desenho novo da proposta da Emily, com as opções mais caras marcadas"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5355,6 +5420,8 @@ async function saveProposal(){
       row_group_pt:r.row_group_pt||null, row_group_en:r.row_group_en||null,
       row_desc_pt:r.row_desc_pt||null, row_desc_en:r.row_desc_en||null,
       getting_pt:r.getting_pt||null, getting_en:r.getting_en||null,
+      options_note_pt:r.options_note_pt||null, options_note_en:r.options_note_en||null,
+      row_date_pt:r.row_date_pt||null, row_date_en:r.row_date_en||null,
       units:(r.units||[]).filter(u=>(u.label||"").trim()),
       extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}));
   let e2 = null, semProcedencia = false;
@@ -9061,7 +9128,8 @@ const JTXT = {
       lead:"This proposal is built as one program, with every experience included. If you'd like to adjust any part of it, your travel advisor will arrange it with us.",
       bStays:"Stays", bCar:"Car in Tuscany", bExp:"Experiences", bServ:"Services", bOpt:"Optional",
       add:"Add", onRequest:"On request", needPick:"Please choose one option for:", total:"Your total",
-      bDays:"Day by day", pending:"Pending", or:"or"},
+      bDays:"Day by day", pending:"Pending", or:"or",
+      avg:"Average per night", nightsW:"nights", selRoom:"Select your room"},
   pt:{glance:"Em resumo", stay:"Onde você vai ficar", around:"Como se deslocar", prop:"Sua proposta",
       closing:"Encerramento", opening:"Abertura", opt:["Opção um","Opção dois","Opção três","Opção quatro"],
       good:"Bom saber", getting:"Como chegar", inc:"Incluso", notinc:"Não incluso",
@@ -9071,7 +9139,8 @@ const JTXT = {
       lead:"Esta proposta é um programa único, com todas as experiências incluídas. Para ajustar qualquer parte, a sua agência combina conosco.",
       bStays:"Hospedagem", bCar:"Carro na Toscana", bExp:"Experiências", bServ:"Serviços", bOpt:"Opcional",
       add:"Adicionar", onRequest:"Sob consulta", needPick:"Escolha uma opção em:", total:"Seu total",
-      bDays:"Dia a dia", pending:"A confirmar", or:"ou"}
+      bDays:"Dia a dia", pending:"A confirmar", or:"ou",
+      avg:"Média por noite", nightsW:"noites", selRoom:"Selecione o quarto"}
 };
 /* Foto com ponto focal: "url#p=50,72" centra a foto em 50% / 72%. O que vem
    depois de # não vai ao servidor, então o endereço da foto não muda. */
@@ -9273,45 +9342,87 @@ function drawJornada(){
       </section>`});
   });
 
-  /* Onde vai ficar: o hotel, e embaixo cada quarto com foto, texto e valor
-     (o desenho da TL-055). Hotel sem quartos é hospedagem já definida. */
+  /* WHERE YOU'LL STAY (mudanças visuais dela, nov/26, com prévia aprovada).
+     Foto lateral de altura inteira, como a folha "Tuscany countryside" do
+     estudo; um cartão por hotel — o hotel primeiro, os quartos depois. Cada
+     quarto é clicável inteiro: escolhido, ganha contorno e check. O valor em
+     destaque é a média por noite ("about"), arredondada à dezena; o total
+     das noites vem embaixo, menor. */
   const hosp = secs.filter(s=>s.tipo==="hospedagem");
+  const semCent = v => eur(v).replace(/,00$/,"");
+  const imgs = fs => fs.map(f=>`<img src="${esc(f.src)}" alt="" style="object-position:${f.pos}">`).join("");
+  const mosaico = fotos => {
+    const fs = (fotos||[]).filter(u=>u&&String(u).trim()).slice(0,3).map(jFoto);
+    if(!fs.length) return "";
+    return `<div class="j-mosaico m${fs.length}">${imgs(fs)}</div>`;
+  };
+  const marcaJS = (i, u, on) => respondida ? "" :
+    ` onclick="if(event.target.closest('a'))return;jMarcaU('${esc(i.id)}','${esc(u.key)}',${on?"false":"true"})"`;
+  const quartoHTML = (i, u, noites) => {
+    const on = (QSEL.units[i.id]||[]).includes(u.key);
+    const fs = (u.photos||[]).filter(x=>x&&String(x).trim()).slice(0,2).map(jFoto);
+    const links = (u.links||[]).filter(a=>a&&a.url);
+    return `<div class="j-ropt${on?" sel":""}${respondida?" trava":""}"${marcaJS(i,u,on)}>
+      ${fs.length?`<div class="j-rfotos${fs.length===1?" um":""}">${imgs(fs)}</div>`:""}
+      <div class="j-rcorpo">
+        <div class="j-rtopo"><div><div class="j-rnome"><span class="j-check">✓</span>${esc(u.label||"")}</div>
+          ${u.ficha?`<div class="j-rmeta">${esc(u.ficha)}</div>`:""}</div>
+          <div class="j-rpreco">${noites
+            ? `<div><span class="j-pn">${semCent(Math.round(Number(u.price)/noites/10)*10)}</span><span class="j-plbl">${esc(L("avg", J.avg))}</span></div>
+               <div class="j-ptot">× ${noites} ${esc(J.nightsW)} · ${semCent(u.price)}</div>`
+            : `<span class="j-pn">${semCent(u.price)}</span>`}</div></div>
+        ${u.desc?`<div class="j-rtexto">${fmtDoc(u.desc)}</div>`:""}
+        ${links.map(a=>`<a class="j-rlink" href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.name||"")} →</a>`).join("")}
+      </div></div>`;
+  };
   const hotelHTML = (i, sec) => {
-    if(!(i.units||[]).length) return `<div class="ap-card"><div class="ap-corpo"><div class="ap-topo"><div>
-        ${i.service_date?`<div class="ap-data">${esc(i.service_date)}</div>`:""}<div class="ap-nome">${esc(i.title)}</div></div></div>
-        ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}</div></div>`;
+    if(!(i.units||[]).length) return `<div class="j-cortona">
+        ${i.service_date?`<div class="j-ey">${esc(i.service_date)}</div>`:""}<h3 class="j-hnome">${esc(i.title)}</h3>
+        ${i.details?`<div class="j-rmeta">${fmtDoc(i.details)}</div>`:""}</div>`;
     const anexos = (i.attachments||[]).filter(a=>a&&a.url);
     const noites = Number(sec.nights)||0;
-    return `<div class="ap-card">${fotosCard(i.photos)}<div class="ap-corpo">
-        <div class="ap-topo"><div>${i.service_date?`<div class="ap-data">${esc(i.service_date)}</div>`:""}
-          <div class="ap-nome">${esc(i.title)}</div></div></div>
-        ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
+    return `<div class="j-hotel">${mosaico(i.photos)}<div class="j-hcorpo">
+        ${i.service_date?`<div class="j-ey">${esc(i.service_date)}</div>`:""}<h3 class="j-hnome">${esc(i.title)}</h3>
+        ${i.details?`<div class="j-htexto">${fmtDoc(i.details)}</div>`:""}
         ${blk(t.qIncluded, i.included)}${blk(t.qFacilities, i.facilities)}
-        ${i.website?`<div class="ap-link"><a href="${esc(i.website)}" target="_blank" rel="noopener">${t.qSite}</a></div>`:""}
-        ${anexos.length?`<div class="ap-anexos">${anexos.map(a=>`<a href="${esc(a.url)}" target="_blank" rel="noopener" class="ap-anexo">${esc(a.name||"PDF")}</a>`).join("")}</div>`:""}
-      </div></div>
-      ${(i.units||[]).map(u=>`<div class="ap-card j-quarto">${fotosCard(u.photos)}<div class="ap-corpo">
-        <div class="ap-topo"><div><div class="ap-nome">${esc(u.label||"")}</div>
-          ${u.ficha?`<div class="j-ficha">${esc(u.ficha)}</div>`:""}</div>
-          <div class="ap-preco">${eur(u.price)}</div></div>
-        ${noites?`<div class="j-noite">${esc(J.nights(noites, eur(Math.round(Number(u.price)/noites/10)*10).replace(/,00$/,"")))}</div>`:""}
-        ${u.desc?`<div class="ap-desc">${fmtDoc(u.desc)}</div>`:""}
-        ${caixa(i, u, L("pick_room", J.pickRoom))}
-      </div></div>`).join("")}`;
+        ${i.website?`<a class="j-rlink" href="${esc(i.website)}" target="_blank" rel="noopener">${t.qSite}</a>`:""}
+        ${anexos.map(a=>`<a class="j-rlink" href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.name||"PDF")} →</a>`).join("")}
+        <div class="j-rlabel">${esc(L("sel_room", J.selRoom))}</div>
+        ${(i.options_note||"").trim()?`<div class="j-rnote">${esc(i.options_note)}</div>`:""}
+        ${(i.units||[]).map(u=>quartoHTML(i,u,noites)).join("")}
+      </div></div>`;
   };
-  if(hosp.length) passos.push({txt:L("stay", J.stay), html:`
-    <section class="ap-sec ap-sec-dias ap-passo" style="display:none;">
-      <div class="ap-dias-head"><h2>${esc(L("stay", J.stay))}</h2>
-        ${hosp[0].intro?`<div class="ap-dias-note">${fmtDoc(hosp[0].intro)}</div>`:""}</div>
-      <div class="ap-dias-lista">${hosp.map(sec=>itens.filter(i=>i.section===sec.key).map(i=>hotelHTML(i,sec)).join("")).join("")}
+  if(hosp.length){
+    const hItens = hosp.flatMap(sec=>itens.filter(i=>i.section===sec.key));
+    const lado = (hosp[0].photo||"") || ((hItens.find(i=>(i.units||[]).length && (i.photos||[]).length)||{}).photos||[])[0] || "";
+    const fl = lado ? jFoto(lado) : null;
+    passos.push({txt:L("stay", J.stay), html:`
+    <section class="ap-sec ap-passo j-hosp" style="display:none;">
+      <div class="ap-foto">${fl?`<img class="ap-fundo" src="${esc(fl.src)}" alt="" style="object-position:${fl.pos}">`:""}
+        <div class="ap-foto-txt"><h2>${esc(L("stay", J.stay))}</h2>
+          ${hosp[0].intro?`<div class="ap-note">${esc(hosp[0].intro)}</div>`:""}</div></div>
+      <div class="ap-lista">${hosp.map(sec=>itens.filter(i=>i.section===sec.key).map(i=>hotelHTML(i,sec)).join("")).join("")}
         ${apNav(t)}</div>
     </section>`});
+  }
 
-  /* Como se desloca: os transfers como texto; o carro com as categorias lado
-     a lado, cada uma com o valor — é decisão, então tem preço. */
+  /* Como se desloca. Os transfers como texto; o carro em dois cartões lado a
+     lado, cada um com as fotos dos modelos possíveis (units[].models, 0118),
+     clicável inteiro como os quartos. */
   const transp = secs.filter(s=>s.tipo==="transporte");
   /* Serviço sem texto não vira bloco na folha: é só linha da tabela (o
      meet and greet da partida, que a folha já descreve junto do transfer). */
+  const carroHTML = (i, u) => {
+    const on = (QSEL.units[i.id]||[]).includes(u.key);
+    const ms = (u.models||[]).filter(m=>m&&m.name);
+    return `<div class="j-car${on?" sel":""}${respondida?" trava":""}"${marcaJS(i,u,on)}>
+      ${ms.length?`<div class="j-cfotos">${ms.map(m=>{ const f = m.photo ? jFoto(m.photo) : null;
+        return `<div class="j-cfoto">${f?`<img src="${esc(f.src)}" alt="" style="object-position:${f.pos}">`:""}<span>${esc(m.name)}</span></div>`; }).join("")}</div>`:""}
+      <div class="j-ccorpo"><div class="j-rtopo"><div class="j-rnome"><span class="j-check">✓</span>${esc(u.label||"")}</div>
+        <div class="j-rpreco"><span class="j-pn">${semCent(u.price)}</span></div></div>
+        ${u.ficha?`<div class="j-rmeta">${esc(u.ficha)}</div>`:""}
+        ${u.desc?`<div class="j-rtexto">${fmtDoc(u.desc)}</div>`:""}</div></div>`;
+  };
   const transpHTML = i => {
     if(!(i.details||"").trim() && !jEscolha(i)) return "";
     if(!jEscolha(i)) return `<article class="ap-exp">${hero(i.photos)}<div class="ap-exp-corpo">${dia(i.service_date)}
@@ -9319,10 +9430,8 @@ function drawJornada(){
         ${blk(J.inc,i.included)}${blk(J.good,i.good)}</div></article>`;
     return `<article class="ap-exp">${hero(i.photos)}<div class="ap-exp-corpo">${dia(i.service_date)}
         <div class="ap-nome">${esc(i.title)}</div>${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
-        <div class="j-cats">${(i.units||[]).map(u=>`<div class="j-cat">
-          <div class="ap-nome">${esc(u.label||"")}</div>${u.ficha?`<div class="j-ficha">${esc(u.ficha)}</div>`:""}
-          ${u.desc?`<div class="ap-desc">${fmtDoc(u.desc)}</div>`:""}
-          <div class="ap-preco">${eur(u.price)}</div>${caixa(i, u, L("pick_car", J.pickCar))}</div>`).join("")}</div>
+        <div class="j-cars">${(i.units||[]).map(u=>carroHTML(i,u)).join("")}</div>
+        ${(i.options_note||"").trim()?`<div class="j-rnote">${esc(i.options_note)}</div>`:""}
         ${blk(J.good,i.good)}${blk(J.inc,i.included)}</div></article>`;
   };
   transp.forEach(sec=>{
@@ -9350,33 +9459,28 @@ function drawJornada(){
       </section>`});
   });
 
-  /* YOUR PROPOSAL — a única tela com valor e total.
-
-     Uma linha por coisa que se marca, e TUDO caixinha (instrução dela, nov/26):
-     cada opção, quarto, categoria de carro e extra é a sua linha, com o dia da
-     semana, a data e o nome inteiro — no celular ninguém volta às telas de dia
-     para lembrar o que era a "Option two". O texto da linha é row/row_en (0105);
-     sem ele, cai no título. Sem coluna de data: a data já está no texto. */
-  const cab = `<thead><tr><th>${t.service}</th><th class="money">${t.price}</th></tr></thead>`;
-  /* A nota da seção sai embaixo da tabela dela: é observação, e não linha
-     que soma (a taxa do concierge durante a viagem, nov/26). */
-  const tab = (titulo, linhas, nota) => linhas.length ? `<div class="blocktitle" style="margin-top:28px;">${esc(titulo)}</div>
-      <table class="svc j-tab">${cab}<tbody>${linhas.join("")}</tbody></table>
-      ${(nota||"").trim()?`<div class="j-nota-tab">${fmtDoc(nota)}</div>`:""}` : "";
-  /* A linha leva o nome e, embaixo, uma linha de descrição (row_desc, 0115):
-     o cliente escolhe sem voltar às telas de dia. */
-  const tr = (id, on, travada, acao, rotulo, valor, sub, nivel, desc) => `<tr class="${on?"":"j-off"}${nivel?" j-n"+nivel:""}"><td>
-      <div class="check j-linha"><input type="checkbox" id="${id}"${on?" checked":""}${travada||respondida?" disabled":""}
-        onchange="${acao}"><label for="${id}">${esc(rotulo)}${(desc||"").trim()?`<span class="j-rdesc">${esc(desc)}</span>`:""}</label></div>${sub||""}</td>
-      <td class="money">${valor}</td></tr>`;
+  /* YOUR PROPOSAL — no modelo da folha "Proposal" da TL-055 (mudanças visuais
+     dela, nov/26, com prévia aprovada). Cada bloco com título em versalete
+     dourado e tabela DATE | SERVICE | PRICE €; a data só na primeira linha do
+     grupo; nome do serviço em serif e uma linha de descrição; a caixinha à
+     direita, junto do preço, e o preço na mesma cor marcado ou não — cinza
+     claro parecia item desabilitado. Entre opções que se excluem, uma linha
+     "or". Os blocos: Stays, o carro, Your days (experiências e ground
+     services em ordem de data) e Concierge. */
+  const cab = `<thead><tr><th class="j-cd">${t.date}</th><th>${t.service}</th><th class="money">${t.price}</th></tr></thead>`;
+  const tab = (titulo, linhas) => linhas.length ? `<div class="j-btit">${esc(titulo)}</div>
+      <table class="svc j-tab">${cab}<tbody>${linhas.join("")}</tbody></table>` : "";
   const rotuloExtra = e => p.lang==="en" ? (e.row_en||e.row||e.label_en||e.label_pt) : (e.row||e.label_pt);
-  const linhasDe = (i, nivel) => {
+  const descHTML = d => String(d||"").split("\n").filter(x=>x.trim())
+    .map((x,k)=>`<div class="j-sd${k?" j-sd2":""}">${esc(x)}</div>`).join("");
+  /* Caixinha à direita, dentro do rótulo do preço: clicar no preço também marca. */
+  const pw = (id, on, travada, acao, valor) => `<label class="j-pw${travada||respondida?" trava":""}"><span>${valor}</span><input type="checkbox" id="${id}"${on?" checked":""}${travada||respondida?" disabled":""} onchange="${acao}"></label>`;
+  /* Uma linha da folha. A data entra depois, só na primeira linha do grupo. */
+  const L1 = o => o;
+  const linhasDe = i => {
     const id = esc(i.id), out = [];
-    const n1 = nivel||0, n2 = n1+1;
     const sel = QSEL.units[i.id]||[], ligado = !!QSEL.items[i.id];
     const exs = i.extras||[];
-    /* Escolha de grupo (almoço OU jantar) mora embaixo da opção dela, sem
-       valor: não é linha da conta, é como a opção vai acontecer. */
     const subGrupo = uk => {
       const g = exs.filter(e=>e.grupo && e.unit===uk);
       if(!g.length || !sel.includes(uk)) return "";
@@ -9384,44 +9488,40 @@ function drawJornada(){
         (QSEL.extras[i.id]||[]).includes(e.key)?" checked":""}${respondida?" disabled":""}
         onchange="jExtra('${id}','${esc(e.key)}',this.checked)"><label for="jx-${id}-${esc(e.key)}">${esc(rotuloExtra(e))}</label></span>`).join("")}</div>`;
     };
-    /* "or" entre as opções que se excluem (instrução dela, nov/26), menos
-       na hospedagem, onde o grupo do hotel já diz que é um quarto só. */
-    const comOu = !!i.choice_group && jSecDe(p, i).tipo !== "hospedagem";
+    const naHosp = jSecDe(p, i).tipo === "hospedagem";
+    if(naHosp && (i.units||[]).length) out.push(L1({nome:i.title, hotel:true}));
+    const comOu = !!i.choice_group && !naHosp;
     if((i.units||[]).length){
       (i.units||[]).forEach((u,k)=>{
         const on = !u.optional || sel.includes(u.key);
-        if(comOu && k > 0) out.push(`<tr class="j-ou${n1?" j-n"+n1:""}"><td colspan="2">${esc(J.or)}</td></tr>`);
-        out.push(tr(`jp-${id}-${esc(u.key)}`, on, !u.optional,
-          `jMarcaU('${id}','${esc(u.key)}',this.checked)`,
-          u.row || `${i.title} · ${u.label||""}`, eur(u.price), subGrupo(u.key), n1, u.row_desc));
+        if(comOu && k > 0) out.push({ou:true});
+        out.push({nome: u.row || `${i.title} · ${u.label||""}`, plain: naHosp, desc: u.row_desc, sub: subGrupo(u.key),
+          preco: pw(`jp-${id}-${esc(u.key)}`, on, !u.optional, `jMarcaU('${id}','${esc(u.key)}',this.checked)`, eur(u.price))});
       });
+    } else if(!jTemValor(i)){
+      out.push({nome: i.row, desc: i.row_desc, preco: `<span class="j-pend">${esc(L("pending", J.pending))}</span>`});
     } else {
-      out.push(tr(`jp-${id}`, ligado, !i.optional, `jMarcaI('${id}',this.checked)`,
-        i.row || i.title, eur(i.price), "", n1, i.row_desc));
+      out.push({nome: i.row || i.title, desc: i.row_desc,
+        preco: pw(`jp-${id}`, ligado, !i.optional, `jMarcaI('${id}',this.checked)`, eur(i.price))});
     }
-    /* Extra avulso vira linha própria. Só se marca com o serviço — e com a
-       opção dele — marcado; fora disso fica na tela, apagado e travado. */
+    /* Extra avulso (o carro de apoio): só se marca com a opção dele marcada. */
     exs.filter(e=>!e.grupo).forEach(e=>{
       const ativo = ligado && (!e.unit || sel.includes(e.unit));
       const preco = e.price != null && e.price !== "" ? Number(e.price) : null;
-      out.push(tr(`jx-${id}-${esc(e.key)}`, ativo && (QSEL.extras[i.id]||[]).includes(e.key), !ativo,
-        `jExtra('${id}','${esc(e.key)}',this.checked)`, rotuloExtra(e),
-        preco == null ? esc(J.onRequest) : eur(preco), "", n2, p.lang==="en" ? (e.row_desc_en||e.row_desc) : e.row_desc));
+      out.push({nome: rotuloExtra(e), desc: p.lang==="en" ? (e.row_desc_en||e.row_desc) : e.row_desc, extra:true,
+        preco: pw(`jx-${id}-${esc(e.key)}`, ativo && (QSEL.extras[i.id]||[]).includes(e.key), !ativo,
+          `jExtra('${id}','${esc(e.key)}',this.checked)`, preco == null ? esc(J.onRequest) : eur(preco))});
     });
-    return out.join("");
+    return out;
   };
+  /* Grupos → linhas: a data só na primeira, e o fundo alterna por grupo. */
+  const linhasHTML = grupos => grupos.map((g,gi)=>g.linhas.map((o,k)=> o.ou
+      ? `<tr class="j-or${gi%2?" alt":""}"><td class="j-cd"></td><td class="j-cs">${esc(J.or)}</td><td></td></tr>`
+      : `<tr class="${gi%2?"alt":""}${o.hotel?" j-hrow":""}${o.extra?" j-xrow":""}">
+          <td class="j-cd">${k===0 && g.data ? esc(g.data) : ""}</td>
+          <td class="j-cs">${o.nome?`<div class="j-sn${o.plain?" plain":""}${o.extra?" extra":""}">${esc(o.nome)}</div>`:""}${descHTML(o.desc)}${o.sub||""}</td>
+          <td class="money">${o.preco||""}</td></tr>`).join(""));
   const comValor = sec => itens.filter(i=>i.section===sec.key && jTemValor(i));
-  /* DIA A DIA (instrução dela, nov/26: "uma visualização por dia fica mais
-     clean para o cliente"). Primeiro só a hospedagem; depois cada serviço de
-     transporte com opções (o carro) no seu bloco; depois um bloco só, dia
-     por dia em ordem de data, com tudo o que acontece naquele dia —
-     experiência, transfer, meet and greet; e por fim o que não tem dia (o
-     concierge), com a nota da seção.
-
-     A ordem vem da data escrita por ela ("Monday, June 21"): o hub lê o mês
-     e o dia só para ordenar, e não reescreve nada. Serviço que ainda não
-     tem valor mas tem texto de linha (Arezzo) entra como "Pending", sem
-     caixinha e sem somar. */
   const MESES = ["january","february","march","april","may","june","july","august","september","october","november","december"];
   const ordemData = d => {
     const m = /([A-Za-z]+)\s+(\d{1,2})/.exec(d||"");
@@ -9429,10 +9529,8 @@ function drawJornada(){
     return k < 0 ? null : k*100 + Number(m[2]);
   };
   const baseData = d => (d||"").split(" · ")[0].trim();
+  const dataDe = i => (i.row_date||"").trim() || baseData(i.service_date);
   const pendente = i => !jTemValor(i) && (i.row||"").trim();
-  const linhaPendente = (i, nivel) => `<tr class="j-pend${nivel?" j-n"+nivel:""}"><td>
-      <div class="check j-linha"><span class="j-sem-caixa"></span><label>${esc(i.row)}${(i.row_desc||"").trim()?`<span class="j-rdesc">${esc(i.row_desc)}</span>`:""}</label></div></td>
-      <td class="money">${esc(L("pending", J.pending))}</td></tr>`;
   const transpItens = [...transp.flatMap(comValor), ...secs.filter(s=>s.tipo==="dining").flatMap(comValor)];
   const comOpcoes = transpItens.filter(i=>(i.units||[]).length);
   const doDia = [
@@ -9441,19 +9539,19 @@ function drawJornada(){
     ].map((i,k)=>({i, k, o: ordemData(i.service_date)}))
      .sort((a,b)=>((a.o??9999)-(b.o??9999)) || (a.k-b.k)).map(x=>x.i);
   const semDia = transpItens.filter(i=>!(i.units||[]).length && ordemData(i.service_date) == null);
-  const porDia = () => {
+  const gruposDia = () => {
     const ordem = [], mapa = {};
     doDia.forEach(i=>{ const g = baseData(i.service_date); if(!(g in mapa)){ mapa[g]=[]; ordem.push(g); } mapa[g].push(i); });
-    return ordem.map(g => (g ? `<tr class="j-grupo"><td colspan="2">${esc(g)}</td></tr>` : "")
-      + mapa[g].map(i=>pendente(i) ? linhaPendente(i, g?1:0) : linhasDe(i, g?1:0)).join(""));
+    return ordem.map(g=>({data:g, linhas: mapa[g].flatMap(linhasDe)}));
   };
+  const notaTransp = transp.length ? (transp[0].note||"").trim() : "";
   const blocos =
-      tab(L("b_stays", J.bStays), hosp.flatMap(comValor).map(i=>
-        (i.row_group||"").trim() ? `<tr class="j-grupo"><td colspan="2">${esc(i.row_group)}</td></tr>` + linhasDe(i, 1) : linhasDe(i)))
-    + comOpcoes.map(i=>tab((i.row_group||"").trim() || i.title, [linhasDe(i)])).join("")
-    + tab(L("b_days", J.bDays), porDia())
-    + (semDia.length ? tab((semDia[0].row_group||"").trim() || J.bServ, semDia.map(i=>linhasDe(i)),
-                           transp.length ? transp[0].note : "") : "");
+      tab(L("b_stays", J.bStays), linhasHTML(hosp.flatMap(comValor).map(i=>({data:dataDe(i), linhas:linhasDe(i)}))))
+    + comOpcoes.map(i=>tab((i.row_group||"").trim() || i.title, linhasHTML([{data:dataDe(i), linhas:linhasDe(i)}]))).join("")
+    + tab(L("b_days", J.bDays), linhasHTML(gruposDia()))
+    + (semDia.length ? tab((semDia[0].row_group||"").trim() || J.bServ, linhasHTML([
+          ...semDia.map(i=>({data:dataDe(i), linhas:linhasDe(i)})),
+          ...(notaTransp ? [{data:L("note_date",""), linhas:[{desc:notaTransp}]}] : [])])) : "");
 
   /* O texto da agência vem ANTES da proposta (instrução dela, nov/26): depois
      que o cliente aprovou, ninguém lê. No white label não há contracapa da
@@ -9473,9 +9571,11 @@ function drawJornada(){
         <div class="j-lead">${fmtDoc(L("lead", J.lead))}</div>
         <div class="doc" style="box-shadow:none;padding:0;background:transparent;">
           ${blocos}
-          <div class="total-row"><div class="total-box"><span class="lbl">${esc(J.total)}</span>
-            <span class="amt" id="ap-total">${eur(quoteTotal())}</span></div></div>
-          ${quoteFecho(p, t, true, respondida, false, true)}
+          <div class="j-total"><span class="j-tl">${esc(J.total)}</span><span class="j-tv" id="ap-total">${eur(quoteTotal())}</span></div>
+          ${/* Títulos das condições (PAYMENT, TERMS & CONDITIONS…) em versalete:
+                parágrafo que é só um negrito em caixa alta vira título. */""}
+          ${quoteFecho(p, t, true, respondida, false, true)
+              .replace(/<p><strong>((?:[A-Z0-9 ·,'’-]|&amp;)+)<\/strong><\/p>/g, '<p class="j-cond-h">$1</p>')}
         </div>
         <div class="ap-aviso">${esc(rot(p,"notice",t.qNaoBloqueio))}</div>
         ${quoteConfirmar(t, respondida, p.payment_options, p)}

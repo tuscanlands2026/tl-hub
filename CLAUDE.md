@@ -1335,6 +1335,16 @@ categoria de carro e extra é **uma linha própria**, com o dia da semana, a dat
   leva o nome e uma linha de descrição (`row_desc`); "or" entre opções que se excluem, menos na
   hospedagem, que sai agrupada por hotel (`row_group`). O valor por noite sai sem centavos,
   arredondado à dezena, porque é "about".
+- **O desenho da prévia aprovada** (0118/0119, mudanças visuais dela, nov/26). Where you'll stay
+  tem foto lateral como a "Tuscany countryside" do estudo, e um cartão por hotel: mosaico, texto,
+  rótulo "Select your room", a nota em itálico (`options_note`) e os quartos, cada um clicável
+  inteiro, com contorno e check quando escolhido, média por noite em destaque e o link dele
+  (`units[].links`). O carro é dois cartões clicáveis, com uma foto por modelo
+  (`units[].models`). "Your proposal" segue a folha "Proposal" da TL-055: DATE | SERVICE | PRICE €,
+  a data (`row_date`, ou a do dia) só na primeira linha do grupo, a caixinha à direita do preço,
+  o preço sempre na mesma cor e "or" centralizado entre opções que se excluem.
+- **Ela pediu "select", e não "choose"**, em qualquer texto ao cliente.
+- **A marcação padrão é a opção mais cara** de cada escolha (instrução dela na TL-053-26).
 - **Concierge services, e não dining concierge**: concierge é mais amplo que restaurante. Os
   € 60 por dia são da seleção, curadoria e reservas antes da viagem; durante a viagem, o
   concierge on-site é a partir de € 150 por dia e sai como observação, sem somar.
