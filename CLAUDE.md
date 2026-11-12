@@ -1357,6 +1357,8 @@ categoria de carro e extra é **uma linha própria**, com o dia da semana, a dat
   (`units[].models`). "Your proposal" segue a folha "Proposal" da TL-055: DATE | SERVICE | PRICE €,
   a data (`row_date`, ou a do dia) só na primeira linha do grupo, a caixinha à direita do preço,
   o preço sempre na mesma cor e "or" centralizado entre opções que se excluem.
+- **Bloco com rótulo começa com maiúscula** (Good to know, Included, Not included, Getting there),
+  instrução dela, nov/26. Quem escreve o texto já escreve assim; o hub não corrige sozinho.
 - **Ela pediu "select", e não "choose"**, em qualquer texto ao cliente.
 - **A marcação padrão é a opção mais cara** de cada escolha (instrução dela na TL-053-26).
 - **Concierge services, e não dining concierge**: concierge é mais amplo que restaurante. Os
