@@ -1383,13 +1383,15 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   hyphens:none;-webkit-hyphens:none;}
 .j-hosp .ap-estrutura p,.j-hosp .j-htexto p,.j-hosp .j-rtexto p{margin:0 0 6px;}
 /* ── Carros: dois cartões, três fotos de modelo em cada ── */
-.j-cars{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0 0;}
+/* Um cartão embaixo do outro, e a foto do carro inteira (instrução dela,
+   nov/26: lado a lado o carro saía cortado). Proporção 16:9 com "contain"
+   sobre branco: foto de fundo branco some no cartão, e a de cenário enche. */
+.j-cars{display:grid;grid-template-columns:1fr;gap:16px;margin:16px 0 0;}
 .j-cars .j-car{margin-top:0;}
-.j-cfotos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;height:120px;}
-.j-cfoto{position:relative;background:linear-gradient(135deg,#d8d2c6,#b7b0a2);overflow:hidden;}
-.j-cfoto img{width:100%;height:100%;object-fit:cover;display:block;}
-.j-cfoto span{position:absolute;left:0;right:0;bottom:0;padding:14px 7px 5px;color:#fff;font-size:10.5px;
-  line-height:1.25;background:linear-gradient(transparent,rgba(42,42,40,.65));}
+.j-cfotos{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px 10px 0;}
+.j-cfoto{position:relative;background:none;}
+.j-cfoto img{width:100%;aspect-ratio:16/9;height:auto;object-fit:contain;background:#fff;display:block;}
+.j-cfoto span{display:block;padding:5px 1px 0;color:var(--muted);font-size:11px;line-height:1.3;hyphens:none;}
 .j-cars + .j-rnote{margin-top:10px;}
 @media screen and (max-width:900px){
   .j-cars{grid-template-columns:1fr;}
@@ -2743,7 +2745,11 @@ const MIGRACOES = [
   {id:"0123-proposta-sem-pre-selecao", arq:"0123-proposta-sem-pre-selecao.sql",
    oque:"chave para a proposta abrir sem nada marcado, ligada na da Emily"},
   {id:"0124-emily-v2-maiuscula-nos-blocos", arq:"0124-emily-v2-maiuscula-nos-blocos.sql",
-   oque:"Good to know, Included, Not included e Getting there começando com maiúscula na proposta da Emily"}
+   oque:"Good to know, Included, Not included e Getting there começando com maiúscula na proposta da Emily"},
+  {id:"0125-emily-v2-carro-concierge-support", arq:"0125-emily-v2-carro-concierge-support.sql",
+   oque:"quilometragem do carro na linha de baixo, concierge sem 'optional' e sem o support car"},
+  {id:"0126-emily-v2-corrige-km-do-carro", arq:"0126-emily-v2-corrige-km-do-carro.sql",
+   oque:"corrige a 0125: a quilometragem do carro nas chaves em inglês"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -9261,6 +9267,14 @@ function jMarcaI(id, on){
 function jExtra(id, key, on){
   const it = (QT.items||[]).find(x=>x.id===id); if(!it) return;
   const e = (it.extras||[]).find(x=>x.key===key);
+  /* Almoço ou jantar marcado com a vinícola ainda desmarcada: marca a
+     vinícola junto, como se o cliente tivesse começado por ela. */
+  if(on && e && e.unit && !(QSEL.units[id]||[]).includes(e.unit)){
+    const cur = QSEL.units[id]||[];
+    QSEL.units[id] = it.choice_group ? [e.unit] : cur.concat([e.unit]);
+    QSEL.items[id] = true;
+    QSEL.extras[id] = (QSEL.extras[id]||[]).filter(k=>{ const x=(it.extras||[]).find(y=>y.key===k); return !(x && x.grupo===e.grupo); });
+  }
   const atual = QSEL.extras[id] || [];
   if(e && e.grupo){
     if(on){
@@ -9458,7 +9472,7 @@ function drawJornada(){
         return `<div class="j-cfoto">${f?`<img src="${esc(f.src)}" alt="${esc(m.name)}"${m.credit?` title="${esc(m.name+": "+m.credit)}"`:""} style="object-position:${f.pos}">`:""}<span>${esc(m.name)}</span></div>`; }).join("")}</div>`:""}
       <div class="j-ccorpo"><div class="j-rtopo"><div class="j-rnome"><span class="j-check">✓</span>${esc(u.label||"")}</div>
         <div class="j-rpreco"><span class="j-pn">${semCent(u.price)}</span></div></div>
-        ${u.ficha?`<div class="j-rmeta">${esc(u.ficha)}</div>`:""}
+        ${u.ficha?`<div class="j-rmeta">${esc(u.ficha).replace(/\n/g,"<br>")}</div>`:""}
         ${u.desc?`<div class="j-rtexto">${fmtDoc(u.desc)}</div>`:""}</div></div>`;
   };
   const transpHTML = i => {
@@ -9521,7 +9535,7 @@ function drawJornada(){
     const exs = i.extras||[];
     const subGrupo = uk => {
       const g = exs.filter(e=>e.grupo && e.unit===uk);
-      if(!g.length || !sel.includes(uk)) return "";
+      if(!g.length) return "";     // sempre à vista; marcar um também marca a opção dele
       return `<div class="j-sub">${g.map(e=>`<span class="check"><input type="checkbox" id="jx-${id}-${esc(e.key)}"${
         (QSEL.extras[i.id]||[]).includes(e.key)?" checked":""}${respondida?" disabled":""}
         onchange="jExtra('${id}','${esc(e.key)}',this.checked)"><label for="jx-${id}-${esc(e.key)}">${esc(rotuloExtra(e))}</label></span>`).join("")}</div>`;
