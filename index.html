@@ -1335,11 +1335,13 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .j-sub .check{margin:0;display:inline-flex;align-items:center;gap:6px;}
 .j-sub input{width:auto;}
 .j-sub label{font-size:12px;text-transform:none;letter-spacing:0;color:var(--muted);font-weight:400;}
-.j-total{margin-top:40px;padding:26px 30px;background:#fff;border:1px solid var(--cream);
-  display:flex;justify-content:space-between;align-items:baseline;gap:16px;}
-.j-total .j-tl,.j-total .j-tv{font-family:'Sorts Mill Goudy',Georgia,serif;color:var(--ink);}
-.j-total .j-tl{font-size:28px;}
-.j-total .j-tv{font-size:32px;white-space:nowrap;}
+/* O total é a soma do que ele marcou, e não manchete (instrução dela,
+   nov/26: número gigante assusta). Rótulo como os dos blocos, valor na
+   fonte dos preços das linhas, um pouco maior e mais forte. */
+.j-total{margin-top:40px;padding:20px 30px;background:#fff;border:1px solid var(--cream);
+  display:flex;justify-content:space-between;align-items:center;gap:16px;}
+.j-total .j-tl{font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);hyphens:none;}
+.j-total .j-tv{font-family:'Libre Franklin',sans-serif;font-weight:500;font-size:20px;color:var(--ink);white-space:nowrap;}
 .apres.jornada .j-cond-h{font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
   color:var(--copper);margin:22px 0 8px;hyphens:none;}
 .apres.jornada .condicoes ul,.apres.jornada .doc ul{padding-left:18px;}
@@ -1427,8 +1429,7 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .doc table.svc.j-tab tr.j-or td.j-cs{text-align:center;}
   .j-tab .j-sn{font-size:15.5px;}
   .j-total{padding:18px 16px;}
-  .j-total .j-tl{font-size:22px;}
-  .j-total .j-tv{font-size:24px;}
+  .j-total .j-tv{font-size:18px;}
 }
 @media print{ .j-escolha{display:none;} .j-quarto{margin-left:0;}
   /* O "at a glance" abre folha própria. Sem isto ele começava no meio da
