@@ -1308,6 +1308,11 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .j-tab .j-sn.plain,.j-tab .j-sn.extra{font-family:inherit;font-size:13.5px;font-weight:400;}
 .j-tab .j-sd{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:3px;}
 .j-tab .j-sd2{font-size:11.5px;}
+/* Justificado na proposta inteira, inclusive no celular (instrução dela,
+   nov/26): abertura de cada folha, lead da proposta, descrição da linha,
+   ficha dos carros e o aviso do envio. Título e rótulo continuam à esquerda. */
+.apres.jornada .ap-dias-note,.apres.jornada .j-lead,.apres.jornada .j-tab .j-sd,
+.apres.jornada .j-car .j-rmeta,.apres.jornada .ap-aviso{text-align:justify;hyphens:none;-webkit-hyphens:none;}
 .j-tab tr.j-hrow td{padding-bottom:4px;border-bottom:0;}
 .j-tab tr.j-or td{padding-top:0;padding-bottom:0;border-bottom:0;}
 .j-tab tr.j-or td.j-cs{font-family:'Sorts Mill Goudy',Georgia,serif;font-style:italic;color:var(--muted);font-size:13px;text-align:center;}
@@ -1370,6 +1375,13 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .j-plbl{color:var(--copper);font-size:10px;letter-spacing:.14em;margin-left:6px;font-weight:500;text-transform:uppercase;}
 .j-ptot{font-size:12.5px;color:var(--muted);}
 .j-rtexto{font-size:14px;margin:10px 0 4px;}
+/* Texto corrido da hospedagem num tamanho só, justificado (instrução dela,
+   nov/26): descrição do hotel, Included, Facilities, texto do quarto e a
+   linha de Cortona. O miúdo fica para rótulo, ficha do quarto e nota. */
+.j-hosp .j-htexto,.j-hosp .j-rtexto,.j-hosp .ap-estrutura,.j-hosp .j-cortona .j-rmeta{
+  font-size:13.5px;font-weight:300;line-height:1.7;color:var(--ink);text-align:justify;
+  hyphens:none;-webkit-hyphens:none;}
+.j-hosp .ap-estrutura p,.j-hosp .j-htexto p,.j-hosp .j-rtexto p{margin:0 0 6px;}
 /* ── Carros: dois cartões, três fotos de modelo em cada ── */
 .j-cars{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0 0;}
 .j-cars .j-car{margin-top:0;}
@@ -2725,7 +2737,11 @@ const MIGRACOES = [
   {id:"0120-emily-v2-fotos-dos-carros", arq:"0120-emily-v2-fotos-dos-carros.sql",
    oque:"as fotos do Maserati, do Audi e do BMW na proposta da Emily"},
   {id:"0121-emily-v2-fotos-e-cores", arq:"0121-emily-v2-fotos-e-cores.sql",
-   oque:"cores dos carros não garantidas, fotos do Bulgari e dos quartos do Castelfalfi"}
+   oque:"cores dos carros não garantidas, fotos do Bulgari e dos quartos do Castelfalfi"},
+  {id:"0122-emily-v2-menu-cancelamentos-concierge", arq:"0122-emily-v2-menu-cancelamentos-concierge.sql",
+   oque:"menu lateral da proposta da Emily, cancelamentos da Ferrari e do carro, concierge e fotos novas dos carros"},
+  {id:"0123-proposta-sem-pre-selecao", arq:"0123-proposta-sem-pre-selecao.sql",
+   oque:"chave para a proposta abrir sem nada marcado, ligada na da Emily"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -9176,6 +9192,18 @@ function jPreparar(){
     });
     return;
   }
+  /* Nada marcado ao abrir (preselect=false, instrução dela na TL-053-26,
+     nov/26: marcação padrão induz o cliente a erro). Ele marca o que quer;
+     o total começa em zero. */
+  if(QT.proposal && QT.proposal.preselect === false){
+    (QT.items||[]).forEach(i=>{
+      if(!jTemValor(i)) return;
+      QSEL.items[i.id] = false;
+      if((i.units||[]).some(u=>u.optional)) QSEL.units[i.id] = [];
+      QSEL.extras[i.id] = [];
+    });
+    return;
+  }
   (QT.items||[]).forEach(i=>{
     if(!jTemValor(i)) return;                        // texto da narrativa
     const us = i.units||[], opc = us.filter(u=>u.optional);
@@ -9254,6 +9282,10 @@ function drawJornada(){
   jPreparar();
   const p = QT.proposal, t = T[p.lang||"pt"], J = JTXT[p.lang==="en"?"en":"pt"];
   const L = (k, d) => rot(p, "j_"+k, d);
+  /* Nome no menu lateral, separado do título da folha (instrução dela,
+     nov/26: o menu fala como a experiência do cliente — "Cortona, Tuscany",
+     "Your selected stays"). Rótulo j_menu_<chave>; vazio, o de sempre. */
+  const M = (k, d) => rot(p, "j_menu_"+k, d);
   const respondida = !!p.responded_at;
   const itens = QT.items||[];
   const secs = (p.sections||[]);
@@ -9312,7 +9344,7 @@ function drawJornada(){
   /* At a glance é a folha da curadoria. No formatador, só vira itálico o
      que vem antes de ": " — o "1:05 pm" dos voos não é rótulo. */
   (p.curations||[]).forEach(c=>{
-    passos.push({txt:(c.opcao||"").trim() || L("glance", J.glance), html:`
+    passos.push({txt:M("glance", (c.opcao||"").trim() || L("glance", J.glance)), html:`
       <section class="ap-cur ap-passo ${c.cor==="terracota"?"terra":"verde"}" style="display:none;">
         ${(c.title||"").trim()?`<h2>${esc(c.title)}</h2>`:""}
         ${(c.destinos||"").trim()?`<div class="cur-dest">${esc(c.destinos).replace(/\n/g,"<br>")}</div>`:""}
@@ -9337,7 +9369,7 @@ function drawJornada(){
   secs.filter(s=>s.tipo==="narrativa").forEach(sec=>{
     const lista = itens.filter(i=>i.section===sec.key);
     if(!lista.length) return;
-    passos.push({txt:(sec.title||"").split(" · ")[0], html:`
+    passos.push({txt:M(sec.key, (sec.title||"").split(" · ")[0]), html:`
       <section class="ap-sec ap-sec-dias ap-passo" style="display:none;">
         <div class="ap-dias-head"><h2>${esc(sec.title||"")}</h2>
           ${sec.intro?`<div class="ap-dias-note">${fmtDoc(sec.intro)}</div>`:""}</div>
@@ -9400,7 +9432,7 @@ function drawJornada(){
     const hItens = hosp.flatMap(sec=>itens.filter(i=>i.section===sec.key));
     const lado = (hosp[0].photo||"") || ((hItens.find(i=>(i.units||[]).length && (i.photos||[]).length)||{}).photos||[])[0] || "";
     const fl = lado ? jFoto(lado) : null;
-    passos.push({txt:L("stay", J.stay), html:`
+    passos.push({txt:M("stay", L("stay", J.stay)), html:`
     <section class="ap-sec ap-passo j-hosp" style="display:none;">
       <div class="ap-foto">${fl?`<img class="ap-fundo" src="${esc(fl.src)}" alt="" style="object-position:${fl.pos}">`:""}
         <div class="ap-foto-txt"><h2>${esc(L("stay", J.stay))}</h2>
@@ -9441,7 +9473,7 @@ function drawJornada(){
   transp.forEach(sec=>{
     const lista = itens.filter(i=>i.section===sec.key);
     if(!lista.length) return;
-    passos.push({txt:(sec.title||"").split(" · ")[0] || L("around", J.around), html:`
+    passos.push({txt:M(sec.key, (sec.title||"").split(" · ")[0] || L("around", J.around)), html:`
       <section class="ap-sec ap-sec-dias ap-passo" style="display:none;">
         <div class="ap-dias-head"><h2>${esc(sec.title||J.around)}</h2>
           ${sec.intro?`<div class="ap-dias-note">${fmtDoc(sec.intro)}</div>`:""}</div>

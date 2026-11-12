@@ -1383,6 +1383,14 @@ carro, opção, extra, almoço ou jantar, e as linhas exclusivas — no computad
 todas com o total esperado; e a `tl_submit_quote`, chamada numa transação desfeita, soma o
 mesmo que a tela (€ 57.825 na marcação padrão).
 
+**Menu lateral com nome próprio, nada marcado ao abrir** (0122/0123, nov/26). O menu fala como a
+experiência do cliente ("Your journey in Italy", "Cortona, Tuscany", "Your selected stays"): é o
+rótulo `j_menu_<chave da seção>` (e `j_menu_glance`, `j_menu_stay`), e o título da folha não muda.
+`ops_proposals.preselect=false` abre a proposta sem nada marcado e o total em zero — instrução dela:
+marcação padrão induz o cliente a erro. Nulo continua sendo o de antes. Na TL-053-26 a folha
+"A journey with…" saiu por instrução dela (texto guardado na 0122), os cancelamentos da Ferrari e do
+carro estão nas condições gerais, e o texto corrido da hospedagem é um tamanho só, justificado.
+
 **`[texto](endereço)` vira link com nome em `fmtDoc`** (o vídeo do aperitivo no Tibre). Antes de
 ligar, conferido que nenhuma proposta, order ou padrão da casa usava esse formato — nada do que
 já existe muda de cara. O briefing da advisor tem formatador próprio e não passa por aqui.
