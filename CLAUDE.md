@@ -1329,6 +1329,12 @@ categoria de carro e extra é **uma linha própria**, com o dia da semana, a dat
   opções, extras e total da resposta mais recente; nada de nome, e-mail ou observação). O aviso
   por e-mail (`tl_notify_quote`, para `ops_notify_config.mail_to`) sai a cada envio e, no modelo
   jornada, não lista os dias de narrativa que não se escolhem.
+- **Getting there e descrição da linha** (0115/0116, texto final dela): "Getting there" é rótulo
+  próprio, como Included e Good to know (`getting_pt/_en` na linha, `getting/_en` na opção), e nos
+  dias de carro próprio substitui o "transportation" do Not included. Em "Your proposal" cada linha
+  leva o nome e uma linha de descrição (`row_desc`); "or" entre opções que se excluem, menos na
+  hospedagem, que sai agrupada por hotel (`row_group`). O valor por noite sai sem centavos,
+  arredondado à dezena, porque é "about".
 - **Concierge services, e não dining concierge**: concierge é mais amplo que restaurante. Os
   € 60 por dia são da seleção, curadoria e reservas antes da viagem; durante a viagem, o
   concierge on-site é a partir de € 150 por dia e sai como observação, sem somar.
