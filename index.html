@@ -2760,7 +2760,9 @@ const MIGRACOES = [
   {id:"0126-emily-v2-corrige-km-do-carro", arq:"0126-emily-v2-corrige-km-do-carro.sql",
    oque:"corrige a 0125: a quilometragem do carro nas chaves em inglês"},
   {id:"0127-emily-v2-texto-do-aceite", arq:"0127-emily-v2-texto-do-aceite.sql",
-   oque:"texto do aceite no envio da proposta da Emily"}
+   oque:"texto do aceite no envio da proposta da Emily"},
+  {id:"0128-emily-v2-menu-de-roma", arq:"0128-emily-v2-menu-de-roma.sql",
+   oque:"Rome com nome de menu, para o título da folha seguir o menu como nas outras bases"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -9316,6 +9318,17 @@ function drawJornada(){
      nov/26: o menu fala como a experiência do cliente — "Cortona, Tuscany",
      "Your selected stays"). Rótulo j_menu_<chave>; vazio, o de sempre. */
   const M = (k, d) => rot(p, "j_menu_"+k, d);
+  /* O título da folha acompanha o menu (instrução dela, nov/26). Havendo
+     nome de menu, ele vira o título, e o resto do título da seção — a data,
+     depois do " · " — sobe para a linha pequena acima. Sem nome de menu,
+     o título de sempre. */
+  const temM = k => !!String(((p.labels||{})["j_menu_"+k])||"").trim();
+  const tituloSec = (sec, dflt) => {
+    const tt = sec.title || dflt || "";
+    if(!temM(sec.key)) return `<h2>${esc(tt)}</h2>`;
+    const resto = tt.split(" · ").slice(1).join(" · ");
+    return `${resto?`<div class="j-dia">${esc(resto)}</div>`:""}<h2>${esc(M(sec.key, tt))}</h2>`;
+  };
   const respondida = !!p.responded_at;
   const itens = QT.items||[];
   const secs = (p.sections||[]);
@@ -9376,7 +9389,7 @@ function drawJornada(){
   (p.curations||[]).forEach(c=>{
     passos.push({txt:M("glance", (c.opcao||"").trim() || L("glance", J.glance)), html:`
       <section class="ap-cur ap-passo ${c.cor==="terracota"?"terra":"verde"}" style="display:none;">
-        ${(c.title||"").trim()?`<h2>${esc(c.title)}</h2>`:""}
+        ${(c.title||"").trim()?`<h2>${esc(temM("glance") ? M("glance", c.title) : c.title)}</h2>`:""}
         ${(c.destinos||"").trim()?`<div class="cur-dest">${esc(c.destinos).replace(/\n/g,"<br>")}</div>`:""}
         <div class="cur-dias">${curDias(c.dias, true)}</div>
         ${p.crm_code?`<div class="cur-ref">${esc(p.crm_code)}</div>`:""}
@@ -9401,7 +9414,7 @@ function drawJornada(){
     if(!lista.length) return;
     passos.push({txt:M(sec.key, (sec.title||"").split(" · ")[0]), html:`
       <section class="ap-sec ap-sec-dias ap-passo" style="display:none;">
-        <div class="ap-dias-head"><h2>${esc(sec.title||"")}</h2>
+        <div class="ap-dias-head">${tituloSec(sec)}
           ${sec.intro?`<div class="ap-dias-note">${fmtDoc(sec.intro)}</div>`:""}</div>
         <div class="ap-dias-lista">${lista.map(exp).join("")}
           <div class="j-nota">${esc(L("photos", J.photos))}</div>${apNav(t)}</div>
@@ -9465,7 +9478,7 @@ function drawJornada(){
     passos.push({txt:M("stay", L("stay", J.stay)), html:`
     <section class="ap-sec ap-passo j-hosp" style="display:none;">
       <div class="ap-foto">${fl?`<img class="ap-fundo" src="${esc(fl.src)}" alt="" style="object-position:${fl.pos}">`:""}
-        <div class="ap-foto-txt"><h2>${esc(L("stay", J.stay))}</h2>
+        <div class="ap-foto-txt"><h2>${esc(M("stay", L("stay", J.stay)))}</h2>
           ${hosp[0].intro?`<div class="ap-note">${esc(hosp[0].intro)}</div>`:""}</div></div>
       <div class="ap-lista">${hosp.map(sec=>itens.filter(i=>i.section===sec.key).map(i=>hotelHTML(i,sec)).join("")).join("")}
         ${apNav(t)}</div>
@@ -9505,7 +9518,7 @@ function drawJornada(){
     if(!lista.length) return;
     passos.push({txt:M(sec.key, (sec.title||"").split(" · ")[0] || L("around", J.around)), html:`
       <section class="ap-sec ap-sec-dias ap-passo" style="display:none;">
-        <div class="ap-dias-head"><h2>${esc(sec.title||J.around)}</h2>
+        <div class="ap-dias-head">${tituloSec(sec, J.around)}
           ${sec.intro?`<div class="ap-dias-note">${fmtDoc(sec.intro)}</div>`:""}</div>
         <div class="ap-dias-lista">${lista.map(transpHTML).join("")}${apNav(t)}</div>
       </section>`});
