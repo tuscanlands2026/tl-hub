@@ -763,6 +763,8 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   .doc table.svc.j-tab td.money{text-align:right !important;white-space:nowrap;font-size:12.5px;}
   .doc table.svc.j-tab tr.j-grupo{display:block;}
   .doc table.svc.j-tab tr.j-grupo{padding-top:8px;padding-bottom:5px;}
+  .doc table.svc.j-tab tr.j-ou{display:block;border-bottom:0;padding-top:2px;padding-bottom:2px;}
+  .doc table.svc.j-tab tr.j-ou td{padding-left:24px;}
   .doc table.svc.j-tab tr.j-grupo td{font-size:9.5px;letter-spacing:.12em;}
   .doc table.svc.j-tab tr.j-n1{padding-left:24px;}
   .doc table.svc.j-tab tr.j-n2{padding-left:46px;}
@@ -1331,6 +1333,9 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
    espaço do mesmo tamanho, para o texto alinhar com as outras linhas. */
 .j-sem-caixa{display:inline-block;width:13px;flex:0 0 13px;}
 .j-tab tr.j-pend td.money{color:var(--muted);font-style:italic;}
+.j-tab .j-rdesc{display:block;font-size:12px;color:var(--muted);line-height:1.5;margin-top:2px;}
+.j-tab tr.j-ou td{font-size:11px;font-style:italic;color:var(--muted);padding-top:2px;padding-bottom:2px;border-bottom:0;}
+.j-tab tr.j-ou.j-n1 td{padding-left:48px;}
 .j-sub{display:flex;gap:22px;margin:8px 0 0 26px;}
 .j-nota-tab{font-size:12.5px;color:var(--muted);margin:10px 12px 0;line-height:1.6;}
 /* O total não quebra entre o € e o número: no celular o "€" ficava sozinho
@@ -2645,7 +2650,11 @@ const MIGRACOES = [
   {id:"0113-emily-v2-foto-montalcino", arq:"0113-emily-v2-foto-montalcino.sql",
    oque:"a foto da propriedade em Montalcino, no lugar da segunda foto de adega"},
   {id:"0114-emily-v2-foto-bulgari", arq:"0114-emily-v2-foto-bulgari.sql",
-   oque:"o enquadramento das fotos dos quartos do Bulgari, na cama"}
+   oque:"o enquadramento das fotos dos quartos do Bulgari, na cama"},
+  {id:"0115-getting-there-e-descricao-da-linha", arq:"0115-getting-there-e-descricao-da-linha.sql",
+   oque:"o Getting there e a descrição de cada linha em Your proposal"},
+  {id:"0116-emily-v2-texto-final-2", arq:"0116-emily-v2-texto-final-2.sql",
+   oque:"o texto final da proposta da Emily, segunda versão"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5342,6 +5351,8 @@ async function saveProposal(){
          editor apagaria o que a migração escreveu. */
       row_pt:r.row_pt||null, row_en:r.row_en||null,
       row_group_pt:r.row_group_pt||null, row_group_en:r.row_group_en||null,
+      row_desc_pt:r.row_desc_pt||null, row_desc_en:r.row_desc_en||null,
+      getting_pt:r.getting_pt||null, getting_en:r.getting_en||null,
       units:(r.units||[]).filter(u=>(u.label||"").trim()),
       extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}));
   let e2 = null, semProcedencia = false;
@@ -9041,24 +9052,24 @@ function apAnda(d){ apIr(APASSO + d); }
 const JTXT = {
   en:{glance:"At a glance", stay:"Where you'll stay", around:"Getting around", prop:"Your proposal",
       closing:"Closing", opening:"Opening", opt:["Option one","Option two","Option three","Option four"],
-      good:"Good to know", inc:"Included", notinc:"Not included",
+      good:"Good to know", getting:"Getting there", inc:"Included", notinc:"Not included",
       photos:"Photos are illustrative, to give an idea of each experience.",
       pickRoom:"Select this room", pickCar:"Select this category",
       nights:(n,v)=>`${n} nights · about ${v} per night`,
       lead:"This proposal is built as one program, with every experience included. If you'd like to adjust any part of it, your travel advisor will arrange it with us.",
       bStays:"Stays", bCar:"Car in Tuscany", bExp:"Experiences", bServ:"Services", bOpt:"Optional",
       add:"Add", onRequest:"On request", needPick:"Please choose one option for:", total:"Your total",
-      bDays:"Day by day", pending:"Pending"},
+      bDays:"Day by day", pending:"Pending", or:"or"},
   pt:{glance:"Em resumo", stay:"Onde você vai ficar", around:"Como se deslocar", prop:"Sua proposta",
       closing:"Encerramento", opening:"Abertura", opt:["Opção um","Opção dois","Opção três","Opção quatro"],
-      good:"Bom saber", inc:"Incluso", notinc:"Não incluso",
+      good:"Bom saber", getting:"Como chegar", inc:"Incluso", notinc:"Não incluso",
       photos:"As fotos são ilustrativas, para dar uma ideia de cada experiência.",
       pickRoom:"Selecionar este quarto", pickCar:"Selecionar esta categoria",
       nights:(n,v)=>`${n} noites · cerca de ${v} por noite`,
       lead:"Esta proposta é um programa único, com todas as experiências incluídas. Para ajustar qualquer parte, a sua agência combina conosco.",
       bStays:"Hospedagem", bCar:"Carro na Toscana", bExp:"Experiências", bServ:"Serviços", bOpt:"Opcional",
       add:"Adicionar", onRequest:"Sob consulta", needPick:"Escolha uma opção em:", total:"Seu total",
-      bDays:"Dia a dia", pending:"A confirmar"}
+      bDays:"Dia a dia", pending:"A confirmar", or:"ou"}
 };
 /* Foto com ponto focal: "url#p=50,72" centra a foto em 50% / 72%. O que vem
    depois de # não vai ao servidor, então o endereço da foto não muda. */
@@ -9245,8 +9256,8 @@ function drawJornada(){
       ${jEscolha(i) ? (i.units||[]).map((u,k)=>`<div class="j-opt">
           <div class="j-ov">${esc(J.opt[k]||"")}</div><div class="j-optname">${esc(u.label||"")}</div>
           ${u.desc?`<div class="ap-desc">${fmtDoc(u.desc)}</div>`:""}
-          ${blk(J.good,u.good)}${blk(J.inc,u.included)}${blk(J.notinc,u.not_included)}</div>`).join("") : ""}
-      ${blk(J.good,i.good)}${blk(J.inc,i.included)}${blk(J.notinc,i.not_included)}
+          ${blk(J.good,u.good)}${blk(J.getting,u.getting)}${blk(J.inc,u.included)}${blk(J.notinc,u.not_included)}</div>`).join("") : ""}
+      ${blk(J.good,i.good)}${blk(J.getting,i.getting)}${blk(J.inc,i.included)}${blk(J.notinc,i.not_included)}
     </div></article>`;
   secs.filter(s=>s.tipo==="narrativa").forEach(sec=>{
     const lista = itens.filter(i=>i.section===sec.key);
@@ -9281,7 +9292,7 @@ function drawJornada(){
         <div class="ap-topo"><div><div class="ap-nome">${esc(u.label||"")}</div>
           ${u.ficha?`<div class="j-ficha">${esc(u.ficha)}</div>`:""}</div>
           <div class="ap-preco">${eur(u.price)}</div></div>
-        ${noites?`<div class="j-noite">${esc(J.nights(noites, eur(Number(u.price)/noites)))}</div>`:""}
+        ${noites?`<div class="j-noite">${esc(J.nights(noites, eur(Math.round(Number(u.price)/noites/10)*10).replace(/,00$/,"")))}</div>`:""}
         ${u.desc?`<div class="ap-desc">${fmtDoc(u.desc)}</div>`:""}
         ${caixa(i, u, L("pick_room", J.pickRoom))}
       </div></div>`).join("")}`;
@@ -9350,9 +9361,11 @@ function drawJornada(){
   const tab = (titulo, linhas, nota) => linhas.length ? `<div class="blocktitle" style="margin-top:28px;">${esc(titulo)}</div>
       <table class="svc j-tab">${cab}<tbody>${linhas.join("")}</tbody></table>
       ${(nota||"").trim()?`<div class="j-nota-tab">${fmtDoc(nota)}</div>`:""}` : "";
-  const tr = (id, on, travada, acao, rotulo, valor, sub, nivel) => `<tr class="${on?"":"j-off"}${nivel?" j-n"+nivel:""}"><td>
+  /* A linha leva o nome e, embaixo, uma linha de descrição (row_desc, 0115):
+     o cliente escolhe sem voltar às telas de dia. */
+  const tr = (id, on, travada, acao, rotulo, valor, sub, nivel, desc) => `<tr class="${on?"":"j-off"}${nivel?" j-n"+nivel:""}"><td>
       <div class="check j-linha"><input type="checkbox" id="${id}"${on?" checked":""}${travada||respondida?" disabled":""}
-        onchange="${acao}"><label for="${id}">${esc(rotulo)}</label></div>${sub||""}</td>
+        onchange="${acao}"><label for="${id}">${esc(rotulo)}${(desc||"").trim()?`<span class="j-rdesc">${esc(desc)}</span>`:""}</label></div>${sub||""}</td>
       <td class="money">${valor}</td></tr>`;
   const rotuloExtra = e => p.lang==="en" ? (e.row_en||e.row||e.label_en||e.label_pt) : (e.row||e.label_pt);
   const linhasDe = (i, nivel) => {
@@ -9369,16 +9382,20 @@ function drawJornada(){
         (QSEL.extras[i.id]||[]).includes(e.key)?" checked":""}${respondida?" disabled":""}
         onchange="jExtra('${id}','${esc(e.key)}',this.checked)"><label for="jx-${id}-${esc(e.key)}">${esc(rotuloExtra(e))}</label></span>`).join("")}</div>`;
     };
+    /* "or" entre as opções que se excluem (instrução dela, nov/26), menos
+       na hospedagem, onde o grupo do hotel já diz que é um quarto só. */
+    const comOu = !!i.choice_group && jSecDe(p, i).tipo !== "hospedagem";
     if((i.units||[]).length){
-      (i.units||[]).forEach(u=>{
+      (i.units||[]).forEach((u,k)=>{
         const on = !u.optional || sel.includes(u.key);
+        if(comOu && k > 0) out.push(`<tr class="j-ou${n1?" j-n"+n1:""}"><td colspan="2">${esc(J.or)}</td></tr>`);
         out.push(tr(`jp-${id}-${esc(u.key)}`, on, !u.optional,
           `jMarcaU('${id}','${esc(u.key)}',this.checked)`,
-          u.row || `${i.title} · ${u.label||""}`, eur(u.price), subGrupo(u.key), n1));
+          u.row || `${i.title} · ${u.label||""}`, eur(u.price), subGrupo(u.key), n1, u.row_desc));
       });
     } else {
       out.push(tr(`jp-${id}`, ligado, !i.optional, `jMarcaI('${id}',this.checked)`,
-        i.row || i.title, eur(i.price), "", n1));
+        i.row || i.title, eur(i.price), "", n1, i.row_desc));
     }
     /* Extra avulso vira linha própria. Só se marca com o serviço — e com a
        opção dele — marcado; fora disso fica na tela, apagado e travado. */
@@ -9387,7 +9404,7 @@ function drawJornada(){
       const preco = e.price != null && e.price !== "" ? Number(e.price) : null;
       out.push(tr(`jx-${id}-${esc(e.key)}`, ativo && (QSEL.extras[i.id]||[]).includes(e.key), !ativo,
         `jExtra('${id}','${esc(e.key)}',this.checked)`, rotuloExtra(e),
-        preco == null ? esc(J.onRequest) : eur(preco), "", n2));
+        preco == null ? esc(J.onRequest) : eur(preco), "", n2, p.lang==="en" ? (e.row_desc_en||e.row_desc) : e.row_desc));
     });
     return out.join("");
   };
@@ -9412,8 +9429,8 @@ function drawJornada(){
   const baseData = d => (d||"").split(" · ")[0].trim();
   const pendente = i => !jTemValor(i) && (i.row||"").trim();
   const linhaPendente = (i, nivel) => `<tr class="j-pend${nivel?" j-n"+nivel:""}"><td>
-      <div class="check j-linha"><span class="j-sem-caixa"></span><label>${esc(i.row)}</label></div></td>
-      <td class="money">${esc(J.pending)}</td></tr>`;
+      <div class="check j-linha"><span class="j-sem-caixa"></span><label>${esc(i.row)}${(i.row_desc||"").trim()?`<span class="j-rdesc">${esc(i.row_desc)}</span>`:""}</label></div></td>
+      <td class="money">${esc(L("pending", J.pending))}</td></tr>`;
   const transpItens = [...transp.flatMap(comValor), ...secs.filter(s=>s.tipo==="dining").flatMap(comValor)];
   const comOpcoes = transpItens.filter(i=>(i.units||[]).length);
   const doDia = [
@@ -9429,7 +9446,8 @@ function drawJornada(){
       + mapa[g].map(i=>pendente(i) ? linhaPendente(i, g?1:0) : linhasDe(i, g?1:0)).join(""));
   };
   const blocos =
-      tab(L("b_stays", J.bStays), hosp.flatMap(comValor).map(i=>linhasDe(i)))
+      tab(L("b_stays", J.bStays), hosp.flatMap(comValor).map(i=>
+        (i.row_group||"").trim() ? `<tr class="j-grupo"><td colspan="2">${esc(i.row_group)}</td></tr>` + linhasDe(i, 1) : linhasDe(i)))
     + comOpcoes.map(i=>tab((i.row_group||"").trim() || i.title, [linhasDe(i)])).join("")
     + tab(L("b_days", J.bDays), porDia())
     + (semDia.length ? tab((semDia[0].row_group||"").trim() || J.bServ, semDia.map(i=>linhasDe(i)),
