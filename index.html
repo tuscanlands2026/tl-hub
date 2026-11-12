@@ -1379,6 +1379,7 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .j-cfoto span{position:absolute;left:0;right:0;bottom:0;padding:14px 7px 5px;color:#fff;font-size:10.5px;
   line-height:1.25;background:linear-gradient(transparent,rgba(42,42,40,.65));}
 .j-cars + .j-rnote{margin-top:10px;}
+.j-credito{font-size:10px;color:var(--muted);margin:2px 0 10px;line-height:1.5;}
 @media screen and (max-width:900px){
   .j-cars{grid-template-columns:1fr;}
   .j-hcorpo,.j-cortona{padding:18px 18px 20px;}
@@ -2721,7 +2722,9 @@ const MIGRACOES = [
   {id:"0118-nota-das-opcoes-e-data-da-tabela", arq:"0118-nota-das-opcoes-e-data-da-tabela.sql",
    oque:"nota das opções, data da tabela, modelos de carro e links de quarto"},
   {id:"0119-emily-v2-desenho-novo", arq:"0119-emily-v2-desenho-novo.sql",
-   oque:"os dados do desenho novo da proposta da Emily, com as opções mais caras marcadas"}
+   oque:"os dados do desenho novo da proposta da Emily, com as opções mais caras marcadas"},
+  {id:"0120-emily-v2-fotos-dos-carros", arq:"0120-emily-v2-fotos-dos-carros.sql",
+   oque:"as fotos do Maserati, do Audi e do BMW na proposta da Emily"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -9432,6 +9435,10 @@ function drawJornada(){
         <div class="ap-nome">${esc(i.title)}</div>${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
         <div class="j-cars">${(i.units||[]).map(u=>carroHTML(i,u)).join("")}</div>
         ${(i.options_note||"").trim()?`<div class="j-rnote">${esc(i.options_note)}</div>`:""}
+        ${/* Foto de licença livre (Wikimedia Commons) pede autor e licença junto
+              dela: uma linha mínima, só quando algum modelo traz o crédito. */""}
+        ${(()=>{ const cr = (i.units||[]).flatMap(u=>(u.models||[]).filter(m=>m&&m.credit).map(m=>`${m.name}: ${m.credit}`));
+                 return cr.length ? `<div class="j-credito">${esc(cr.join(" · "))}</div>` : ""; })()}
         ${blk(J.good,i.good)}${blk(J.inc,i.included)}</div></article>`;
   };
   transp.forEach(sec=>{
