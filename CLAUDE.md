@@ -999,6 +999,20 @@ Os dois blocos de texto do relatório — dados fiscais e como emitir a nota —
 Pensar a implicação lógica antes de escrever código ou texto. Não produzir e depois
 descobrir a contradição. Decisão parcial se guarda e se espera a especificação fechada.
 
+**Dificuldade é para eu resolver, e não para devolver a ela** (instrução dela, nov/26):
+*"toda vez que você tiver dificuldade, você tem que buscar a solução e não pedir para eu ficar
+perdendo tempo baixando foto para você."* O caso: na TL-053-26 eu disse num dia que as fotos dos
+quartos do Castelfalfi não podiam ser baixadas, e no dia seguinte elas baixaram sem problema — o
+site tinha só mudado a pasta das imagens (`/transform/` → `/transformations/`) e a página que
+pedia CAPTCHA voltou a responder. Antes de pedir qualquer arquivo a ela:
+- tentar de novo: site que recusou ontem pode responder hoje, e um erro de rede some na segunda
+  tentativa;
+- procurar o endereço atual: a página do produto, a galeria, outra língua do mesmo site, a página
+  oficial de outro país do fabricante;
+- procurar a mesma coisa em outra fonte legítima e oficial.
+O limite continua: verificação de robô (CAPTCHA, 403 de proteção) não se contorna. Só depois de
+esgotar os caminhos legítimos é que eu peço a ela — e digo exatamente o que tentei e o que falta.
+
 ### Briefing que a advisor responde (outubro/26)
 
 Especificação dela: a TL manda um briefing por link, a advisor responde na mesma página, cada
