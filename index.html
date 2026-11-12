@@ -1299,6 +1299,15 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
 .j-btit{font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);
   margin:34px 0 10px;hyphens:none;}
 .doc table.svc.j-tab{margin-top:0;background:#fff;}
+@media screen and (max-width:900px){
+  /* No celular o cabeçalho DATE | SERVICE | PRICE some; o título do bloco
+     vira a faixa verde (instrução dela, nov/26: sem ela a tabela ficava
+     sem divisão de categoria). */
+  .apres.jornada .j-btit{background:var(--sage);color:#fff;padding:10px 12px;margin:30px 0 0;}
+  /* Títulos dos dias no tamanho do nome do hotel em Your selected stays. */
+  .apres.jornada .ap-exp .ap-nome{font-size:23px;}
+  .apres.jornada .ap-dias-head h2,.apres.jornada .j-hosp .ap-foto-txt h2{font-size:26px;}
+}
 .doc table.svc.j-tab thead th.j-cd{width:170px;}
 .doc table.svc.j-tab tbody tr{background:#fff;}
 .doc table.svc.j-tab tbody tr.alt{background:var(--cream-light);}
@@ -2749,7 +2758,9 @@ const MIGRACOES = [
   {id:"0125-emily-v2-carro-concierge-support", arq:"0125-emily-v2-carro-concierge-support.sql",
    oque:"quilometragem do carro na linha de baixo, concierge sem 'optional' e sem o support car"},
   {id:"0126-emily-v2-corrige-km-do-carro", arq:"0126-emily-v2-corrige-km-do-carro.sql",
-   oque:"corrige a 0125: a quilometragem do carro nas chaves em inglês"}
+   oque:"corrige a 0125: a quilometragem do carro nas chaves em inglês"},
+  {id:"0127-emily-v2-texto-do-aceite", arq:"0127-emily-v2-texto-do-aceite.sql",
+   oque:"texto do aceite no envio da proposta da Emily"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -4481,6 +4492,9 @@ const ROTULOS = [
   {k:"extras_title", onde:"Proposta · grupo dos extras",
      pt:"Extras e opcionais (válidos para a contratação da hospedagem)",
      en:"Add-ons and options (available with the stay)"},
+  {k:"ack",          onde:"Envio · aceite das condições",
+     pt:"Li e estou ciente das condições comerciais desta proposta.",
+     en:"I have read and understood the commercial conditions of this proposal."},
   {k:"approve",      onde:"Caixinha de cada serviço",
      pt:"Selecione para aprovar esta opção", en:"Select to approve this option"},
   {k:"interest",     onde:"Envio simples · título",
@@ -8982,7 +8996,7 @@ function quoteConfirmar(t, respondida, pagamentos, p){
     </div>`:""}
     <div style="margin-top:16px;"><label>${t.remarks}</label><textarea id="qc-rem" rows="3"></textarea></div>
     <div class="check" style="margin-top:18px;"><input type="checkbox" id="qc-ack">
-      <label for="qc-ack">${t.qAck} <span class="req">*</span></label></div>
+      <label for="qc-ack">${esc(rot(p,"ack",t.qAck))} <span class="req">*</span></label></div>
     <div id="qc-msg" style="margin-top:14px;"></div>
     <button class="btn" id="qc-go" style="margin-top:16px;">${t.qSend}</button>
   </div>`}`;

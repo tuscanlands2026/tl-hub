@@ -1329,6 +1329,9 @@ categoria de carro e extra é **uma linha própria**, com o dia da semana, a dat
 - Extra com `grupo` é escolha sem valor embaixo da opção (almoço OU jantar): troca dentro do
   grupo e não fica vazio. Fica sempre à vista em "Your proposal", também com a opção desmarcada;
   marcar almoço ou jantar marca a opção junto (0125).
+- No celular o título de cada bloco de "Your proposal" é a faixa verde (o cabeçalho DATE | SERVICE |
+  PRICE some ali), e os títulos dos dias ficam no tamanho do nome do hotel (23px).
+- O texto da caixinha do aceite é rótulo da proposta (`ack`); vazio, o padrão de sempre (0127).
 - Carros em cartões um embaixo do outro, com a foto do modelo inteira (16:9, sem cortar) e o
   nome embaixo da foto, e não por cima.
 - Nota da seção (`sections[].note`) sai embaixo da tabela dela, como observação que não soma —
