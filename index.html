@@ -2796,7 +2796,9 @@ const MIGRACOES = [
   {id:"0139-order-termos-proprios-e-perguntas", arq:"0139-order-termos-proprios-e-perguntas.sql",
    oque:"order com termos próprios no lugar dos da casa; a order TL-053-26 com termos, pagamento e perguntas"},
   {id:"0140-perguntas-em-general-information", arq:"0140-perguntas-em-general-information.sql",
-   oque:"corrige a 0139: as perguntas da order TL-053-26 sob 'General information'"}
+   oque:"corrige a 0139: as perguntas da order TL-053-26 sob 'General information'"},
+  {id:"0141-pergunta-do-carro", arq:"0141-pergunta-do-carro.sql",
+   oque:"a pergunta do modelo do carro da order TL-053-26 com o texto dela"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -8724,7 +8726,7 @@ function renderSummary(){
       ${linha(t.sumSignedAt, esc(stamp(c.submitted_at, o.lang)))}
       ${linha(t.sumAckTerms, c.ack_terms ? t.accepted : `<span class="blank">${t.notAccepted}</span>`)}
       ${linha(t.sumAckVehicle, c.ack_vehicle ? t.accepted : t.notMarked)}
-      ${termsHref(o)?linha(rotuloTermos(o,t).replace(/:$/,""),
+      ${termsHref(o) && o.terms_house!==false ? linha(rotuloTermos(o,t).replace(/:$/,""),
           `<a href="${esc(termsHref(o))}" style="color:var(--sage);">${esc(termsHref(o))}</a>`):""}
     </table>
 
@@ -10579,7 +10581,10 @@ function drawPublic(){
     </div>`:""}
 
     <div class="terms">${termosDaOrder(o, t)}
-      ${termsHref(o)?`<div class="terms-link">${rotuloTermos(o,t)}
+      ${/* Com termos próprios (terms_house=false) o link dos termos gerais da
+            casa também sai: ele fala dos mesmos tours e transfers (instrução
+            dela na TL-053-26). */""}
+      ${termsHref(o) && o.terms_house!==false ?`<div class="terms-link">${rotuloTermos(o,t)}
         <a href="${esc(termsHref(o))}" target="_blank" rel="noopener">${esc(termsHref(o))}</a></div>`:""}
     </div>
 
