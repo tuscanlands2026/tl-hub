@@ -1404,6 +1404,21 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
   font-size:13.5px;font-weight:300;line-height:1.7;color:var(--ink);text-align:justify;
   hyphens:none;-webkit-hyphens:none;}
 .j-hosp .ap-estrutura p,.j-hosp .j-htexto p,.j-hosp .j-rtexto p{margin:0 0 6px;}
+/* ── Página única (modelo='pagina', 0144): sem capa e sem menu ── */
+.apres.jornada.umapag{grid-template-columns:1fr;}
+.umapag .ap-sec.ap-fim .ap-foto{height:46vh;max-height:420px;}
+.umapag .j-up-topo{position:absolute;top:24px;left:40px;right:40px;z-index:2;display:flex;
+  align-items:flex-start;justify-content:space-between;gap:16px;}
+.umapag .j-up-topo .ap-logo-capa{position:static;max-height:64px;width:auto;}
+.umapag .j-up-topo .ap-baixar{width:auto;margin:0;padding:8px 14px;background:rgba(0,0,0,.18);}
+.umapag .ap-foto-txt .ap-ref{font-size:10px;letter-spacing:.2em;color:#fff;opacity:.85;margin-top:6px;}
+.umapag .ap-dias-head,.umapag .ap-dias-lista,.umapag .ap-lista.larga{max-width:1040px;margin:0 auto;}
+@media screen and (max-width:900px){
+  .umapag .j-up-topo{top:16px;left:18px;right:18px;}
+  .umapag .j-up-topo .ap-logo-capa{max-height:46px;}
+  .umapag .ap-sec.ap-fim .ap-foto{height:38vh;}
+}
+@media print{ .umapag .ap-sec.ap-fim .ap-foto{height:60mm;} }
 /* ── Carros: dois cartões, três fotos de modelo em cada ── */
 /* Um cartão embaixo do outro, e a foto do carro inteira (instrução dela,
    nov/26: lado a lado o carro saía cortado). Proporção 16:9 com "contain"
@@ -2805,7 +2820,9 @@ const MIGRACOES = [
   {id:"0142-pergunta-do-carro-em-duas-linhas", arq:"0142-pergunta-do-carro-em-duas-linhas.sql",
    oque:"a pergunta do carro da order TL-053-26 em duas linhas"},
   {id:"0143-frase-do-link-dos-termos", arq:"0143-frase-do-link-dos-termos.sql",
-   oque:"frase editável antes do link dos termos complementares; a da order TL-053-26"}
+   oque:"frase editável antes do link dos termos complementares; a da order TL-053-26"},
+  {id:"0144-pagina-unica-e-tl-065-26", arq:"0144-pagina-unica-e-tl-065-26.sql",
+   oque:"desenho página única (sem capa, preço no cartão da opção) e a TL-065-26 nele"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -3913,6 +3930,7 @@ function renderProposal(){
       <select id="q-modelo" onchange="PROP.modelo=this.value||null;">
         <option value=""${!p.modelo?" selected":""}>Clássico — seções em abas, preço nos cards</option>
         <option value="jornada"${p.modelo==="jornada"?" selected":""}>Jornada — uma tela por base, preço só em "Your proposal"</option>
+        <option value="pagina"${p.modelo==="pagina"?" selected":""}>Página única — sem capa e sem menu, o preço no cartão de cada opção</option>
       </select>`:""}</div>
       <div style="grid-column:span 2;"><label>Imagem da capa — link</label>
         <input id="q-cover" value="${esc(p.cover_img||"")}" placeholder="https://…"></div>
@@ -9750,6 +9768,58 @@ function drawJornada(){
       </div>
     </section>`});
 
+  /* PÁGINA ÚNICA (modelo='pagina', 0144). Instrução dela na TL-065-26,
+     nov/26: proposta curta, de um serviço só, "one page mesmo, sem capa".
+     Sem capa e sem menu: uma faixa com a foto, o logo e o nome, o serviço
+     com as opções e, embaixo, o total, as condições e o envio. O preço sai
+     UMA vez, no cartão de cada opção, que é onde se decide — a tabela de
+     "Your proposal" repetiria cada número. Usa as mesmas peças do jornada
+     (cartão clicável, total, condições, envio), e por isso a mesma conta. */
+  if(p.modelo === "pagina"){
+    const ey = [p.cover_tag, p.travel_window].filter(x=>(x||"").trim()).join(" · ");
+    const corpo = transp.concat(secs.filter(s=>s.tipo==="narrativa")).map(sec=>{
+      const lista = itens.filter(i=>i.section===sec.key);
+      if(!lista.length) return "";
+      return `<div class="ap-dias-head">${tituloSec(sec)}
+          ${sec.intro?`<div class="ap-dias-note">${fmtDoc(sec.intro)}</div>`:""}</div>
+        <div class="ap-dias-lista">${lista.map(i => sec.tipo==="narrativa" ? exp(i) : transpHTML(i)).join("")}</div>`;
+    }).join("");
+    app.innerHTML = `
+    <div class="apres jornada umapag">
+      <main class="ap-main"><section class="ap-sec ap-fim ap-passo">
+        <div class="ap-foto ap-foto-fim">
+          ${p.cover_img?`<img class="ap-fundo" src="${esc(p.cover_img)}" alt="">`:""}
+          <div class="j-up-topo">
+            ${logoCapa?`<img class="ap-logo-capa${fundoLogo}${daAgencia?" da-agencia":""}" src="${esc(logoCapa)}" alt="${esc(marcaCapa)}"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block';">`:""}
+            <div class="ap-marca-capa" style="display:${logoCapa?"none":"block"};">${esc(marcaCapa)}</div>
+            <button class="ap-baixar noprint" onclick="baixarProposta()">${t.qDownload}</button>
+          </div>
+          <div class="ap-foto-txt">${ey?`<div class="ap-ey">${esc(ey)}</div>`:""}
+            ${(p.cover_title||"").trim()?`<h2>${esc(p.cover_title)}</h2>`:""}
+            ${p.crm_code?`<div class="ap-ref">${esc(p.crm_code)}</div>`:""}</div>
+        </div>
+        ${corpo}
+        ${p.show_summary !== false ? `<div class="ap-lista larga">
+          <div class="j-lead">${fmtDoc(L("lead", J.lead))}</div>
+          <div class="doc" style="box-shadow:none;padding:0;background:transparent;">
+            <div class="j-total"><span class="j-tl">${esc(J.total)}</span><span class="j-tv" id="ap-total">${eur(quoteTotal())}</span></div>
+            ${quoteFecho(p, t, true, respondida, false, true)
+                .replace(/<p><strong>((?:[A-Z0-9 ·,'’-]|&amp;)+)<\/strong><\/p>/g, '<p class="j-cond-h">$1</p>')}
+          </div>
+          <div class="ap-aviso">${esc(rot(p,"notice",t.qNaoBloqueio))}</div>
+          ${quoteConfirmar(t, respondida, p.payment_options, p)}
+        </div>` : ""}
+      </section></main>
+    </div>`;
+    if(!respondida && el("qc-go")) el("qc-go").onclick = submitQuote;
+    precarregarFotos(p, itens);
+    paginaSemMargem();
+    apIr(0, true);
+    if(ROLAGEM != null){ window.scrollTo(0, ROLAGEM); ROLAGEM = null; }
+    return;
+  }
+
   app.innerHTML = `
   <div class="apres jornada">
     <aside class="ap-indice noprint">
@@ -10316,7 +10386,7 @@ function drawQuote(){
   // A proposta apresentada troca só o corpo: capa, índice e blocos de
   // hospedagem no lugar das tabelas. Resumo, condições e envio são os
   // mesmos — é a mesma proposta, com outra roupa.
-  if(p.layout === "apresentada") return p.modelo === "jornada" ? drawJornada() : drawQuoteApresentada();
+  if(p.layout === "apresentada") return (p.modelo === "jornada" || p.modelo === "pagina") ? drawJornada() : drawQuoteApresentada();
 
   /* O link dos valores é este mesmo documento em tabela, e ele precisa
      dizer o que é: preço NET, para a agência, e não peça de cliente. */
@@ -10402,7 +10472,7 @@ async function submitQuote(){
   if(!el("qc-ack").checked){
     el("qc-msg").innerHTML = `<div class="msg">${t.qNeedAck}</div>`; return;
   }
-  if(p.modelo === "jornada"){
+  if(p.modelo === "jornada" || p.modelo === "pagina"){
     const f = jFaltam();
     if(f.length){ el("qc-msg").innerHTML = `<div class="msg">${esc(JTXT[p.lang==="en"?"en":"pt"].needPick+" "+f.join(" · "))}</div>`; return; }
   }

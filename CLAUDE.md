@@ -1449,6 +1449,15 @@ padrão continua os termos da casa e a frase padrão.
 assim que a 0142 se desfez. Migração que mexe em order que ela está editando: avisar para recarregar
 o editor antes de salvar.
 
+**Página única** (`modelo='pagina'`, 0144, 13/11/26). Instrução dela na TL-065-26, o barco a
+Capri da Danielle: proposta de um serviço só, "one page mesmo, sem capa". Sem capa e sem menu:
+faixa com a foto, o logo da agência e o nome; o serviço com as opções em cartão clicável; e
+embaixo o total, as condições e o envio. **O preço sai uma vez, no cartão**, onde se decide — ela
+viu o mesmo número no cartão e de novo na tabela de "Your proposal" e mandou escolher um lugar.
+Usa as peças do jornada (`drawJornada` desvia no fim), então a conta e o envio são os mesmos, e
+`tl_notify_quote` trata `pagina` como `jornada`. Foto de serviço numa região não leva paisagem de
+outra: os convés com Positano atrás saíram de um passeio que é de Capri.
+
 **`[texto](endereço)` vira link com nome em `fmtDoc`** (o vídeo do aperitivo no Tibre). Antes de
 ligar, conferido que nenhuma proposta, order ou padrão da casa usava esse formato — nada do que
 já existe muda de cara. O briefing da advisor tem formatador próprio e não passa por aqui.
