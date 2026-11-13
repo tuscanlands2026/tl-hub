@@ -1455,7 +1455,8 @@ faixa com a foto, o logo da agência e o nome; o serviço com as opções em car
 embaixo o total, as condições e o envio. **O preço sai uma vez, no cartão**, onde se decide — ela
 viu o mesmo número no cartão e de novo na tabela de "Your proposal" e mandou escolher um lugar.
 Usa as peças do jornada (`drawJornada` desvia no fim), então a conta e o envio são os mesmos, e
-`tl_notify_quote` trata `pagina` como `jornada`. Foto de serviço numa região não leva paisagem de
+`tl_notify_quote` trata `pagina` como `jornada`. Embaixo dos cartões sai **"Your selection"**, só com o que o
+cliente marcou, e o total — o resumo que ela pediu, e não a tabela de todas as opções de novo. Foto de serviço numa região não leva paisagem de
 outra: os convés com Positano atrás saíram de um passeio que é de Capri.
 
 **`[texto](endereço)` vira link com nome em `fmtDoc`** (o vídeo do aperitivo no Tibre). Antes de
