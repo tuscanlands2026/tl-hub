@@ -2792,7 +2792,11 @@ const MIGRACOES = [
   {id:"0137-lorini-fotos-discretas", arq:"0137-lorini-fotos-discretas.sql",
    oque:"Lorini Gioielli com duas fotos de peças discretas, de pérola"},
   {id:"0138-visitas-somam-300", arq:"0138-visitas-somam-300.sql",
-   oque:"as visitas privadas de Arezzo somam € 300 no total"}
+   oque:"as visitas privadas de Arezzo somam € 300 no total"},
+  {id:"0139-order-termos-proprios-e-perguntas", arq:"0139-order-termos-proprios-e-perguntas.sql",
+   oque:"order com termos próprios no lugar dos da casa; a order TL-053-26 com termos, pagamento e perguntas"},
+  {id:"0140-perguntas-em-general-information", arq:"0140-perguntas-em-general-information.sql",
+   oque:"corrige a 0139: as perguntas da order TL-053-26 sob 'General information'"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5823,6 +5827,7 @@ async function openOrder(id){
   CFG = {
     lead: blockMode(o,"lead"), travellers: blockMode(o,"travellers"),
     travellers_count: travCount(o), passport_names: passportNames(o), dob: modoDob(o),
+    trav_note: (o.checkout_config||{}).trav_note || "",
     ack_vehicle: blockMode(o,"ack_vehicle"), remarks: blockMode(o,"remarks"),
     prefill: Object.assign({lead_name:"",lead_email:"",lead_phone:"",travellers:[]}, prefill(o))
   };
@@ -5884,6 +5889,9 @@ function renderEditor(){
     </div>
     <div><label>Texto de abertura</label><textarea id="f-intro" rows="3">${esc(o.intro||"")}</textarea></div>
     <div><label>Condições específicas desta order</label><textarea id="f-terms-extra" rows="4">${esc(o.terms_extra||"")}</textarea>
+      <label class="check" style="text-transform:none;letter-spacing:0;font-size:12.5px;margin-top:6px;">
+        <input type="checkbox" id="f-terms-house" style="width:auto;"${o.terms_house===false?" checked":""}>
+        Usar só estas condições, no lugar dos termos da casa</label>
       <div class="hint" style="margin:5px 0 0;">Sai dentro de Termos e Condições, antes do texto da casa, e vale só para esta
         order. <b>**negrito**</b> e linha com <b>-</b> funcionam. Os termos da casa não mudam, porque eles valem também para as
         orders já entregues.</div></div>
@@ -6174,6 +6182,10 @@ function travOptions(){
         </select></div>
     </div>
     <div style="margin-top:12px;">
+      <label>Nota embaixo dos viajantes (sai para o cliente, no idioma da order)</label>
+      <textarea rows="2" oninput="CFG.trav_note=this.value">${esc(CFG.trav_note||"")}</textarea>
+    </div>
+    <div style="margin-top:12px;">
       <label>Data de nascimento</label>
       <select onchange="CFG.dob=this.value;drawConfig()">
         <option value="required"${CFG.dob!=="optional"&&CFG.dob!=="off"?" selected":""}>Pede e exige — bilhete nominal, meia-entrada</option>
@@ -6393,6 +6405,8 @@ function cfgToJson(){
     travellers_count: CFG.travellers_count,
     passport_names: !!CFG.passport_names,
     dob: CFG.dob === "optional" || CFG.dob === "off" ? CFG.dob : "required",
+    /* Nota embaixo do bloco dos viajantes (0139), texto dela por order. */
+    ...((CFG.trav_note||"").trim() ? {trav_note: CFG.trav_note.trim()} : {}),
     ack_vehicle: CFG.ack_vehicle !== "off",
     remarks: CFG.remarks !== "off",
     prefill: {}
@@ -6428,6 +6442,7 @@ async function saveOrder(){
     travel_window: el("f-window").value.trim(), intro: el("f-intro").value,
     terms_url: el("f-terms").value.trim() || null,
     terms_extra: el("f-terms-extra").value.trim() || null,
+    terms_house: el("f-terms-house").checked ? false : null,
     payment_note: el("f-paynote").value.trim() || null,
     payment_url: el("f-payurl").value.trim() || null,
     checkout_config: cfgToJson(),
@@ -6558,7 +6573,7 @@ async function duplicateOrder(){
     status:"draft", agency:o.agency, agency_contact:o.agency_contact,
     final_client:o.final_client, pax_summary:o.pax_summary, travel_window:o.travel_window,
     intro:o.intro, internal_notes:o.internal_notes, terms_url:o.terms_url,
-    terms_extra:o.terms_extra,
+    terms_extra:o.terms_extra, terms_house:o.terms_house,
     payment_note:o.payment_note, checkout_config:o.checkout_config
   }).select().single();
   if(error){ btn.disabled=false; btn.textContent="Duplicar"; return alert(error.message); }
@@ -10584,7 +10599,8 @@ function drawPublic(){
     <h2>${t.confirmTitle}</h2>
     <div class="rule"></div>
     ${bTrav!=="off"?`<div class="muted" style="margin-bottom:20px;">${t.travIntro}${
-      passportNames(o)?` <b>${t.passportNote}</b>`:""}</div>`:""}
+      passportNames(o)?` <b>${t.passportNote}</b>`:""}${
+      ((o.checkout_config||{}).trav_note||"").trim() ? `<br>${esc(o.checkout_config.trav_note)}` : ""}</div>`:""}
 
     ${bTrav!=="off"?`
     <div class="section-title">${t.travellers} <span class="req">*</span></div>
@@ -10659,6 +10675,13 @@ function termosDaCasa(o){
   return casa.slice(0, i) + TERMS_INGRESSOS[o.lang||"pt"] + "\n" + casa.slice(i);
 }
 function termosDaOrder(o, t){
+  /* terms_house=false (0139): os termos desta order SUBSTITUEM os da casa,
+     por instrução dela — na TL-053-26 a order é só hotel e carro, e os
+     termos da casa falam de tours e transfers. Vazio ou true: como sempre. */
+  if(o.terms_house === false){
+    const h2 = (TERMS[o.lang||"pt"].match(/<h2>[\s\S]*?<\/h2>/)||[""])[0];
+    return h2 + (o.terms_extra ? `<div class="terms-extra">${fmtDoc(o.terms_extra)}</div>` : "");
+  }
   const casa = termosDaCasa(o);
   if(!o.terms_extra) return casa;
   const extra = `<h3>${t.termsExtra}</h3><div class="terms-extra">${fmtDoc(o.terms_extra)}</div>`;
