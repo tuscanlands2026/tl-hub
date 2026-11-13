@@ -1340,6 +1340,11 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
    fonte dos preços das linhas, um pouco maior e mais forte. */
 .j-total{margin-top:40px;padding:20px 30px;background:#fff;border:1px solid var(--cream);
   display:flex;justify-content:space-between;align-items:center;gap:16px;}
+.j-aprov{display:inline-block;margin-left:10px;font-family:'Libre Franklin',sans-serif;font-weight:500;
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);vertical-align:middle;}
+.j-pw + .j-aprov,.money .j-aprov{margin-left:8px;}
+.money .j-apv{color:var(--muted);}
+.j-aprov-nota{margin-top:8px;font-size:12.5px;color:var(--muted);text-align:right;}
 .j-total .j-tl{font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);hyphens:none;}
 .j-total .j-tv{font-family:'Libre Franklin',sans-serif;font-weight:500;font-size:20px;color:var(--ink);white-space:nowrap;}
 .apres.jornada .j-cond-h{font-weight:500;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
@@ -2763,7 +2768,11 @@ const MIGRACOES = [
   {id:"0127-emily-v2-texto-do-aceite", arq:"0127-emily-v2-texto-do-aceite.sql",
    oque:"texto do aceite no envio da proposta da Emily"},
   {id:"0128-emily-v2-menu-de-roma", arq:"0128-emily-v2-menu-de-roma.sql",
-   oque:"Rome com nome de menu, para o título da folha seguir o menu como nas outras bases"}
+   oque:"Rome com nome de menu, para o título da folha seguir o menu como nas outras bases"},
+  {id:"0130-linha-ja-aprovada", arq:"0130-linha-ja-aprovada.sql",
+   oque:"linha de proposta já aprovada em order à parte: à vista, sem caixinha e fora do total"},
+  {id:"0131-emily-order-1-e-v3", arq:"0131-emily-order-1-e-v3.sql",
+   oque:"order dos quartos e do carro da Emily, e a v3 para ela escolher as experiências"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5467,6 +5476,9 @@ async function saveProposal(){
       getting_pt:r.getting_pt||null, getting_en:r.getting_en||null,
       options_note_pt:r.options_note_pt||null, options_note_en:r.options_note_en||null,
       row_date_pt:r.row_date_pt||null, row_date_en:r.row_date_en||null,
+      /* Linha já aprovada em order à parte (0130): sem isto, salvar no
+         editor devolveria a caixinha aos quartos já aprovados. */
+      approved: r.approved === true ? true : null,
       units:(r.units||[]).filter(u=>(u.label||"").trim()),
       extras:(r.extras||[]).filter(e=>(e.label_pt||"").trim())}));
   let e2 = null, semProcedencia = false;
@@ -8761,6 +8773,12 @@ function linhaTotal(i){
   });
   return t;
 }
+/* Linha já aprovada em order à parte (0130): o valor dela inteiro — a
+   linha e todas as unidades que ficaram nela. Só para a nota embaixo do
+   total; nunca entra em quoteTotal. */
+function linhaTotalAprov(i){
+  return (Number(i.price)||0) + (i.units||[]).reduce((a,u)=>a + (Number(u.price)||0), 0);
+}
 /* Modo indicativo: o valor da linha é referência por noite, não total.
    Quem decide é a proposta, não a linha — valor por linha seria um
    segundo lugar para escrever preço, e aí proposta e order divergem. */
@@ -9174,7 +9192,8 @@ const JTXT = {
       bStays:"Stays", bCar:"Car in Tuscany", bExp:"Experiences", bServ:"Services", bOpt:"Optional",
       add:"Add", onRequest:"On request", needPick:"Please choose one option for:", total:"Your total",
       bDays:"Day by day", pending:"Pending", or:"or",
-      avg:"Average per night", nightsW:"nights", selRoom:"Select your room"},
+      avg:"Average per night", nightsW:"nights", selRoom:"Select your room",
+      approved:"Approved", yourRoom:"Your room", approvedNote:"Already approved, not included in this total"},
   pt:{glance:"Em resumo", stay:"Onde você vai ficar", around:"Como se deslocar", prop:"Sua proposta",
       closing:"Encerramento", opening:"Abertura", opt:["Opção um","Opção dois","Opção três","Opção quatro"],
       good:"Bom saber", getting:"Como chegar", inc:"Incluso", notinc:"Não incluso",
@@ -9185,7 +9204,8 @@ const JTXT = {
       bStays:"Hospedagem", bCar:"Carro na Toscana", bExp:"Experiências", bServ:"Serviços", bOpt:"Opcional",
       add:"Adicionar", onRequest:"Sob consulta", needPick:"Escolha uma opção em:", total:"Seu total",
       bDays:"Dia a dia", pending:"A confirmar", or:"ou",
-      avg:"Média por noite", nightsW:"noites", selRoom:"Selecione o quarto"}
+      avg:"Média por noite", nightsW:"noites", selRoom:"Selecione o quarto",
+      approved:"Aprovado", yourRoom:"Seu quarto", approvedNote:"Já aprovado, fora deste total"}
 };
 /* Foto com ponto focal: "url#p=50,72" centra a foto em 50% / 72%. O que vem
    depois de # não vai ao servidor, então o endereço da foto não muda. */
@@ -9231,6 +9251,7 @@ function jPreparar(){
   }
   (QT.items||[]).forEach(i=>{
     if(!jTemValor(i)) return;                        // texto da narrativa
+    if(i.approved) return;                           // já aprovada, em order à parte
     const us = i.units||[], opc = us.filter(u=>u.optional);
     let sel = opc.filter(u=>u.selected).map(u=>u.key);
     if(!sel.length && opc.length) sel = jEscolha(i) ? [opc[0].key] : opc.map(u=>u.key);
@@ -9436,16 +9457,18 @@ function drawJornada(){
     if(!fs.length) return "";
     return `<div class="j-mosaico m${fs.length}">${imgs(fs)}</div>`;
   };
-  const marcaJS = (i, u, on) => respondida ? "" :
+  /* Linha já aprovada (0130): aparece escolhida e travada, com a etiqueta. */
+  const aprovTag = i => i.approved ? `<span class="j-aprov">${esc(L("approved", J.approved))}</span>` : "";
+  const marcaJS = (i, u, on) => (respondida || i.approved) ? "" :
     ` onclick="if(event.target.closest('a'))return;jMarcaU('${esc(i.id)}','${esc(u.key)}',${on?"false":"true"})"`;
   const quartoHTML = (i, u, noites) => {
-    const on = (QSEL.units[i.id]||[]).includes(u.key);
+    const on = !!i.approved || (QSEL.units[i.id]||[]).includes(u.key);
     const fs = (u.photos||[]).filter(x=>x&&String(x).trim()).slice(0,2).map(jFoto);
     const links = (u.links||[]).filter(a=>a&&a.url);
-    return `<div class="j-ropt${on?" sel":""}${respondida?" trava":""}"${marcaJS(i,u,on)}>
+    return `<div class="j-ropt${on?" sel":""}${respondida||i.approved?" trava":""}"${marcaJS(i,u,on)}>
       ${fs.length?`<div class="j-rfotos${fs.length===1?" um":""}">${imgs(fs)}</div>`:""}
       <div class="j-rcorpo">
-        <div class="j-rtopo"><div><div class="j-rnome"><span class="j-check">✓</span>${esc(u.label||"")}</div>
+        <div class="j-rtopo"><div><div class="j-rnome"><span class="j-check">✓</span>${esc(u.label||"")}${aprovTag(i)}</div>
           ${u.ficha?`<div class="j-rmeta">${esc(u.ficha)}</div>`:""}</div>
           <div class="j-rpreco">${noites
             ? `<div><span class="j-pn">${semCent(Math.round(Number(u.price)/noites/10)*10)}</span><span class="j-plbl">${esc(L("avg", J.avg))}</span></div>
@@ -9467,7 +9490,7 @@ function drawJornada(){
         ${blk(t.qIncluded, i.included)}${blk(t.qFacilities, i.facilities)}
         ${i.website?`<a class="j-rlink" href="${esc(i.website)}" target="_blank" rel="noopener">${t.qSite}</a>`:""}
         ${anexos.map(a=>`<a class="j-rlink" href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.name||"PDF")} →</a>`).join("")}
-        <div class="j-rlabel">${esc(L("sel_room", J.selRoom))}</div>
+        <div class="j-rlabel">${esc(i.approved ? L("your_room", J.yourRoom) : L("sel_room", J.selRoom))}</div>
         ${(i.options_note||"").trim()?`<div class="j-rnote">${esc(i.options_note)}</div>`:""}
         ${(i.units||[]).map(u=>quartoHTML(i,u,noites)).join("")}
       </div></div>`;
@@ -9493,12 +9516,12 @@ function drawJornada(){
   /* Serviço sem texto não vira bloco na folha: é só linha da tabela (o
      meet and greet da partida, que a folha já descreve junto do transfer). */
   const carroHTML = (i, u) => {
-    const on = (QSEL.units[i.id]||[]).includes(u.key);
+    const on = !!i.approved || (QSEL.units[i.id]||[]).includes(u.key);
     const ms = (u.models||[]).filter(m=>m&&m.name);
-    return `<div class="j-car${on?" sel":""}${respondida?" trava":""}"${marcaJS(i,u,on)}>
+    return `<div class="j-car${on?" sel":""}${respondida||i.approved?" trava":""}"${marcaJS(i,u,on)}>
       ${ms.length?`<div class="j-cfotos">${ms.map(m=>{ const f = m.photo ? jFoto(m.photo) : null;
         return `<div class="j-cfoto">${f?`<img src="${esc(f.src)}" alt="${esc(m.name)}"${m.credit?` title="${esc(m.name+": "+m.credit)}"`:""} style="object-position:${f.pos}">`:""}<span>${esc(m.name)}</span></div>`; }).join("")}</div>`:""}
-      <div class="j-ccorpo"><div class="j-rtopo"><div class="j-rnome"><span class="j-check">✓</span>${esc(u.label||"")}</div>
+      <div class="j-ccorpo"><div class="j-rtopo"><div class="j-rnome"><span class="j-check">✓</span>${esc(u.label||"")}${aprovTag(i)}</div>
         <div class="j-rpreco"><span class="j-pn">${semCent(u.price)}</span></div></div>
         ${u.ficha?`<div class="j-rmeta">${esc(u.ficha).replace(/\n/g,"<br>")}</div>`:""}
         ${u.desc?`<div class="j-rtexto">${fmtDoc(u.desc)}</div>`:""}</div></div>`;
@@ -9570,6 +9593,15 @@ function drawJornada(){
     };
     const naHosp = jSecDe(p, i).tipo === "hospedagem";
     if(naHosp && (i.units||[]).length) out.push(L1({nome:i.title, hotel:true}));
+    /* Já aprovada (0130): o valor à vista, apagado, com a etiqueta no lugar
+       da caixinha. Não soma no total e não vai na resposta. */
+    if(i.approved){
+      const apv = v => `<span class="j-apv">${eur(v)}</span>${aprovTag(i)}`;
+      if((i.units||[]).length) (i.units||[]).forEach(u=>out.push({nome: u.row || `${i.title} · ${u.label||""}`,
+        plain: naHosp, desc: u.row_desc, preco: apv(u.price)}));
+      else out.push({nome: i.row || i.title, desc: i.row_desc, preco: apv(i.price)});
+      return out;
+    }
     const comOu = !!i.choice_group && !naHosp;
     if((i.units||[]).length){
       (i.units||[]).forEach((u,k)=>{
@@ -9652,6 +9684,8 @@ function drawJornada(){
         <div class="doc" style="box-shadow:none;padding:0;background:transparent;">
           ${blocos}
           <div class="j-total"><span class="j-tl">${esc(J.total)}</span><span class="j-tv" id="ap-total">${eur(quoteTotal())}</span></div>
+          ${(()=>{ const ja = itens.filter(i=>i.approved).reduce((a,i)=>a + linhaTotalAprov(i), 0);
+                   return ja > 0 ? `<div class="j-aprov-nota">${esc(L("approved_note", J.approvedNote))}: ${eur(ja)}</div>` : ""; })()}
           ${/* Títulos das condições (PAYMENT, TERMS & CONDITIONS…) em versalete:
                 parágrafo que é só um negrito em caixa alta vira título. */""}
           ${quoteFecho(p, t, true, respondida, false, true)

@@ -1403,6 +1403,18 @@ marcação padrão induz o cliente a erro. Nulo continua sendo o de antes. Na TL
 "A journey with…" saiu por instrução dela (texto guardado na 0122), os cancelamentos da Ferrari e do
 carro estão nas condições gerais, e o texto corrido da hospedagem é um tamanho só, justificado.
 
+**Aprovação em duas etapas: order parcial e a v3** (0130/0131, 13/11/26). A agência aprovou por
+e-mail só os quartos e o carro (Suite Terrace no Castelfalfi, Junior Suite no Bulgari, Categoria 1).
+Instrução dela: gerar a order SÓ com isso, deixar a v2 em aberto e mandar uma v3, cópia da v2, para
+ela escolher as experiências; da resposta da v3 nasce a segunda order, e depois as duas se integram.
+- A order TL-053-26.1 nasce **sem ligar à oportunidade** (`opportunity_id` nulo, código em texto),
+  porque ligar exige proposta aceita e a v2 não pode ser marcada como aceita. `tl_order_from_quote`
+  passou a contar essas orders na numeração, para a segunda sair .2 e não .1 de novo.
+- `ops_proposal_items.approved`: a linha já aprovada aparece escolhida e travada, com a etiqueta
+  "Approved", o valor apagado e sem caixinha; não soma no total (sai numa nota embaixo dele) e
+  `tl_submit_quote` a pula — não vai para a resposta, o e-mail nem a order. O editor preserva o
+  campo ao salvar. Nulo é o de sempre.
+
 **`[texto](endereço)` vira link com nome em `fmtDoc`** (o vídeo do aperitivo no Tibre). Antes de
 ligar, conferido que nenhuma proposta, order ou padrão da casa usava esse formato — nada do que
 já existe muda de cara. O briefing da advisor tem formatador próprio e não passa por aqui.
