@@ -1456,7 +1456,11 @@ embaixo o total, as condições e o envio. **O preço sai uma vez, no cartão**,
 viu o mesmo número no cartão e de novo na tabela de "Your proposal" e mandou escolher um lugar.
 Usa as peças do jornada (`drawJornada` desvia no fim), então a conta e o envio são os mesmos, e
 `tl_notify_quote` trata `pagina` como `jornada`. Embaixo dos cartões sai **"Your selection"**, só com o que o
-cliente marcou, e o total — o resumo que ela pediu, e não a tabela de todas as opções de novo. Foto de serviço numa região não leva paisagem de
+cliente marcou, e o total — o resumo que ela pediu, e não a tabela de todas as opções de novo.
+Letra mais leve e menor que no jornada, e faixa alta (0145: "as letras ficam grosseiras", "a foto
+corta a cabeça das pessoas"). Foto da faixa sem gente: com a faixa larga, rosto sempre corta em
+algum tamanho de tela. Foto com licença CC BY leva crédito no rótulo `j_cover_credit`, pequeno no
+canto. "3 hours 30" saiu: ela leu como outra coisa; é "3½ hours". Foto de serviço numa região não leva paisagem de
 outra: os convés com Positano atrás saíram de um passeio que é de Capri.
 
 **`[texto](endereço)` vira link com nome em `fmtDoc`** (o vídeo do aperitivo no Tibre). Antes de
