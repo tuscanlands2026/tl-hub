@@ -560,6 +560,12 @@ quase 17; e o runtime precisa ser fixado, senão o binário procura as libs no l
 O `netlify.toml` e o `package.json` existem **só** para essa função. O hub continua sendo
 um arquivo só, servido da raiz, sem build.
 
+**Exceção, 13/11/26:** o `netlify.toml` tem também um repasse, `/viagem/*` →
+`crm-tuscanlands.netlify.app/api/viagem/:splat`. É a página da viagem do cliente (vouchers, voos,
+hotéis, restaurantes e o `.ics`), que mora no CRM; o repasse só põe o link no domínio da casa,
+`quote.tuscanlandstravel.com/viagem/<chave>`, pedido dela. Quem mexe na página é o repositório do
+CRM (`netlify/functions/agenda.mjs`), não o hub.
+
 **A proposta apresentada sai em uma folha A4 por etapa.** Capa e contracapa sangram até a
 borda; cada hospedagem tem a sua folha, com a faixa da foto da seção e o card inteiro;
 uma folha para os serviços com o total; uma para "não inclusos" e as condições. O corpo
