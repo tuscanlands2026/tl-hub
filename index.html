@@ -1340,6 +1340,12 @@ table.svc.ap-dias li{font-size:13px;line-height:1.6;}
    fonte dos preços das linhas, um pouco maior e mais forte. */
 .j-total{margin-top:40px;padding:20px 30px;background:#fff;border:1px solid var(--cream);
   display:flex;justify-content:space-between;align-items:center;gap:16px;}
+.j-optfotos{display:grid;gap:4px;margin:10px 0 4px;}
+.j-optfotos.n1{grid-template-columns:1fr;}
+.j-optfotos.n2{grid-template-columns:1fr 1fr;}
+.j-optfotos.n3{grid-template-columns:1fr 1fr 1fr;}
+.j-optfotos img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:#fff;}
+.j-pfrom{font-size:12.5px;white-space:normal;text-align:right;display:inline-block;max-width:140px;line-height:1.35;}
 .j-aprov{display:inline-block;margin-left:10px;font-family:'Libre Franklin',sans-serif;font-weight:500;
   font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);vertical-align:middle;}
 .j-pw + .j-aprov,.money .j-aprov{margin-left:8px;}
@@ -2772,7 +2778,11 @@ const MIGRACOES = [
   {id:"0130-linha-ja-aprovada", arq:"0130-linha-ja-aprovada.sql",
    oque:"linha de proposta já aprovada em order à parte: à vista, sem caixinha e fora do total"},
   {id:"0131-emily-order-1-e-v3", arq:"0131-emily-order-1-e-v3.sql",
-   oque:"order dos quartos e do carro da Emily, e a v3 para ela escolher as experiências"}
+   oque:"order dos quartos e do carro da Emily, e a v3 para ela escolher as experiências"},
+  {id:"0132-numero-da-proposta-e-preco-em-texto", arq:"0132-numero-da-proposta-e-preco-em-texto.sql",
+   oque:"número próprio da proposta (ref_code) e preço 'a partir de' em texto nas opções"},
+  {id:"0133-emily-v3-arezzo-numero-e-condicoes", arq:"0133-emily-v3-arezzo-numero-e-condicoes.sql",
+   oque:"v3 da Emily: o dia de Arezzo com as duas oficinas, número TL-064-26 e condições sem hotel e carro"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -9427,6 +9437,10 @@ function drawJornada(){
       ${i.details?`<div class="ap-desc">${fmtDoc(i.details)}</div>`:""}
       ${jEscolha(i) ? (i.units||[]).map((u,k)=>`<div class="j-opt">
           <div class="j-ov">${esc(J.opt[k]||"")}</div><div class="j-optname">${esc(u.label||"")}</div>
+          ${/* Foto da opção (o ateliê de cada escolha, TL-053-26 v3): até três,
+                lado a lado, para mostrar o estilo de cada um. */""}
+          ${(()=>{ const fs = (u.photos||[]).filter(x=>x&&String(x).trim()).slice(0,3).map(jFoto);
+                   return fs.length ? `<div class="j-optfotos n${fs.length}">${fs.map(f=>`<img src="${esc(f.src)}" alt="" style="object-position:${f.pos}">`).join("")}</div>` : ""; })()}
           ${u.desc?`<div class="ap-desc">${fmtDoc(u.desc)}</div>`:""}
           ${blk(J.good,u.good)}${blk(J.getting,u.getting)}${blk(J.inc,u.included)}${blk(J.notinc,u.not_included)}</div>`).join("") : ""}
       ${blk(J.good,i.good)}${blk(J.getting,i.getting)}${blk(J.inc,i.included)}${blk(J.notinc,i.not_included)}
@@ -9607,8 +9621,10 @@ function drawJornada(){
       (i.units||[]).forEach((u,k)=>{
         const on = !u.optional || sel.includes(u.key);
         if(comOu && k > 0) out.push({ou:true});
+        /* "From € 350 per person" (0132): valor a confirmar, que não soma. */
+        const pv = (u.price_text||"").trim() ? `<span class="j-pfrom">${esc(u.price_text)}</span>` : eur(u.price);
         out.push({nome: u.row || `${i.title} · ${u.label||""}`, plain: naHosp, desc: u.row_desc, sub: subGrupo(u.key),
-          preco: pw(`jp-${id}-${esc(u.key)}`, on, !u.optional, `jMarcaU('${id}','${esc(u.key)}',this.checked)`, eur(u.price))});
+          preco: pw(`jp-${id}-${esc(u.key)}`, on, !u.optional, `jMarcaU('${id}','${esc(u.key)}',this.checked)`, pv)});
       });
     } else if(!jTemValor(i)){
       out.push({nome: i.row, desc: i.row_desc, preco: `<span class="j-pend">${esc(L("pending", J.pending))}</span>`});

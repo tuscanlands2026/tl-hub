@@ -1421,6 +1421,13 @@ ela escolher as experiências; da resposta da v3 nasce a segunda order, e depois
   `tl_submit_quote` a pula — não vai para a resposta, o e-mail nem a order. O editor preserva o
   campo ao salvar. Nulo é o de sempre.
 
+**Número próprio da proposta e preço "a partir de"** (0132/0133, 13/11/26). A v3 da Emily é a
+**TL-064-26** (`ops_proposals.ref_code`); vazio, a peça mostra o número da oportunidade, como sempre.
+`units[].price_text` ("From € 350 per person") sai no lugar do valor em "Your proposal" e não soma:
+é valor que vira orçamento depois. Opção da folha do dia mostra até três fotos (`units[].photos`).
+No dia de Arezzo são três escolhas que se excluem (Steli d'oro: experiência ou visita; Lorini:
+visita), e o que já foi aprovado sai "Approved in TL-053-26" (rótulos `j_approved`, `j_approved_note`).
+
 **`[texto](endereço)` vira link com nome em `fmtDoc`** (o vídeo do aperitivo no Tibre). Antes de
 ligar, conferido que nenhuma proposta, order ou padrão da casa usava esse formato — nada do que
 já existe muda de cara. O briefing da advisor tem formatador próprio e não passa por aqui.
