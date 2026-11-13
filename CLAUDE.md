@@ -1440,8 +1440,14 @@ ganha a chave `terms_house`: `false` faz as condições da order (`terms_extra`)
 da casa, com o mesmo título "Terms & Conditions"; nulo é o de sempre. É uma caixinha no editor,
 embaixo das condições específicas. O `TERMS` não muda, porque vale também para as orders já
 entregues. `checkout_config.trav_note` é uma nota dela embaixo do bloco dos viajantes (na TL-053-26,
-a da garantia em cartão). Com `terms_house=false` sai também o link dos termos gerais no fim, que
-fala dos mesmos tours e transfers. É exceção desta order: o padrão continua os termos da casa.
+a da garantia em cartão). O link dos termos complementares continua no fim, e a frase antes dele é
+editável por order (`terms_link_text`, 0143): na TL-053-26, "For anything not mentioned above, the
+complementary terms and conditions for this booking apply, available at:". É exceção desta order: o
+padrão continua os termos da casa e a frase padrão.
+
+**Salvar no editor com a order aberta desde antes regrava as perguntas como estavam na tela.** Foi
+assim que a 0142 se desfez. Migração que mexe em order que ela está editando: avisar para recarregar
+o editor antes de salvar.
 
 **`[texto](endereço)` vira link com nome em `fmtDoc`** (o vídeo do aperitivo no Tibre). Antes de
 ligar, conferido que nenhuma proposta, order ou padrão da casa usava esse formato — nada do que
