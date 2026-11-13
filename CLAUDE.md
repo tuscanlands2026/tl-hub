@@ -1417,8 +1417,10 @@ ela escolher as experiências; da resposta da v3 nasce a segunda order, e depois
   como v1 (o mesmo link) e a nota de origem; a TL-053-26 ficou com v1, v2 e a order. Ela mesma
   renomeou a order para **TL-053-26**, sem ".1".
 - A order (criada como TL-053-26.1) nasce **sem ligar à oportunidade** (`opportunity_id` nulo, código em texto),
-  porque ligar exige proposta aceita e a v2 não pode ser marcada como aceita. `tl_order_from_quote`
-  passou a contar essas orders na numeração, para a segunda sair .2 e não .1 de novo.
+  porque ligar exige proposta aceita e a v2 não pode ser marcada como aceita.
+- **Order não tem sufixo** (0135, instrução dela: "não tem nem ponto 1, ponto 2, nada"): a order que
+  nasce da proposta leva só o código da oportunidade. Por isso a parte que vem depois vira
+  oportunidade própria (TL-064-26), e não .2 da mesma.
 - `ops_proposal_items.approved`: a linha já aprovada aparece escolhida e travada, com a etiqueta
   "Approved", o valor apagado e sem caixinha; não soma no total (sai numa nota embaixo dele) e
   `tl_submit_quote` a pula — não vai para a resposta, o e-mail nem a order. O editor preserva o
