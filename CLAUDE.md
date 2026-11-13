@@ -1407,7 +1407,10 @@ carro estão nas condições gerais, e o texto corrido da hospedagem é um taman
 e-mail só os quartos e o carro (Suite Terrace no Castelfalfi, Junior Suite no Bulgari, Categoria 1).
 Instrução dela: gerar a order SÓ com isso, deixar a v2 em aberto e mandar uma v3, cópia da v2, para
 ela escolher as experiências; da resposta da v3 nasce a segunda order, e depois as duas se integram.
-- A order TL-053-26.1 nasce **sem ligar à oportunidade** (`opportunity_id` nulo, código em texto),
+- **Depois separadas (0134):** as experiências viraram a oportunidade **TL-064-26**, com a proposta
+  como v1 (o mesmo link) e a nota de origem; a TL-053-26 ficou com v1, v2 e a order. Ela mesma
+  renomeou a order para **TL-053-26**, sem ".1".
+- A order (criada como TL-053-26.1) nasce **sem ligar à oportunidade** (`opportunity_id` nulo, código em texto),
   porque ligar exige proposta aceita e a v2 não pode ser marcada como aceita. `tl_order_from_quote`
   passou a contar essas orders na numeração, para a segunda sair .2 e não .1 de novo.
 - `ops_proposal_items.approved`: a linha já aprovada aparece escolhida e travada, com a etiqueta
