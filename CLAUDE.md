@@ -1428,6 +1428,14 @@ diferença ela ajusta depois do orçamento. Opção só com texto e sem price n�
 No dia de Arezzo são três escolhas que se excluem (Steli d'oro: experiência ou visita; Lorini:
 visita), e o que já foi aprovado sai "Approved in TL-053-26" (rótulos `j_approved`, `j_approved_note`).
 
+**Order com termos próprios no lugar dos da casa** (0139, 13/11/26). Instrução dela na order
+TL-053-26, que é só hotel e carro: os termos da casa (`TERMS`) falam de tours e transfers. A order
+ganha a chave `terms_house`: `false` faz as condições da order (`terms_extra`) SUBSTITUÍREM os termos
+da casa, com o mesmo título "Terms & Conditions"; nulo é o de sempre. É uma caixinha no editor,
+embaixo das condições específicas. O `TERMS` não muda, porque vale também para as orders já
+entregues. `checkout_config.trav_note` é uma nota dela embaixo do bloco dos viajantes (na TL-053-26,
+a da garantia em cartão).
+
 **`[texto](endereço)` vira link com nome em `fmtDoc`** (o vídeo do aperitivo no Tibre). Antes de
 ligar, conferido que nenhuma proposta, order ou padrão da casa usava esse formato — nada do que
 já existe muda de cara. O briefing da advisor tem formatador próprio e não passa por aqui.
