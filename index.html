@@ -1572,7 +1572,8 @@ function fmtDoc(txt){
    complementares". O corte é o campo terms_complementary da order: as
    orders já confirmadas foram gravadas com false e continuam com a frase
    que o cliente assinou. A proposta não usa isto. */
-const rotuloTermos = (o, t) => (o && o.terms_complementary === false) ? t.termsLinkLabel : t.termsLinkCompl;
+const rotuloTermos = (o, t) => (o && (o.terms_link_text||"").trim()) ? o.terms_link_text.trim()
+  : (o && o.terms_complementary === false) ? t.termsLinkLabel : t.termsLinkCompl;
 const termsHref = o => ((o && o.terms_url) || DEFAULT_TERMS_URL || "").trim();
 
 /* Monta o link do cliente. Devolve null quando não há endereço público
@@ -2800,7 +2801,11 @@ const MIGRACOES = [
   {id:"0141-pergunta-do-carro", arq:"0141-pergunta-do-carro.sql",
    oque:"a pergunta do modelo do carro da order TL-053-26 com o texto dela"},
   {id:"0142-tl-065-26-barco-a-capri", arq:"0142-tl-065-26-barco-a-capri.sql",
-   oque:"TL-065-26: o barco a Capri da Danielle, complemento da TL-055-26"}
+   oque:"TL-065-26: o barco a Capri da Danielle, complemento da TL-055-26"},
+  {id:"0142-pergunta-do-carro-em-duas-linhas", arq:"0142-pergunta-do-carro-em-duas-linhas.sql",
+   oque:"a pergunta do carro da order TL-053-26 em duas linhas"},
+  {id:"0143-frase-do-link-dos-termos", arq:"0143-frase-do-link-dos-termos.sql",
+   oque:"frase editável antes do link dos termos complementares; a da order TL-053-26"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -5896,6 +5901,8 @@ function renderEditor(){
       <label class="check" style="text-transform:none;letter-spacing:0;font-size:12.5px;margin-top:6px;">
         <input type="checkbox" id="f-terms-house" style="width:auto;"${o.terms_house===false?" checked":""}>
         Usar só estas condições, no lugar dos termos da casa</label>
+      <div style="margin-top:10px;"><label>Frase antes do link dos termos complementares</label>
+        <input id="f-terms-link-text" value="${esc(o.terms_link_text||"")}" placeholder="Vazio: a frase padrão"></div>
       <div class="hint" style="margin:5px 0 0;">Sai dentro de Termos e Condições, antes do texto da casa, e vale só para esta
         order. <b>**negrito**</b> e linha com <b>-</b> funcionam. Os termos da casa não mudam, porque eles valem também para as
         orders já entregues.</div></div>
@@ -6447,6 +6454,7 @@ async function saveOrder(){
     terms_url: el("f-terms").value.trim() || null,
     terms_extra: el("f-terms-extra").value.trim() || null,
     terms_house: el("f-terms-house").checked ? false : null,
+    terms_link_text: el("f-terms-link-text").value.trim() || null,
     payment_note: el("f-paynote").value.trim() || null,
     payment_url: el("f-payurl").value.trim() || null,
     checkout_config: cfgToJson(),
@@ -6577,7 +6585,7 @@ async function duplicateOrder(){
     status:"draft", agency:o.agency, agency_contact:o.agency_contact,
     final_client:o.final_client, pax_summary:o.pax_summary, travel_window:o.travel_window,
     intro:o.intro, internal_notes:o.internal_notes, terms_url:o.terms_url,
-    terms_extra:o.terms_extra, terms_house:o.terms_house,
+    terms_extra:o.terms_extra, terms_house:o.terms_house, terms_link_text:o.terms_link_text,
     payment_note:o.payment_note, checkout_config:o.checkout_config
   }).select().single();
   if(error){ btn.disabled=false; btn.textContent="Duplicar"; return alert(error.message); }
@@ -8728,7 +8736,7 @@ function renderSummary(){
       ${linha(t.sumSignedAt, esc(stamp(c.submitted_at, o.lang)))}
       ${linha(t.sumAckTerms, c.ack_terms ? t.accepted : `<span class="blank">${t.notAccepted}</span>`)}
       ${linha(t.sumAckVehicle, c.ack_vehicle ? t.accepted : t.notMarked)}
-      ${termsHref(o) && o.terms_house!==false ? linha(rotuloTermos(o,t).replace(/:$/,""),
+      ${termsHref(o)?linha(rotuloTermos(o,t).replace(/:$/,""),
           `<a href="${esc(termsHref(o))}" style="color:var(--sage);">${esc(termsHref(o))}</a>`):""}
     </table>
 
@@ -10490,7 +10498,7 @@ function pubField(f, t){
 
   return `<div class="fld">
     ${f.input_type==="checkbox" ? input :
-      `<label class="q">${esc(lbl)}${f.required?` <span class="req">*</span>`:""}</label>${input}`}
+      `<label class="q">${esc(lbl).replace(/\n/g,"<br>")}${f.required?` <span class="req">*</span>`:""}</label>${input}`}
     ${f.mode==="prefilled"?`<div class="pre">${t.prefilled}</div>`:""}
     ${(PUB.order.lang==="en"?f.help_en:f.help_pt)?`<div class="muted" style="margin-top:3px;">${esc(PUB.order.lang==="en"?f.help_en:f.help_pt)}</div>`:""}
   </div>`;
@@ -10583,10 +10591,10 @@ function drawPublic(){
     </div>`:""}
 
     <div class="terms">${termosDaOrder(o, t)}
-      ${/* Com termos próprios (terms_house=false) o link dos termos gerais da
-            casa também sai: ele fala dos mesmos tours e transfers (instrução
-            dela na TL-053-26). */""}
-      ${termsHref(o) && o.terms_house!==false ?`<div class="terms-link">${rotuloTermos(o,t)}
+      ${/* A frase antes do link é da order quando ela escreve (terms_link_text,
+            0143): na TL-053-26, "o que não está mencionado aqui está nos termos
+            complementares". */""}
+      ${termsHref(o)?`<div class="terms-link">${rotuloTermos(o,t)}
         <a href="${esc(termsHref(o))}" target="_blank" rel="noopener">${esc(termsHref(o))}</a></div>`:""}
     </div>
 
