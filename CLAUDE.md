@@ -1428,8 +1428,9 @@ ela escolher as experiências; da resposta da v3 nasce a segunda order, e depois
 
 **Número próprio da proposta e preço "a partir de"** (0132/0133, 13/11/26). A v3 da Emily é a
 **TL-064-26** (`ops_proposals.ref_code`); vazio, a peça mostra o número da oportunidade, como sempre.
-`units[].price_text` ("From € 350 per person") sai no lugar do valor em "Your proposal" e não soma:
-é valor que vira orçamento depois. Opção da folha do dia mostra até três fotos (`units[].photos`).
+`units[].price_text` ("From € 300") sai no lugar do valor em "Your proposal". **Quem soma é o
+`price`**, e ela quer que tudo o que for marcado some (0138): "From € 300" leva price 300, e a
+diferença ela ajusta depois do orçamento. Opção só com texto e sem price não soma — evitar. Opção da folha do dia mostra até três fotos (`units[].photos`).
 No dia de Arezzo são três escolhas que se excluem (Steli d'oro: experiência ou visita; Lorini:
 visita), e o que já foi aprovado sai "Approved in TL-053-26" (rótulos `j_approved`, `j_approved_note`).
 
