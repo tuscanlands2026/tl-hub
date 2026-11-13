@@ -2798,7 +2798,9 @@ const MIGRACOES = [
   {id:"0140-perguntas-em-general-information", arq:"0140-perguntas-em-general-information.sql",
    oque:"corrige a 0139: as perguntas da order TL-053-26 sob 'General information'"},
   {id:"0141-pergunta-do-carro", arq:"0141-pergunta-do-carro.sql",
-   oque:"a pergunta do modelo do carro da order TL-053-26 com o texto dela"}
+   oque:"a pergunta do modelo do carro da order TL-053-26 com o texto dela"},
+  {id:"0142-pergunta-do-carro-em-duas-linhas", arq:"0142-pergunta-do-carro-em-duas-linhas.sql",
+   oque:"a pergunta do carro da order TL-053-26 em duas linhas"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -10488,7 +10490,7 @@ function pubField(f, t){
 
   return `<div class="fld">
     ${f.input_type==="checkbox" ? input :
-      `<label class="q">${esc(lbl)}${f.required?` <span class="req">*</span>`:""}</label>${input}`}
+      `<label class="q">${esc(lbl).replace(/\n/g,"<br>")}${f.required?` <span class="req">*</span>`:""}</label>${input}`}
     ${f.mode==="prefilled"?`<div class="pre">${t.prefilled}</div>`:""}
     ${(PUB.order.lang==="en"?f.help_en:f.help_pt)?`<div class="muted" style="margin-top:3px;">${esc(PUB.order.lang==="en"?f.help_en:f.help_pt)}</div>`:""}
   </div>`;
