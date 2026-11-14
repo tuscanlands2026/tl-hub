@@ -1467,3 +1467,22 @@ outra: os convés com Positano atrás saíram de um passeio que é de Capri.
 ligar, conferido que nenhuma proposta, order ou padrão da casa usava esse formato — nada do que
 já existe muda de cara. O briefing da advisor tem formatador próprio e não passa por aqui.
 
+
+### TL-063-26, a primeira proposta net (14/11/26, migração 0146)
+
+Touristique, Leo e Bruno, Borgo Vescine e caça às trufas, em português. A agência trabalha net, e
+por isso a proposta é `rate_type='net'`: a peça de apresentação sai sem valores e com a marca dela,
+para ela repassar ao casal, e os valores e a aprovação vão em `#/valores/<net_token>`. A peça não
+tem folha comercial (`show_summary=false`); as condições saem só no link dos valores.
+
+**O link dos valores net sai assinado pela Tuscan Lands**, com o bloco fiscal, mesmo com white
+label: é o nosso preço mandado à agência, e não peça que ela repassa. O logo da Touristique é
+branco e sumia no creme. Nenhuma proposta net existia antes desta.
+
+**Abaixo de € 3.000 o pagamento muda** (instrução dela): valores para transferência internacional
+ou Wise; cartão com 3% a mais, pela Stripe (que aceita Pix) ou pelo PayPal; sempre em euros,
+convertido na hora do pagamento. Por enquanto entra à mão nas condições da proposta; não virou
+padrão da casa nem botão.
+
+**Foto no Drive dela não desce por aqui.** A ferramenta do Drive entrega o arquivo inteiro como
+texto, e as fotos de fornecedor lá têm de 4 a 40 MB. Não cabe.

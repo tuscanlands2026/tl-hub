@@ -2856,7 +2856,9 @@ const MIGRACOES = [
   {id:"0144-pagina-unica-e-tl-065-26", arq:"0144-pagina-unica-e-tl-065-26.sql",
    oque:"desenho página única (sem capa, preço no cartão da opção) e a TL-065-26 nele"},
   {id:"0145-tl-065-26-foto-e-meio-dia", arq:"0145-tl-065-26-foto-e-meio-dia.sql",
-   oque:"TL-065-26: foto dos Faraglioni no alto, com crédito, e 3½ hours"}
+   oque:"TL-065-26: foto dos Faraglioni no alto, com crédito, e 3½ hours"},
+  {id:"0146-tl-063-26-vescine-e-trufas", arq:"0146-tl-063-26-vescine-e-trufas.sql",
+   oque:"TL-063-26 (Touristique): Borgo Vescine e caça às trufas, proposta net com link de valores"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -10453,7 +10455,14 @@ function drawQuote(){
      cabeçalho é a assinatura inteira: com o logo da agência, o bloco
      fiscal da Tuscan Lands sai junto — logo dela em cima do nosso CNPJ
      seria o pior dos dois mundos. */
-  const daAgencia = !!p.white_label;
+  /* Exceção do net (TL-063-26, nov/26): o link dos valores é o nosso preço
+     NET mandado À agência, e não peça que ela repassa. Quem assina é a
+     Tuscan Lands, com o bloco fiscal — é para nós que ela paga. O logo da
+     agência ali seria a agência recebendo um documento com a própria marca,
+     e logo branco (o da Touristique é) some no creme. A apresentação, que é
+     o que vai ao viajante, continua com a marca dela. Nenhuma proposta net
+     existia quando isto entrou: nada já entregue muda de cara. */
+  const daAgencia = !!p.white_label && !p.net_view;
   const logoDoc = daAgencia ? (p.agency_logo||"") : LOGO;
   const cabeca = `
     <div class="head">
