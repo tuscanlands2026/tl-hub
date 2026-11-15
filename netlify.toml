@@ -25,3 +25,12 @@
   external_node_modules = ["@sparticuz/chromium", "puppeteer-core"]
   included_files = []
 
+
+# A página da viagem para o cliente (vouchers, voos, hotéis, restaurantes e o .ics) mora no
+# CRM, em crm-tuscanlands.netlify.app/api/viagem/<chave>. Pedido dela, 13/11/26: o link que o
+# cliente recebe fica no domínio da casa. O hub só repassa; quem monta a página é o CRM.
+[[redirects]]
+  from = "/viagem/*"
+  to = "https://crm-tuscanlands.netlify.app/api/viagem/:splat"
+  status = 200
+  force = true

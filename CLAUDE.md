@@ -560,6 +560,12 @@ quase 17; e o runtime precisa ser fixado, senão o binário procura as libs no l
 O `netlify.toml` e o `package.json` existem **só** para essa função. O hub continua sendo
 um arquivo só, servido da raiz, sem build.
 
+**Exceção, 13/11/26:** o `netlify.toml` tem também um repasse, `/viagem/*` →
+`crm-tuscanlands.netlify.app/api/viagem/:splat`. É a página da viagem do cliente (vouchers, voos,
+hotéis, restaurantes e o `.ics`), que mora no CRM; o repasse só põe o link no domínio da casa,
+`quote.tuscanlandstravel.com/viagem/<chave>`, pedido dela. Quem mexe na página é o repositório do
+CRM (`netlify/functions/agenda.mjs`), não o hub.
+
 **A proposta apresentada sai em uma folha A4 por etapa.** Capa e contracapa sangram até a
 borda; cada hospedagem tem a sua folha, com a faixa da foto da seção e o card inteiro;
 uma folha para os serviços com o total; uma para "não inclusos" e as condições. O corpo
@@ -1299,6 +1305,11 @@ TL-053, numeraram a partir do mesmo 0082. O banco confere o nome inteiro, então
 coexistem e estão aplicadas. Não renumerar. **A próxima é a 0101** — e antes de numerar, olhar o
 `main`, não só a própria branch.
 
+**Numeração repetida de novo, 0142–0146** (15/11/26): a sessão da TL-053-26 e a da TL-065-26
+(e uma terceira, da TL-063-26, na 0146) numeraram em paralelo. As séries coexistem, todas
+aplicadas, e não se renumera. **Antes de numerar, ler `ops_migrations` no banco**, que é onde
+aparece o número já usado por outra sessão que ainda não chegou ao `main`.
+
 ### O modelo "jornada" da proposta apresentada (novembro/26)
 
 Pedido dela, com especificação em arquivo (Parte A da TL-053-26), para valer daqui em diante. O
@@ -1454,6 +1465,20 @@ na fila do `net.http_request_queue` e nada fica gravado nem é enviado.
 **Salvar no editor com a order aberta desde antes regrava as perguntas como estavam na tela.** Foi
 assim que a 0142 se desfez. Migração que mexe em order que ela está editando: avisar para recarregar
 o editor antes de salvar.
+
+**Página única** (`modelo='pagina'`, 0144, 13/11/26). Instrução dela na TL-065-26, o barco a
+Capri da Danielle: proposta de um serviço só, "one page mesmo, sem capa". Sem capa e sem menu:
+faixa com a foto, o logo da agência e o nome; o serviço com as opções em cartão clicável; e
+embaixo o total, as condições e o envio. **O preço sai uma vez, no cartão**, onde se decide — ela
+viu o mesmo número no cartão e de novo na tabela de "Your proposal" e mandou escolher um lugar.
+Usa as peças do jornada (`drawJornada` desvia no fim), então a conta e o envio são os mesmos, e
+`tl_notify_quote` trata `pagina` como `jornada`. Embaixo dos cartões sai **"Your selection"**, só com o que o
+cliente marcou, e o total — o resumo que ela pediu, e não a tabela de todas as opções de novo.
+Letra mais leve e menor que no jornada, e faixa alta (0145: "as letras ficam grosseiras", "a foto
+corta a cabeça das pessoas"). Foto da faixa sem gente: com a faixa larga, rosto sempre corta em
+algum tamanho de tela. Foto com licença CC BY leva crédito no rótulo `j_cover_credit`, pequeno no
+canto. "3 hours 30" saiu: ela leu como outra coisa; é "3½ hours". Foto de serviço numa região não leva paisagem de
+outra: os convés com Positano atrás saíram de um passeio que é de Capri.
 
 **`[texto](endereço)` vira link com nome em `fmtDoc`** (o vídeo do aperitivo no Tibre). Antes de
 ligar, conferido que nenhuma proposta, order ou padrão da casa usava esse formato — nada do que
