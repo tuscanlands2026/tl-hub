@@ -2856,7 +2856,13 @@ const MIGRACOES = [
   {id:"0144-pagina-unica-e-tl-065-26", arq:"0144-pagina-unica-e-tl-065-26.sql",
    oque:"desenho página única (sem capa, preço no cartão da opção) e a TL-065-26 nele"},
   {id:"0145-tl-065-26-foto-e-meio-dia", arq:"0145-tl-065-26-foto-e-meio-dia.sql",
-   oque:"TL-065-26: foto dos Faraglioni no alto, com crédito, e 3½ hours"}
+   oque:"TL-065-26: foto dos Faraglioni no alto, com crédito, e 3½ hours"},
+  {id:"0144-teste-da-order-tl-053-26-desfeito", arq:"0144-teste-da-order-tl-053-26-desfeito.sql",
+   oque:"apaga a confirmação de teste da order TL-053-26 e a devolve a rascunho"},
+  {id:"0145-aviso-da-order-no-idioma-e-sem-desconfigurar", arq:"0145-aviso-da-order-no-idioma-e-sem-desconfigurar.sql",
+   oque:"e-mail de order confirmada no idioma da order, com pergunta e resposta empilhadas"},
+  {id:"0146-aviso-da-order-valores-em-ingles", arq:"0146-aviso-da-order-valores-em-ingles.sql",
+   oque:"e-mail da order em inglês com valores no formato inglês"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
