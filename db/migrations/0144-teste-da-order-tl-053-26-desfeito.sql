@@ -15,6 +15,7 @@
 -- meio, nada é apagado e o arquivo para.
 --
 -- Seção 7: delete de uma linha e update de uma linha, com o sim dela.
+-- Aplicada 15/11/26.
 -- =====================================================================
 
 do $$

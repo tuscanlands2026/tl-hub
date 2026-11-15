@@ -1439,6 +1439,18 @@ editável por order (`terms_link_text`, 0143): na TL-053-26, "For anything not m
 complementary terms and conditions for this booking apply, available at:". É exceção desta order: o
 padrão continua os termos da casa e a frase padrão.
 
+**O e-mail de order confirmada sai no idioma da order** (0145/0146, 15/11/26). Ela recebeu o da
+TL-053-26 "desconfigurado" e em português: "o e-mail tem que ser 100% em inglês". Agora
+`tl_notify_confirmation` segue `ops_orders.lang` em tudo: títulos, assunto, a pergunta pelo
+`label_en`, data de nascimento por extenso em en-US e valor € 4,845.00. A pergunta do checkout sai
+numa linha e a resposta embaixo, sem tabela: numa coluna sem quebra, a pergunta do carro (~180
+caracteres) alargava o e-mail e empurrava as respostas para fora da tela. Conferido por simulação
+desfeita: chama `tl_submit_confirmation` num bloco que termina em `raise exception`, lê o HTML
+na fila do `net.http_request_queue` e nada fica gravado nem é enviado.
+
+**Quando o `execute_sql` pede aprovação para mexer em dado e o pedido não chega a ela**, o
+`apply_migration` com o arquivo numerado roda. Só para o que ela já autorizou por escrito.
+
 **Salvar no editor com a order aberta desde antes regrava as perguntas como estavam na tela.** Foi
 assim que a 0142 se desfez. Migração que mexe em order que ela está editando: avisar para recarregar
 o editor antes de salvar.
