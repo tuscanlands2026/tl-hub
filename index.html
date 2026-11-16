@@ -2880,7 +2880,9 @@ const MIGRACOES = [
   {id:"0151-tl-063-26-order-da-agencia", arq:"0151-tl-063-26-order-da-agencia.sql",
    oque:"TL-063-26: a parte da agência como service confirmation — serviços à escolha, viajantes e aceite"},
   {id:"0152-tl-063-26-cancela-a-order", arq:"0152-tl-063-26-cancela-a-order.sql",
-   oque:"TL-063-26: a order sai e a venda volta à fase de proposta (apresentação + valores NET)"}
+   oque:"TL-063-26: a order sai e a venda volta à fase de proposta (apresentação + valores NET)"},
+  {id:"0153-tl-063-26-resumo-da-agencia", arq:"0153-tl-063-26-resumo-da-agencia.sql",
+   oque:"TL-063-26: link da agência como resumo — Stays, TL Signature Experiences, pagamento em tópicos"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -9019,8 +9021,13 @@ function tabelasPorSecao(t, mostra, linha){
   secs.forEach(sec=>{
     const lista = itens.filter(i=>i.section===sec.key);
     if(!lista.length) return;
-    out += `<div class="blocktitle" style="margin-top:28px;">${esc(sec.title||"")}</div>`;
-    if(sec.note) out += `<div class="muted" style="margin:-6px 0 10px;">${esc(sec.note)}</div>`;
+    /* No link dos valores net a página é o resumo dos serviços, e a seção
+       pode ter outro nome ("Stays", "TL Signature Experiences") sem mudar
+       a folha da apresentação: rótulos net_sec_<chave> e net_note_<chave>. */
+    const tit  = p.net_view ? rot(p, "net_sec_"+sec.key, sec.title||"") : (sec.title||"");
+    const nota = p.net_view ? rot(p, "net_note_"+sec.key, sec.note||"") : (sec.note||"");
+    out += `<div class="blocktitle" style="margin-top:28px;">${esc(tit)}</div>`;
+    if(nota) out += `<div class="muted" style="margin:-6px 0 10px;">${esc(nota)}</div>`;
     out += tabela(lista);
   });
   const chaves = secs.map(x=>x.key);
@@ -10400,7 +10407,9 @@ function quoteLinha(i, t, p, mostra, respondida){
       <td>
         <div class="svc-title">${esc(i.title)}</div>
         ${qtdLinha(i,mostra)?`<div class="svc-qtd">${qtdLinha(i,mostra)}</div>`:""}
-        ${(i.details && temValor)?`<div class="svc-sub">${fmtDoc(i.details)}</div>`:""}
+        ${/* Net: a linha leva a descrição curta (row_desc), quando há — o texto
+              inteiro mora na apresentação. */""}
+        ${((p.net_view && i.row_desc) || (i.details && temValor))?`<div class="svc-sub">${fmtDoc((p.net_view && i.row_desc) ? i.row_desc : i.details)}</div>`:""}
         ${/* UMA CAIXINHA "APROVADO" EM TODA LINHA, e nada se exclui.
               Instrução dela em agosto/26. Existia um grupo de escolha,
               em que marcar uma desmarcava as irmãs; ela apontou que na
@@ -10486,6 +10495,11 @@ function drawQuote(){
      existia quando isto entrou: nada já entregue muda de cara. */
   const daAgencia = !!p.white_label && !p.net_view;
   const logoDoc = daAgencia ? (p.agency_logo||"") : LOGO;
+  /* No link dos valores net o documento é PARA a agência (TL-063-26,
+     instrução dela: "não é Leo e Bruno, é Touristique"). Fora dele, o de
+     sempre. */
+  const paraQuem = p.net_view ? (p.agency||p.final_client||"")
+    : (daAgencia ? (p.final_client||"") : (p.final_client||p.agency||""));
   const cabeca = `
     <div class="head">
       <div class="brand">
@@ -10502,11 +10516,11 @@ function drawQuote(){
             corrigiu em agosto/26: número é referência de trabalho, não
             é marca. Sem ele a agência não tem como falar com ela sobre
             aquela proposta. */""}
-      ${(daAgencia ? (p.final_client||"") : (p.final_client||p.agency||"")) || p.crm_code ? `
+      ${paraQuem || p.crm_code ? `
       <div class="to">
-        ${(daAgencia ? (p.final_client||"") : (p.final_client||p.agency||"")) ? `
+        ${paraQuem ? `
           <div class="lbl">${t.to}</div>
-          <div class="val">${esc(daAgencia ? p.final_client : (p.final_client||p.agency))}</div>` : ""}
+          <div class="val">${esc(paraQuem)}</div>` : ""}
         ${p.crm_code?`<div class="lbl">${t.ref}</div><div class="val">${esc(p.crm_code)}</div>`:""}
       </div>` : ""}
     </div>`;
@@ -10526,8 +10540,8 @@ function drawQuote(){
     <div class="intro" style="text-align:left;">${respondida?t.qAlready:t.qLead}</div>
 
     <div class="meta">
-      ${(daAgencia ? (p.final_client||"") : (p.final_client||p.agency||"")) ? `
-      <div class="cell"><div class="k">${t.to}</div><div class="v">${esc(daAgencia ? p.final_client : (p.final_client||p.agency))}</div></div>` : ""}
+      ${paraQuem ? `
+      <div class="cell"><div class="k">${t.to}</div><div class="v">${esc(paraQuem)}</div></div>` : ""}
       <div class="cell"><div class="k">${t.pax}</div><div class="v">${esc(p.pax_summary||"—")}</div></div>
       <div class="cell"><div class="k">${t.period}</div><div class="v">${esc(p.travel_window||"—")}</div></div>
       <div class="cell"><div class="k">${t.qTitle}</div><div class="v">v${p.version}</div></div>
