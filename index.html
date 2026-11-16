@@ -1698,6 +1698,8 @@ const T = {
           travellers:"viajantes",traveller_name:"nome do viajante",traveller_dob:"nascimento do viajante"},
     voucherNote:"Detalhes de horários e meeting point serão enviados no voucher de confirmação.",
     optExtras:"Extras opcionais",
+    chooseSvc:"Serviços", chooseSvcHint:"Selecione os serviços que deseja confirmar. O total se atualiza a cada escolha.",
+    missSvc:"selecione pelo menos um serviço",
     termsExtra:"Condições específicas desta order",
     optExtrasHint:"Marque os extras que deseja incluir. O total se atualiza a cada escolha.",
     payNote:"Pagamento",
@@ -1794,6 +1796,8 @@ const T = {
           travellers:"travellers",traveller_name:"traveller name",traveller_dob:"traveller date of birth"},
     voucherNote:"Timings and meeting points will be sent in the confirmation voucher.",
     optExtras:"Optional extras",
+    chooseSvc:"Services", chooseSvcHint:"Select the services you would like to confirm. The total updates with each selection.",
+    missSvc:"select at least one service",
     termsExtra:"Specific conditions of this order",
     optExtrasHint:"Select the extras you would like to add. The total updates with each selection.",
     payNote:"Payment",
@@ -2864,7 +2868,9 @@ const MIGRACOES = [
   {id:"0149-tl-063-26-valores-net", arq:"0149-tl-063-26-valores-net.sql",
    oque:"TL-063-26: valores net (Deluxe Plus 1.260, Superior 1.728, trufas 680)"},
   {id:"0150-tl-063-26-quartos-fotos-e-pagamento", arq:"0150-tl-063-26-quartos-fotos-e-pagamento.sql",
-   oque:"TL-063-26: hotel e quartos em blocos separados, fotos da trufa do Drive, pagamento revisto"}
+   oque:"TL-063-26: hotel e quartos em blocos separados, fotos da trufa do Drive, pagamento revisto"},
+  {id:"0151-tl-063-26-order-da-agencia", arq:"0151-tl-063-26-order-da-agencia.sql",
+   oque:"TL-063-26: a parte da agência como service confirmation — serviços à escolha, viajantes e aceite"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -10695,16 +10701,20 @@ function drawPublic(){
 
     ${o.intro?`<div class="intro">${nl2br(o.intro)}</div>`:""}
 
-    <table class="svc">
+    ${/* Order sem serviço fixo (TL-063-26, nov/26): tudo é escolha da
+          agência — quarto e experiência. Sem a tabela vazia, e a lista de
+          escolha vira "Serviços" em vez de "Extras opcionais". Toda order
+          gravada até aqui tem serviço fixo, então nenhuma muda de cara. */""}
+    ${items.length?`<table class="svc">
       <thead><tr><th style="width:100px;">${t.date}</th><th>${t.service}</th><th class="money">${t.price}</th></tr></thead>
       <tbody>${items.map(r=>`<tr>
         <td class="date-cell">${esc(r.service_date||"")}</td>
         <td><div class="svc-title">${esc(r.title)}</div>${r.details?`<div class="svc-sub">${nl2br(r.details)}</div>`:""}</td>
         <td class="money">${eur(r.price)}</td></tr>`).join("")}</tbody>
-    </table>
+    </table>`:""}
 
-    ${extras.length?`<div class="section-title" style="margin-top:22px;">${t.optExtras}</div>
-    <div class="muted" style="margin-bottom:8px;">${t.optExtrasHint}</div>
+    ${extras.length?`<div class="section-title" style="margin-top:22px;">${items.length?t.optExtras:t.chooseSvc}</div>
+    <div class="muted" style="margin-bottom:8px;">${items.length?t.optExtrasHint:t.chooseSvcHint}</div>
     <table class="svc extras-tab"><tbody>${extras.map(f=>{
       const k = f.field_key.replace(/'/g,"\\'");
       const lbl = (o.lang==="en" ? (f.label_en||f.label_pt) : f.label_pt) || f.field_key;
@@ -10885,6 +10895,9 @@ async function submitConfirmation(){
   // A tela confere primeiro para dar resposta imediata; a palavra final é
   // do banco, que confere de novo e recusa o que estiver faltando.
   const falta = [];
+  /* Sem serviço fixo, confirmar sem marcar nada seria order vazia. */
+  if(!(PUB.items||[]).length && extrasPub().length && !extrasPub().some(f=>FLD[f.field_key]==="true"))
+    falta.push(t.missSvc);
   if(!payload.ack_terms) falta.push(t.miss.ack_terms);
   if(blockMode(o,"ack_vehicle")!=="off" && !payload.ack_vehicle) falta.push(t.miss.ack_vehicle);
   if(blockMode(o,"lead")!=="off"){
