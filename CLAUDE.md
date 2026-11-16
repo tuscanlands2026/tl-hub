@@ -1523,6 +1523,11 @@ ter outro nome só ali (rótulos `net_sec_<chave>` e `net_note_<chave>`: "Stays"
 Experiences"); e a linha usa `row_desc` no lugar do texto inteiro, com "conforme a proposta TL-…".
 Trufeiro não existe em português: é "mestre tartufaio", em italiano.
 
+**Lista é para itens do mesmo tipo** (0154, crítica dela à forma de pagamento): "bullet point
+geralmente é sempre para a mesma coisa". Prazo, meio de pagamento e câmbio são assuntos diferentes
+e vão em blocos com rótulo em negrito, como os termos; lista só onde tudo é da mesma espécie (os
+meios de pagamento). Texto de condição se escreve como proposta comercial, não como anotação.
+
 **O save do editor desfez a 0148 e a 0149.** Ela salvou a proposta com a tela aberta desde antes,
 e o `salvarQuote` regravou tudo como estava na tela. A 0150 regravou. Migração em proposta que ela
 pode estar editando: avisar para recarregar o editor antes de salvar.
