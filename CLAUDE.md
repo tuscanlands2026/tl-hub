@@ -1513,6 +1513,11 @@ tabela vazia, a escolha vira "Serviços", e a tela não envia sem nada marcado (
 isso). Foto do Drive dela desce pelo endereço de miniatura do Drive (`/thumbnail?id=…&sz=w1600`)
 quando a pasta está compartilhada por link.
 
+**E voltou atrás no mesmo dia** (0152): "não é uma order ainda porque não está vendido". A order
+saiu, e a parte da agência é o link dos valores NET (`#/valores/…`), que é a quote simples em uma
+página — o mesmo molde da proposta de transfer —, com as condições e o envio. Order com os dados dos
+viajantes só depois da venda, como sempre foi.
+
 **O save do editor desfez a 0148 e a 0149.** Ela salvou a proposta com a tela aberta desde antes,
 e o `salvarQuote` regravou tudo como estava na tela. A 0150 regravou. Migração em proposta que ela
 pode estar editando: avisar para recarregar o editor antes de salvar.
