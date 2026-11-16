@@ -1518,6 +1518,11 @@ saiu, e a parte da agência é o link dos valores NET (`#/valores/…`), que é 
 página — o mesmo molde da proposta de transfer —, com as condições e o envio. Order com os dados dos
 viajantes só depois da venda, como sempre foi.
 
+**O link da agência é um resumo dos serviços** (0153). No net, o "Para" é a agência; a seção pode
+ter outro nome só ali (rótulos `net_sec_<chave>` e `net_note_<chave>`: "Stays", "TL Signature
+Experiences"); e a linha usa `row_desc` no lugar do texto inteiro, com "conforme a proposta TL-…".
+Trufeiro não existe em português: é "mestre tartufaio", em italiano.
+
 **O save do editor desfez a 0148 e a 0149.** Ela salvou a proposta com a tela aberta desde antes,
 e o `salvarQuote` regravou tudo como estava na tela. A 0150 regravou. Migração em proposta que ela
 pode estar editando: avisar para recarregar o editor antes de salvar.
