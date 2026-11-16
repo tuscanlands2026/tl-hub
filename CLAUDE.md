@@ -1484,3 +1484,35 @@ outra: os convés com Positano atrás saíram de um passeio que é de Capri.
 ligar, conferido que nenhuma proposta, order ou padrão da casa usava esse formato — nada do que
 já existe muda de cara. O briefing da advisor tem formatador próprio e não passa por aqui.
 
+
+### TL-063-26, a primeira proposta net (14/11/26, migração 0146)
+
+Touristique, Leo e Bruno, Borgo Vescine e caça às trufas, em português. A agência trabalha net, e
+por isso a proposta é `rate_type='net'`: a peça de apresentação sai sem valores e com a marca dela,
+para ela repassar ao casal, e os valores e a aprovação vão em `#/valores/<net_token>`. A peça não
+tem folha comercial (`show_summary=false`); as condições saem só no link dos valores.
+
+**O link dos valores net sai assinado pela Tuscan Lands**, com o bloco fiscal, mesmo com white
+label: é o nosso preço mandado à agência, e não peça que ela repassa. O logo da Touristique é
+branco e sumia no creme. Nenhuma proposta net existia antes desta.
+
+**Abaixo de € 3.000 o pagamento muda** (instrução dela): valores para transferência internacional
+ou Wise; cartão com 3% a mais, pela Stripe (que aceita Pix) ou pelo PayPal; sempre em euros,
+convertido na hora do pagamento. Por enquanto entra à mão nas condições da proposta; não virou
+padrão da casa nem botão.
+
+**Foto no Drive dela não desce por aqui.** A ferramenta do Drive entrega o arquivo inteiro como
+texto, e as fotos de fornecedor lá têm de 4 a 40 MB. Não cabe.
+
+**A parte da agência é service confirmation, e não o link de valores** (0151, 16/11/26). Instrução
+dela: "tem que ser no mesmo formato da service confirmation, porque como vai pra agência, ela mesma
+já manda os dados na aprovação". O net continua mandando a apresentação ao casal; o que vai à
+agência é uma order no desenho da TL-050 (caixinha do checkout com preço), com os serviços à
+escolha, nome e nascimento dos viajantes e o aceite. Order sem serviço fixo é caso novo: sem
+tabela vazia, a escolha vira "Serviços", e a tela não envia sem nada marcado (o banco não confere
+isso). Foto do Drive dela desce pelo endereço de miniatura do Drive (`/thumbnail?id=…&sz=w1600`)
+quando a pasta está compartilhada por link.
+
+**O save do editor desfez a 0148 e a 0149.** Ela salvou a proposta com a tela aberta desde antes,
+e o `salvarQuote` regravou tudo como estava na tela. A 0150 regravou. Migração em proposta que ela
+pode estar editando: avisar para recarregar o editor antes de salvar.
