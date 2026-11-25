@@ -195,3 +195,4 @@ normalmente e avisa que a procedência não foi gravada.
 | 0039 | `0039-proforma-para-baixar.sql` | a proforma sai em PDF pelo servidor, com o link de pagamento clicável: leitura pública pelo token da order, só depois de emitida |
 | 0040 | `0040-fornecedores.sql` | módulo de fornecedores: ficha, serviços com net/gross, faixas por pax, quartos e tarifas, contatos, fotos e anexos; listas fechadas por check e ligação opcional com o cadastro do CRM |
 | 0041 | `0041-business-suite-do-crm.sql` | business suite passa a ser a lista do CRM (seis linhas, sem Consultoria) e converte as fichas já gravadas |
+| 0157 | [`0157-tl-066-26-assis-e-vinicola.sql`](0157-tl-066-26-assis-e-vinicola.sql) | Só insert: oportunidade TL-066-26 (Amber Fern Hospitality, família Palm), proposta One Page Experience com o dia em Assis e o almoço na vinícola, para 2 ou 4 pessoas, e o guia à parte. Rodada 25/11/26 |
