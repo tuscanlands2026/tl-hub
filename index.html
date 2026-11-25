@@ -2888,7 +2888,17 @@ const MIGRACOES = [
   {id:"0155-tl-063-26-sem-bom-saber", arq:"0155-tl-063-26-sem-bom-saber.sql",
    oque:"TL-063-26: sai o bloco \"Bom saber\" da caça às trufas"},
   {id:"0156-codigo-tl-com-hifen", arq:"0156-codigo-tl-com-hifen.sql",
-   oque:"Número TL com hífen na 050 e na 051 (oportunidades e order TL-051-26.1)"}
+   oque:"Número TL com hífen na 050 e na 051 (oportunidades e order TL-051-26.1)"},
+  {id:"0157-tl-066-26-assis-e-vinicola", arq:"0157-tl-066-26-assis-e-vinicola.sql",
+   oque:"TL-066-26 (Amber Fern): Assis e almoço na vinícola, One Page Experience"},
+  {id:"0158-tl-066-26-guia-incluso-e-texto", arq:"0158-tl-066-26-guia-incluso-e-texto.sql",
+   oque:"TL-066-26: guia incluso, texto mais limpo, almoço em torno dos vinhos"},
+  {id:"0159-tl-066-26-fotos", arq:"0159-tl-066-26-fotos.sql",
+   oque:"TL-066-26: fotos novas de Assis e duas da vinícola"},
+  {id:"0160-tl-066-26-preco-com-cartao", arq:"0160-tl-066-26-preco-com-cartao.sql",
+   oque:"TL-066-26: sem taxa de cartão; preço com 3% cartão, 12% agência e 15% líquido"},
+  {id:"0161-tl-066-26-sem-credito-das-fotos", arq:"0161-tl-066-26-sem-credito-das-fotos.sql",
+   oque:"TL-066-26: sem crédito das fotos, Assis em fotos de domínio público"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -3996,7 +4006,7 @@ function renderProposal(){
       <select id="q-modelo" onchange="PROP.modelo=this.value||null;">
         <option value=""${!p.modelo?" selected":""}>Clássico — seções em abas, preço nos cards</option>
         <option value="jornada"${p.modelo==="jornada"?" selected":""}>Jornada — uma tela por base, preço só em "Your proposal"</option>
-        <option value="pagina"${p.modelo==="pagina"?" selected":""}>Página única — sem capa e sem menu, o preço no cartão de cada opção</option>
+        <option value="pagina"${p.modelo==="pagina"?" selected":""}>One Page Experience — sem capa e sem menu, o preço no cartão de cada opção</option>
       </select>`:""}</div>
       <div style="grid-column:span 2;"><label>Imagem da capa — link</label>
         <input id="q-cover" value="${esc(p.cover_img||"")}" placeholder="https://…"></div>

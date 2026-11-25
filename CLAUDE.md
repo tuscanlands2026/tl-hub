@@ -1466,7 +1466,8 @@ na fila do `net.http_request_queue` e nada fica gravado nem é enviado.
 assim que a 0142 se desfez. Migração que mexe em order que ela está editando: avisar para recarregar
 o editor antes de salvar.
 
-**Página única** (`modelo='pagina'`, 0144, 13/11/26). Instrução dela na TL-065-26, o barco a
+**Página única** (`modelo='pagina'`, 0144, 13/11/26) — ela chama de **One Page Experience** (25/11/26,
+TL-066-26), e é esse o nome no editor; o valor no banco continua `pagina`. Instrução dela na TL-065-26, o barco a
 Capri da Danielle: proposta de um serviço só, "one page mesmo, sem capa". Sem capa e sem menu:
 faixa com a foto, o logo da agência e o nome; o serviço com as opções em cartão clicável; e
 embaixo o total, as condições e o envio. **O preço sai uma vez, no cartão**, onde se decide — ela
