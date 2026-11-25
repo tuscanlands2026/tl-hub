@@ -1477,8 +1477,10 @@ Usa as peças do jornada (`drawJornada` desvia no fim), então a conta e o envio
 cliente marcou, e o total — o resumo que ela pediu, e não a tabela de todas as opções de novo.
 Letra mais leve e menor que no jornada, e faixa alta (0145: "as letras ficam grosseiras", "a foto
 corta a cabeça das pessoas"). Foto da faixa sem gente: com a faixa larga, rosto sempre corta em
-algum tamanho de tela. Foto com licença CC BY leva crédito no rótulo `j_cover_credit`, pequeno no
-canto. "3 hours 30" saiu: ela leu como outra coisa; é "3½ hours". Foto de serviço numa região não leva paisagem de
+algum tamanho de tela. **Crédito de foto não sai na peça** (instrução dela, 25/11/26, na TL-066-26:
+"isso é material interno nosso"). Por isso foto de banco livre é de **domínio público ou CC0**, que
+não pede atribuição; CC BY e CC BY-SA obrigam o crédito e ficam de fora. O rótulo `j_cover_credit`
+continua existindo, vazio. "3 hours 30" saiu: ela leu como outra coisa; é "3½ hours". Foto de serviço numa região não leva paisagem de
 outra: os convés com Positano atrás saíram de um passeio que é de Capri.
 
 **`[texto](endereço)` vira link com nome em `fmtDoc`** (o vídeo do aperitivo no Tibre). Antes de
