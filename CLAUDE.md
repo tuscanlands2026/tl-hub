@@ -1491,8 +1491,10 @@ parte. Nenhuma proposta jornada anterior tinha `show_prices=false`.
   gente está seguindo"). A tabela já é a escolha, linha a linha com valor e caixinha, como na order; o
   resumo "Proposta e condições comerciais" embaixo saiu, só no link net de proposta jornada. A TL-063,
   clássica, continua com o dela.
-- **Experiência se conta, não se lista** (0169): o texto do serviço segue o dia ("o transfer busca vocês
-  no hotel... jantar no caminho... de volta ao hotel"); o que é lista fica no bloco "Inclui".
+- **Experiência se conta, não se lista** (0169/0170): o texto do serviço segue o dia e vende a noite; o que
+  é lista fica no bloco "Inclui". A 0169 ainda saiu como catálogo ("a chegada é pelo acesso Executive, a
+  espera é no lounge"), e ela recusou. **Futuro em português é "vai + verbo"** (vai buscar, vai levar),
+  nunca "buscará" nem "terá", e nem presente de ficha técnica.
 - **O save do editor desfez a 0166** (às 15h31 do mesmo dia), como já tinha desfeito a 0161/0162 da
   TL-066-26. A 0168 regravou. Proposta que ela pode estar editando: avisar para fechar o editor.
 
