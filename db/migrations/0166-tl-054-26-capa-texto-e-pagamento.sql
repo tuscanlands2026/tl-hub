@@ -18,8 +18,12 @@
 --   · o hotel inclui café da manhã; city tax e extras não estão incluídos.
 --     Sai a "tarifa flexível", que ela não confirmou;
 --   · pagamento: 40% na reserva e o restante em 20/2 e 20/4/2027; sai a
---     parcela de 20/12 e sai o Pix com 1%; transferência sem taxa, cartão
---     de crédito com 3% de taxas da plataforma.
+--     parcela de 20/12 e sai o Pix com 1%. Valores em euros, convertidos
+--     na taxa do dia de cada pagamento. Meios: transferência, Wise ou outra
+--     remessa, sem taxa; Pix e cartão por link de pagamento, cartão com 3%
+--     de taxas da plataforma. As taxas de conversão da bandeira e da
+--     plataforma, e o IOF, vão nos termos, a cargo do cliente;
+--   · hotel sozinho continua possível ("deixa do jeito que tá").
 --
 -- Seção 7: update em UMA proposta, a TL-054-26 (0165), sem envio e sem
 -- resposta, por instrução dela nesta conversa. Linhas miradas por
@@ -73,9 +77,12 @@ $x$- Passagens aéreas e transfers de chegada e saída
     conditions_pt =
 $c$**PAGAMENTO**
 **Prazos:** 40% na reserva e o restante em 2 parcelas iguais, em 20 de fevereiro e 20 de abril de 2027.
-**Meios de pagamento:** transferência bancária internacional, sem taxas adicionais, ou cartão de crédito, com acréscimo de 3% de taxas da plataforma.
-**Câmbio:** o pagamento é sempre feito em euros, pela cotação do dia de cada pagamento. Por se tratar de transação internacional, eventuais taxas, como o IOF, ficam a cargo do cliente.
-**Links de pagamento:** nossa equipe envia o link com as instruções. No pagamento parcelado, os links de cada parcela são enviados pela nossa equipe.
+**Moeda:** os valores estão em euros e são convertidos no momento de cada pagamento, pela taxa de câmbio válida no dia.
+**Meios de pagamento:**
+- Transferência bancária internacional, Wise ou outra remessa internacional, sem taxas adicionais
+- Pix, por link de pagamento
+- Cartão de crédito, por link de pagamento, com acréscimo de 3% de taxas da plataforma
+**Links de pagamento:** nossa equipe envia o link com as instruções, um para cada parcela.
 
 **CONDIÇÕES GERAIS**
 **Contratação:** ao aceitar esta proposta, a contratação se formaliza com o aceite dos termos e condições do pacote terrestre. Só depois dessa etapa e do pagamento do sinal os bilhetes e as reservas são feitos e confirmados.
@@ -84,6 +91,7 @@ $c$**PAGAMENTO**
 **Validade:** as condições desta proposta valem enquanto houver disponibilidade.
 **Pessoas e quartos:** bilhetes e jantar são para o mesmo número de pessoas. Cada quarto recebe duas pessoas; com quatro, são dois quartos, do mesmo tipo ou de tipos diferentes.
 **Hospedagem:** a diária inclui café da manhã. City tax e extras não estão incluídos e são pagos diretamente no hotel.
+**Taxas de conversão:** no Pix e no cartão de crédito, a conversão para euros segue as taxas da bandeira do cartão e da plataforma de pagamento. Essas taxas, assim como eventuais encargos da transação internacional, como o IOF, ficam a cargo do cliente.
 **Fotos:** as fotos desta proposta são ilustrativas.
 
 **INFORMAÇÕES IMPORTANTES SOBRE O CONCERTO**
