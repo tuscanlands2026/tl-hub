@@ -2591,6 +2591,9 @@ async function boot(){
   if(!data.session) return renderLogin();
   if(VOLTAR){ const f = VOLTAR; VOLTAR = null; return f(); }
   await conferirBanco();
+  /* #/op/<id>: o cartão da oportunidade no Pipeline do CRM abre a oportunidade aqui
+     dentro, já logada. Pedido dela, 26/11/26: "ter o link para o Hub". */
+  if(r.startsWith("op/")) return openOpportunity(r.split("/")[1]);
   renderPainel();
 }
 
@@ -3013,6 +3016,7 @@ function renderLogin(){
       el("lg-msg").innerHTML = `<div class="msg">${esc(error.message)}</div>`;
       btn.disabled = false; btn.textContent = "Entrar"; return;
     }
+    if(route().startsWith("op/")) return boot();
     renderPainel();
   };
   el("lg-go").onclick = go;
