@@ -2911,7 +2911,13 @@ const MIGRACOES = [
   {id:"0165-tl-054-26-bocelli-experience", arq:"0165-tl-054-26-bocelli-experience.sql",
    oque:"TL-054-26 (Facility): Bocelli Experience, programa de viagem net, peça sem valores e link dos valores"},
   {id:"0166-tl-054-26-capa-texto-e-pagamento", arq:"0166-tl-054-26-capa-texto-e-pagamento.sql",
-   oque:"TL-054-26: capa noturna, Sua hospedagem, texto refinado e pagamento em 40% + 20/2 + 20/4"}
+   oque:"TL-054-26: capa noturna, Sua hospedagem, texto refinado e pagamento em 40% + 20/2 + 20/4"},
+  {id:"0167-tl-054-26-capa-bocelli", arq:"0167-tl-054-26-capa-bocelli.sql",
+   oque:"TL-054-26: a capa é o Bocelli no palco com a orquestra"},
+  {id:"0168-tl-054-26-refaz-0166-e-categoria-2", arq:"0168-tl-054-26-refaz-0166-e-categoria-2.sql",
+   oque:"TL-054-26: refaz a 0166, desfeita por um save do editor, e o bilhete passa a categoria 2"},
+  {id:"0169-tl-054-26-noite-do-concerto-e-cartao", arq:"0169-tl-054-26-noite-do-concerto-e-cartao.sql",
+   oque:"TL-054-26: a noite do concerto contada, cartão sem os 3% e segunda foto da Deluxe"}
 ];
 const RAW = "https://raw.githubusercontent.com/tuscanlands2026/tl-hub/main/db/migrations/";
 let FALTAM = [];
@@ -8908,7 +8914,7 @@ async function renderQuote(token, netView){
   if(error || !data) return app.innerHTML = message(T.pt.notFound);
   if(data.expired) return app.innerHTML = message(T.pt.expired);
   if(data.not_net) return app.innerHTML = message("Esta proposta é comissionada: os valores estão nela mesma.");
-  QT = data; QT.token = token;
+  QT = data; QT.token = token; QT.netView = !!netView;
   /* Link dos valores de uma proposta jornada net (TL-054-26, nov/26): a
      peça do cliente é feita de linhas SEM valor (a experiência contada, o
      hotel com os quartos), e os preços moram em linhas próprias, que a peça
@@ -10609,7 +10615,12 @@ function drawQuote(){
 
     ${p.payment_note?`<div class="pay-note">${nl2br(p.payment_note)}</div>`:""}
 
-    ${quoteFecho(p, t, mostra, respondida)}
+    ${/* No link dos valores de proposta jornada net (TL-054-26, nov/26) a
+         tabela já é a escolha: cada linha com o valor e a caixinha, como na
+         order. Repetir as marcadas num resumo embaixo foi crítica dela — "não
+         é o modelo que a gente está seguindo". A TL-063, clássica, continua
+         com o resumo que já tinha. */
+      quoteFecho(p, t, mostra, respondida, !(QT.netView && p.modelo === "jornada"))}
   </div>
   ${quoteConfirmar(t, respondida, p.payment_options, p)}
   </div>`;

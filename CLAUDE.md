@@ -1482,6 +1482,19 @@ parte. Nenhuma proposta jornada anterior tinha `show_prices=false`.
   escrita na nota da seção, porque o hub não cruza bilhete com quarto.
 - **A ordem é o concerto primeiro**: é o motivo da compra, e o hotel vale mais apresentado depois dele
   (a base perto do teatro, e a noite de reserva se chover).
+- **Categoria do bilhete, nos termos dela**: o Executive com lounge e entrada própria é a "categoria 2";
+  a "Cat 1" dela é o setor A2/A5 (+€ 950). Na oferta do fornecedor o mesmo Executive aparece como "1st
+  category" — não copiar a nomenclatura dele para a peça (0168).
+- **Palavra estrangeira de uso corrente não se aportuguesa** (instrução dela, 26/11/26): "buffet", e não
+  "bufê". Vale para qualquer texto ao cliente.
+- **O link dos valores não repete a escolha num resumo** (instrução dela, 26/11/26: "não é o modelo que a
+  gente está seguindo"). A tabela já é a escolha, linha a linha com valor e caixinha, como na order; o
+  resumo "Proposta e condições comerciais" embaixo saiu, só no link net de proposta jornada. A TL-063,
+  clássica, continua com o dela.
+- **Experiência se conta, não se lista** (0169): o texto do serviço segue o dia ("o transfer busca vocês
+  no hotel... jantar no caminho... de volta ao hotel"); o que é lista fica no bloco "Inclui".
+- **O save do editor desfez a 0166** (às 15h31 do mesmo dia), como já tinha desfeito a 0161/0162 da
+  TL-066-26. A 0168 regravou. Proposta que ela pode estar editando: avisar para fechar o editor.
 
 **Página única** (`modelo='pagina'`, 0144, 13/11/26) — ela chama de **One Page Experience** (25/11/26,
 TL-066-26), e é esse o nome no editor; o valor no banco continua `pagina`. Instrução dela na TL-065-26, o barco a
