@@ -1487,6 +1487,12 @@ parte. Nenhuma proposta jornada anterior tinha `show_prices=false`.
   category" — não copiar a nomenclatura dele para a peça (0168).
 - **Palavra estrangeira de uso corrente não se aportuguesa** (instrução dela, 26/11/26): "buffet", e não
   "bufê". Vale para qualquer texto ao cliente.
+- **O link dos valores não repete a escolha num resumo** (instrução dela, 26/11/26: "não é o modelo que a
+  gente está seguindo"). A tabela já é a escolha, linha a linha com valor e caixinha, como na order; o
+  resumo "Proposta e condições comerciais" embaixo saiu, só no link net de proposta jornada. A TL-063,
+  clássica, continua com o dela.
+- **Experiência se conta, não se lista** (0169): o texto do serviço segue o dia ("o transfer busca vocês
+  no hotel... jantar no caminho... de volta ao hotel"); o que é lista fica no bloco "Inclui".
 - **O save do editor desfez a 0166** (às 15h31 do mesmo dia), como já tinha desfeito a 0161/0162 da
   TL-066-26. A 0168 regravou. Proposta que ela pode estar editando: avisar para fechar o editor.
 
