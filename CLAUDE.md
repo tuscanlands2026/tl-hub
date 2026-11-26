@@ -1466,6 +1466,23 @@ na fila do `net.http_request_queue` e nada fica gravado nem é enviado.
 assim que a 0142 se desfez. Migração que mexe em order que ela está editando: avisar para recarregar
 o editor antes de salvar.
 
+**Programa de viagem net** (TL-054-26, Facility Turismo, 0165, 26/11/26). Ela chama o modelo jornada
+de **programa de viagem**, e é esse o nome no editor. A entrega da Facility é a da Touristique: uma peça
+que vai ao cliente final, sem preço, e vende o conceito; e o link dos valores NET para a agência, que é
+quem aprova. O desenho é o da TL-064-26. Com `show_prices=false` (o `tl_get_quote` já força no net), o
+jornada tira o preço e o clique de quarto e carro, o quadradinho de marcar, o preço do dining, e na folha
+final a tabela, o total e o envio: ficam o "Não inclui", as condições e o aviso de que os valores seguem à
+parte. Nenhuma proposta jornada anterior tinha `show_prices=false`.
+- **A peça é feita de linhas sem valor** (o concerto contado, o hotel com os quartos). Os preços moram em
+  seções de `tipo='valores'`, que o jornada não desenha; e o link dos valores de proposta jornada mostra
+  **só as linhas com valor** (`renderQuote`), senão a agência veria o hotel de apresentação a € 0,00. A
+  TL-063, clássica, continua com o cabeçalho do hotel no link, como sempre.
+- **Mesmo número de pessoas**: bilhetes e jantar têm unidades 2 OU 4 (`choice_group` exclui), e cada quarto
+  tem "1 quarto · 2 pessoas" OU "2 quartos · 4 pessoas"; quartos de tipos diferentes se somam. A regra vai
+  escrita na nota da seção, porque o hub não cruza bilhete com quarto.
+- **A ordem é o concerto primeiro**: é o motivo da compra, e o hotel vale mais apresentado depois dele
+  (a base perto do teatro, e a noite de reserva se chover).
+
 **Página única** (`modelo='pagina'`, 0144, 13/11/26) — ela chama de **One Page Experience** (25/11/26,
 TL-066-26), e é esse o nome no editor; o valor no banco continua `pagina`. Instrução dela na TL-065-26, o barco a
 Capri da Danielle: proposta de um serviço só, "one page mesmo, sem capa". Sem capa e sem menu:
