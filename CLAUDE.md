@@ -1493,8 +1493,10 @@ parte. Nenhuma proposta jornada anterior tinha `show_prices=false`.
   clássica, continua com o dela.
 - **Experiência se conta, não se lista** (0169/0170): o texto do serviço segue o dia e vende a noite; o que
   é lista fica no bloco "Inclui". A 0169 ainda saiu como catálogo ("a chegada é pelo acesso Executive, a
-  espera é no lounge"), e ela recusou. **Futuro em português é "vai + verbo"** (vai buscar, vai levar),
-  nunca "buscará" nem "terá", e nem presente de ficha técnica.
+  espera é no lounge"), e ela recusou. A versão final (0171) é o texto dela, palavra por palavra, e é a
+  referência de tom para a próxima peça: abre na hora e no movimento ("No final da tarde do dia 24, um
+  transfer privado irá buscá-los no hotel"), põe o lugar numa frase ("uma estrutura a céu aberto, no meio
+  do campo"), oferece o jantar como possibilidade e fecha na volta ao hotel, sem lista dentro do texto.
 - **O save do editor desfez a 0166** (às 15h31 do mesmo dia), como já tinha desfeito a 0161/0162 da
   TL-066-26. A 0168 regravou. Proposta que ela pode estar editando: avisar para fechar o editor.
 
