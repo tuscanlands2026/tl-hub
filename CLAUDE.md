@@ -1491,10 +1491,14 @@ parte. Nenhuma proposta jornada anterior tinha `show_prices=false`.
   gente está seguindo"). A tabela já é a escolha, linha a linha com valor e caixinha, como na order; o
   resumo "Proposta e condições comerciais" embaixo saiu, só no link net de proposta jornada. A TL-063,
   clássica, continua com o dela.
-- **Experiência se conta, não se lista** (0169): o texto do serviço segue o dia ("o transfer busca vocês
-  no hotel... jantar no caminho... de volta ao hotel"); o que é lista fica no bloco "Inclui".
-- **O save do editor desfez a 0166** (às 15h31 do mesmo dia), como já tinha desfeito a 0161/0162 da
-  TL-066-26. A 0168 regravou. Proposta que ela pode estar editando: avisar para fechar o editor.
+- **Experiência se conta, não se lista** (0169/0170): o texto do serviço segue o dia e vende a noite; o que
+  é lista fica no bloco "Inclui". A 0169 ainda saiu como catálogo ("a chegada é pelo acesso Executive, a
+  espera é no lounge"), e ela recusou. A versão final (0171) é o texto dela, palavra por palavra, e é a
+  referência de tom para a próxima peça: abre na hora e no movimento ("No final da tarde do dia 24, um
+  transfer privado irá buscá-los no hotel"), põe o lugar numa frase ("uma estrutura a céu aberto, no meio
+  do campo"), oferece o jantar como possibilidade e fecha na volta ao hotel, sem lista dentro do texto.
+- **O save do editor desfez a 0166 e a 0171** (às 15h31 do mesmo dia), como já tinha desfeito a 0161/0162 da
+  TL-066-26. A 0168 e a 0173 regravaram (na 0171, o save trazia preços novos dela, que ficaram). Proposta que ela pode estar editando: avisar para fechar o editor.
 
 **Página única** (`modelo='pagina'`, 0144, 13/11/26) — ela chama de **One Page Experience** (25/11/26,
 TL-066-26), e é esse o nome no editor; o valor no banco continua `pagina`. Instrução dela na TL-065-26, o barco a
