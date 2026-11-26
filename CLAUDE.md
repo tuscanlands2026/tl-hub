@@ -1497,8 +1497,8 @@ parte. Nenhuma proposta jornada anterior tinha `show_prices=false`.
   referência de tom para a próxima peça: abre na hora e no movimento ("No final da tarde do dia 24, um
   transfer privado irá buscá-los no hotel"), põe o lugar numa frase ("uma estrutura a céu aberto, no meio
   do campo"), oferece o jantar como possibilidade e fecha na volta ao hotel, sem lista dentro do texto.
-- **O save do editor desfez a 0166** (às 15h31 do mesmo dia), como já tinha desfeito a 0161/0162 da
-  TL-066-26. A 0168 regravou. Proposta que ela pode estar editando: avisar para fechar o editor.
+- **O save do editor desfez a 0166 e a 0171** (às 15h31 do mesmo dia), como já tinha desfeito a 0161/0162 da
+  TL-066-26. A 0168 e a 0173 regravaram (na 0171, o save trazia preços novos dela, que ficaram). Proposta que ela pode estar editando: avisar para fechar o editor.
 
 **Página única** (`modelo='pagina'`, 0144, 13/11/26) — ela chama de **One Page Experience** (25/11/26,
 TL-066-26), e é esse o nome no editor; o valor no banco continua `pagina`. Instrução dela na TL-065-26, o barco a
